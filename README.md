@@ -3,7 +3,9 @@
 **A Bayesian marketing mix model that tells a CMO where the next rupee should go, how sure it
 is, and when not to trust it.**
 
-![MixLab dashboard tour](docs/dashboard.gif)
+**[Open the live dashboard](https://mixlab.streamlit.app/)** (synthetic demo brands; the first load takes a minute)
+
+[![MixLab dashboard tour](docs/dashboard.gif)](https://mixlab.streamlit.app/)
 
 ## The problem
 Most marketing budgets are steered by last-click or platform-reported attribution. That

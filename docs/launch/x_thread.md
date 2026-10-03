@@ -32,4 +32,5 @@ Search's ROI range by 85%.
 
 MMM tells you where to look. Experiments settle it.
 
-Code, case study and dashboard: [link]
+Dashboard: https://mixlab.streamlit.app/
+Code and case study: https://github.com/adityajamdhade6/mixlab

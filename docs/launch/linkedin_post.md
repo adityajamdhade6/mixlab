@@ -28,6 +28,7 @@ settles it. Neither is enough alone.
 Stack: PyMC-Marketing, Streamlit, Plotly, Claude for the explanation layer (every number it
 writes is checked against the model's output).
 
-Repo, case study and dashboard: [link]
+Dashboard: https://mixlab.streamlit.app/
+Code and case study: https://github.com/adityajamdhade6/mixlab
 
 #MarketingAnalytics #MarketingMixModeling #BayesianStatistics #DataScience
