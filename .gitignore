@@ -1,0 +1,34 @@
+# Environments
+.venv/
+venv/
+.env
+
+# Data (raw inputs never committed)
+data/raw/*
+!data/raw/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Fitted models (large; regenerate with scripts/train.py)
+models/*
+!models/.gitkeep
+
+# Cached AI responses
+.cache/
+
+# Demo brand models (large; rebuild with scripts/build_demo.py)
+artifacts/**/*.nc
+!artifacts/**/*_slim.nc
+.coverage
+artifacts/**/*.tmp

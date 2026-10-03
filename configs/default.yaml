@@ -1,0 +1,32 @@
+# MixLab model configuration. Every key is optional; anything omitted uses the defaults in
+# src/mixlab/config.py. Unknown keys are rejected, so typos fail loudly.
+#
+# Prior values are in scaled units: revenue is divided by its peak week and each channel's
+# spend by its own peak week, so 1.0 means "as large as the biggest week".
+
+adstock_l_max: 8                # weeks an ad can keep working after it runs
+yearly_seasonality_order: 2     # number of Fourier pairs for the yearly pattern
+trend_changepoints: 2           # 2 = one straight trend line; more allows bends
+spend_share_prior: false        # see the trade-off note in src/mixlab/model.py
+prior_predictive_samples: 500
+
+# control_columns: [promo_flag, price_index]   # default: all holiday_* + promo_flag + price_index
+
+sampler:
+  chains: 4
+  draws: 1000
+  tune: 1000
+  target_accept: 0.9
+  seed: 42
+  nuts_sampler: nutpie
+
+# Business beliefs about specific channels. Only list what you actually believe; everything
+# else keeps the default prior.
+channel_priors:
+  tv:
+    # "We believe TV decays slowly": Beta(4, 3) centres carryover near 0.57 per week
+    # (default Beta(1, 3) centres near 0.25), while still allowing 0.2 to 0.9.
+    adstock_alpha: {alpha: 4, beta: 3}
+  youtube:
+    # Video brand advertising is also expected to linger, though we hold this less firmly.
+    adstock_alpha: {alpha: 3, beta: 3}

@@ -1,0 +1,168 @@
+{
+  "brand": "performance_heavy",
+  "tested_channel": "google_search",
+  "experiment": {
+    "channel": "google_search",
+    "start_date": "2025-03-03",
+    "end_date": "2025-04-27",
+    "incremental_revenue": 7258291.257140559,
+    "standard_error": 704365.8938876495,
+    "baseline_weekly_spend": null,
+    "test_weekly_spend": null
+  },
+  "test_plan": [
+    {
+      "priority": 1,
+      "channel": "google_search",
+      "total_spend": 81104157.0,
+      "roi_low": 0.023229179453390925,
+      "roi_high": 4.189906898972307,
+      "roi_range_width": 4.166677719518916,
+      "revenue_at_stake": 337934883.93226415,
+      "expected_weekly_effect": 1067490.5000620289,
+      "weeks_needed": 11,
+      "feasible_at_current_spend": true
+    },
+    {
+      "priority": 2,
+      "channel": "meta_ads",
+      "total_spend": 206927027.0,
+      "roi_low": 0.01061894588932006,
+      "roi_high": 1.4401638621479989,
+      "roi_range_width": 1.4295449162586789,
+      "revenue_at_stake": 295811479.4843724,
+      "expected_weekly_effect": 990958.9814520755,
+      "weeks_needed": 12,
+      "feasible_at_current_spend": true
+    },
+    {
+      "priority": 3,
+      "channel": "email",
+      "total_spend": 7783523.0,
+      "roi_low": 0.0005953512880346994,
+      "roi_high": 34.41233138160195,
+      "roi_range_width": 34.41173603031392,
+      "revenue_at_stake": 267844538.86187708,
+      "expected_weekly_effect": 590692.0653130694,
+      "weeks_needed": 26,
+      "feasible_at_current_spend": false
+    },
+    {
+      "priority": 4,
+      "channel": "youtube",
+      "total_spend": 72304335.0,
+      "roi_low": 0.004487217397990235,
+      "roi_high": 2.5624229617595833,
+      "roi_range_width": 2.557935744361593,
+      "revenue_at_stake": 184949842.96879497,
+      "expected_weekly_effect": 560232.0149782393,
+      "weeks_needed": 26,
+      "feasible_at_current_spend": false
+    },
+    {
+      "priority": 5,
+      "channel": "influencers",
+      "total_spend": 69880441.0,
+      "roi_low": 5.667659854517785e-05,
+      "roi_high": 0.504259001921955,
+      "roi_range_width": 0.5042023253234099,
+      "revenue_at_stake": 35233880.846825354,
+      "expected_weekly_effect": 98767.5315148414,
+      "weeks_needed": 26,
+      "feasible_at_current_spend": false
+    },
+    {
+      "priority": 6,
+      "channel": "tv",
+      "total_spend": 41823122.0,
+      "roi_low": 0.5036076499106582,
+      "roi_high": 0.92481287379047,
+      "roi_range_width": 0.42120522387981174,
+      "revenue_at_stake": 17616117.46536268,
+      "expected_weekly_effect": 1660100.4084308043,
+      "weeks_needed": 5,
+      "feasible_at_current_spend": true
+    }
+  ],
+  "roi_before_after": [
+    {
+      "channel": "meta_ads",
+      "before": 0.7470730302742125,
+      "before_low": 0.01061894588932006,
+      "before_high": 1.4401638621479989,
+      "after": 0.7653649969982851,
+      "after_low": 0.025236001563139262,
+      "after_high": 1.4280139317208655,
+      "range_shrink_pct": 1.8724130873065237,
+      "true_roi": 1.182429430052238
+    },
+    {
+      "channel": "google_search",
+      "before": 2.053267356070004,
+      "before_low": 0.023229179453390925,
+      "before_high": 4.189906898972307,
+      "after": 1.6537448244946813,
+      "after_low": 1.3348750269745258,
+      "after_high": 1.939178345454615,
+      "range_shrink_pct": 85.4967588290015,
+      "true_roi": 1.7103463209881842
+    },
+    {
+      "channel": "youtube",
+      "before": 1.208726894958723,
+      "before_low": 0.004487217397990235,
+      "before_high": 2.5624229617595833,
+      "after": 1.1832789778467665,
+      "after_low": 0.014453622489142599,
+      "after_high": 2.455613252360658,
+      "range_shrink_pct": 4.565248159477209,
+      "true_roi": 0.890556064591602
+    },
+    {
+      "channel": "influencers",
+      "before": 0.22048708760030947,
+      "before_low": 5.667659854517785e-05,
+      "before_high": 0.504259001921955,
+      "after": 0.21166240899538827,
+      "after_low": 1.1206531321661819e-05,
+      "after_high": 0.48773873716725674,
+      "range_shrink_pct": 3.267496768664724,
+      "true_roi": 0.8940037966680756
+    },
+    {
+      "channel": "email",
+      "before": 11.838850118235511,
+      "before_low": 0.0005953512880346994,
+      "before_high": 34.41233138160195,
+      "after": 12.667037279986896,
+      "after_low": 0.002346083170086972,
+      "after_high": 36.332365624197074,
+      "range_shrink_pct": -5.574503736234693,
+      "true_roi": 3.4732145221819044
+    },
+    {
+      "channel": "tv",
+      "before": 0.7144805534066652,
+      "before_low": 0.5036076499106582,
+      "before_high": 0.92481287379047,
+      "after": 0.7154865690063394,
+      "after_low": 0.49109352967710634,
+      "after_high": 0.9184782454560143,
+      "range_shrink_pct": -1.4670976399997038,
+      "true_roi": 0.7518381314861983
+    }
+  ],
+  "diagnostics": {
+    "chains": 4,
+    "draws_per_chain": 1000,
+    "n_parameters": 31,
+    "max_r_hat": 1.01,
+    "max_r_hat_parameter": "intercept_contribution",
+    "min_ess_bulk": 797.0,
+    "min_ess_bulk_parameter": "saturation_beta[spend_email]",
+    "min_ess_tail": 496.0,
+    "min_ess_tail_parameter": "intercept_contribution",
+    "divergences": 1,
+    "converged": true
+  }
+}

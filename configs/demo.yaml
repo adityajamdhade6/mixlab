@@ -1,0 +1,23 @@
+# Settings used to fit the demo brands shown in the app (scripts/build_demo.py).
+# Same as default.yaml except target_accept: 0.98 removes the sampler divergences seen at 0.9
+# without changing the estimates.
+
+adstock_l_max: 8
+yearly_seasonality_order: 2
+trend_changepoints: 2
+spend_share_prior: false
+prior_predictive_samples: 500
+
+sampler:
+  chains: 4
+  draws: 1000
+  tune: 1000
+  target_accept: 0.98
+  seed: 42
+  nuts_sampler: nutpie
+
+channel_priors:
+  tv:
+    adstock_alpha: {alpha: 4, beta: 3}
+  youtube:
+    adstock_alpha: {alpha: 3, beta: 3}

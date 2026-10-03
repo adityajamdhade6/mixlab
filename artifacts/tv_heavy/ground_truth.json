@@ -1,0 +1,111 @@
+{
+  "brand": "tv_heavy",
+  "seed": 42,
+  "n_weeks": 156,
+  "start_date": "2023-01-02",
+  "currency": "INR",
+  "adstock": {
+    "type": "geometric",
+    "l_max": 12,
+    "normalize": true
+  },
+  "saturation": {
+    "type": "hill",
+    "formula": "x^slope / (half_saturation^slope + x^slope)"
+  },
+  "organic": {
+    "baseline_revenue": 6000000.0,
+    "annual_trend": 0.12,
+    "seasonality": [
+      [
+        0.06,
+        -0.04
+      ],
+      [
+        0.02,
+        0.03
+      ]
+    ],
+    "holiday_lift": {
+      "diwali": 0.35,
+      "sale_season": 0.25,
+      "new_year": 0.1
+    },
+    "promo_lift": 0.15,
+    "price_sensitivity": -0.6,
+    "revenue_noise": 0.05
+  },
+  "totals": {
+    "revenue": 1609307917.0,
+    "media_contribution": 501985304.378201,
+    "media_pct_of_revenue": 31.192620074471492
+  },
+  "channels": {
+    "meta_ads": {
+      "adstock_decay": 0.35,
+      "half_saturation": 1000000.0,
+      "hill_slope": 1.0,
+      "beta": 1400000.0,
+      "total_spend": 80471618.0,
+      "total_contribution": 73028565.3909688,
+      "true_roi": 0.9075071087916835,
+      "contribution_pct_of_revenue": 4.537886418101105,
+      "contribution_pct_of_media": 14.547948865042533
+    },
+    "google_search": {
+      "adstock_decay": 0.15,
+      "half_saturation": 350000.0,
+      "hill_slope": 1.0,
+      "beta": 1500000.0,
+      "total_spend": 50690099.0,
+      "total_contribution": 111690836.46880376,
+      "true_roi": 2.203405372493034,
+      "contribution_pct_of_revenue": 6.940302429942235,
+      "contribution_pct_of_media": 22.249821955874374
+    },
+    "youtube": {
+      "adstock_decay": 0.6,
+      "half_saturation": 500000.0,
+      "hill_slope": 1.3,
+      "beta": 900000.0,
+      "total_spend": 72304335.0,
+      "total_contribution": 64391064.030512825,
+      "true_roi": 0.890556064591602,
+      "contribution_pct_of_revenue": 4.001164932472822,
+      "contribution_pct_of_media": 12.827280693061867
+    },
+    "influencers": {
+      "adstock_decay": 0.45,
+      "half_saturation": 300000.0,
+      "hill_slope": 1.0,
+      "beta": 700000.0,
+      "total_spend": 33542613.0,
+      "total_contribution": 43390106.13737543,
+      "true_roi": 1.2935815744997394,
+      "contribution_pct_of_revenue": 2.696196649443031,
+      "contribution_pct_of_media": 8.643700474682595
+    },
+    "email": {
+      "adstock_decay": 0.2,
+      "half_saturation": 50000.0,
+      "hill_slope": 1.0,
+      "beta": 350000.0,
+      "total_spend": 7783523.0,
+      "total_contribution": 27033845.11733686,
+      "true_roi": 3.4732145221819044,
+      "contribution_pct_of_revenue": 1.6798429207837458,
+      "contribution_pct_of_media": 5.385385763597828
+    },
+    "tv": {
+      "adstock_decay": 0.7,
+      "half_saturation": 3000000.0,
+      "hill_slope": 1.5,
+      "beta": 6500000.0,
+      "total_spend": 198069961.0,
+      "total_contribution": 182450887.23320332,
+      "true_roi": 0.9211436520311291,
+      "contribution_pct_of_revenue": 11.337226723728552,
+      "contribution_pct_of_media": 36.345862247740804
+    }
+  }
+}

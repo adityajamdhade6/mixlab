@@ -1,0 +1,91 @@
+{
+  "holdout_weeks": 13,
+  "holdout": {
+    "performance_heavy": {
+      "mape_pct": 1.3916315636196768,
+      "coverage_pct": 100.0
+    },
+    "tv_heavy": {
+      "mape_pct": 1.3011780143043046,
+      "coverage_pct": 100.0
+    },
+    "influencer_led": {
+      "mape_pct": 1.5035568494032334,
+      "coverage_pct": 100.0
+    }
+  },
+  "no_channel_priors": {
+    "brand": "performance_heavy",
+    "channels_recovered": 5,
+    "channels": 6,
+    "table": [
+      {
+        "channel": "meta_ads",
+        "true_roi": 1.182429430052238,
+        "estimated_roi": 0.7919350202542655,
+        "low": 0.004278541056271349,
+        "high": 1.4987873424151745,
+        "truth_inside_range": true
+      },
+      {
+        "channel": "google_search",
+        "true_roi": 1.7103463209881842,
+        "estimated_roi": 2.162756793805418,
+        "low": 0.02735833146269602,
+        "high": 4.483499548073947,
+        "truth_inside_range": true
+      },
+      {
+        "channel": "youtube",
+        "true_roi": 0.890556064591602,
+        "estimated_roi": 0.9331565954230118,
+        "low": 0.0021045446571506332,
+        "high": 2.0162050256364705,
+        "truth_inside_range": true
+      },
+      {
+        "channel": "influencers",
+        "true_roi": 0.8940037966680756,
+        "estimated_roi": 0.22221384538854888,
+        "low": 5.0946391491987154e-05,
+        "high": 0.5230668872372091,
+        "truth_inside_range": false
+      },
+      {
+        "channel": "email",
+        "true_roi": 3.4732145221819044,
+        "estimated_roi": 12.3791682041996,
+        "low": 0.01310219195653289,
+        "high": 33.59433078118761,
+        "truth_inside_range": true
+      },
+      {
+        "channel": "tv",
+        "true_roi": 0.7518381314861983,
+        "estimated_roi": 0.6957657573098932,
+        "low": 0.4826395416169757,
+        "high": 0.9123551211482042,
+        "truth_inside_range": true
+      }
+    ]
+  },
+  "seed_study": {
+    "brand": "performance_heavy",
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "recovered_by_channel": {
+      "meta_ads": 3,
+      "google_search": 5,
+      "youtube": 5,
+      "influencers": 5,
+      "email": 4,
+      "tv": 5
+    },
+    "recovered_pct": 90.0
+  }
+}
