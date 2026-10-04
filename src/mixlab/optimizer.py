@@ -13,6 +13,7 @@ Run ``python -m mixlab.optimizer`` to write the summary JSON and figures.
 """
 
 import argparse
+import dataclasses
 import json
 from collections.abc import Callable
 from pathlib import Path
@@ -27,6 +28,7 @@ from pydantic import BaseModel, Field
 from pymc_marketing.mmm.budget_optimizer import BudgetOptimizer
 from pymc_marketing.mmm.multidimensional import MultiDimensionalBudgetOptimizerWrapper
 from pymc_marketing.mmm.utility import average_response, value_at_risk
+from scipy.optimize import minimize
 
 from mixlab import config
 from mixlab.config import BrandConfig
@@ -37,13 +39,14 @@ from mixlab.insights import (
     PosteriorDraws,
     channel_colors,
     extract_draws,
+    hdi,
     simulate_contributions,
     summarize,
 )
 from mixlab.model import MixLabModel
 from mixlab.transforms import FloatArray
 
-Objective = Literal["mean", "percentile"]
+Objective = Literal["mean", "profit", "risk_adjusted", "percentile"]
 Plan = dict[str, float]
 Bounds = dict[str, tuple[float, float]]
 
@@ -92,6 +95,12 @@ class OptimizationResult(BaseModel):
     caveats: dict[str, str] = Field(default_factory=dict)
     realistic_uplift: float = 0.0
     realistic_uplift_pct: float = 0.0
+    limits: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    goal_probability: float | None = None
+    corner_solution: bool = False
+    corner_note: str = ""
+    shrinkage: float = config.UPLIFT_SHRINKAGE
+    margin: float = config.DEFAULT_MARGIN
 
 
 # --- Plans and their revenue ----------------------------------------------------------------
@@ -298,83 +307,210 @@ class BudgetAllocator:
         return plan, bool(result.success), str(result.message)
 
 
-def optimize_budget(
-    allocator: BudgetAllocator,
-    draws: PosteriorDraws,
-    total_budget: float | None = None,
-    minimum: Plan | None = None,
-    maximum: Plan | None = None,
-    max_change: float | None = None,
+OBJECTIVE_LABELS: dict[str, str] = {
+    "mean": "expected revenue",
+    "profit": "expected profit",
+    "risk_adjusted": "risk-adjusted revenue",
+    "percentile": f"{config.RISK_PERCENTILE:g}th percentile revenue",
+}
+
+
+def thin(draws: PosteriorDraws, n: int = config.OPTIMIZER_DRAWS) -> PosteriorDraws:
+    """Return an evenly spaced subset of the draws, to keep the solver fast."""
+    step = max(draws.alpha.shape[0] // n, 1)
+    if step == 1:
+        return draws
+    pick = slice(None, None, step)
+
+    def cut(values: FloatArray | None) -> FloatArray | None:
+        return None if values is None else values[pick]
+
+    return dataclasses.replace(
+        draws,
+        alpha=draws.alpha[pick],
+        lam=draws.lam[pick],
+        beta=draws.beta[pick],
+        slope=cut(draws.slope),
+        kappa=cut(draws.kappa),
+        noise_sigma=cut(draws.noise_sigma),
+        organic={name: values[pick] for name, values in draws.organic.items()},
+        channel_contribution=draws.channel_contribution[pick],
+    )
+
+
+def objective_value(
+    revenue: FloatArray,
+    total_spend: float,
     objective: Objective = "mean",
+    margin: float = config.DEFAULT_MARGIN,
+    risk_lambda: float = config.RISK_LAMBDA,
     percentile: float = config.RISK_PERCENTILE,
-    gate: bool = False,
-) -> OptimizationResult:
-    """Find the best allocation of a budget and compare it with the current allocation.
+) -> float:
+    """Score a plan from its incremental-revenue draws (one value per posterior draw).
 
-    With ``gate=True`` the confidence gate applies: channels the health checks cannot
-    measure well (see ``channel_caveats``) are held to ``config.GATED_MAX_CHANGE`` instead
-    of ``max_change`` and are not pushed above their historical peak weekly spend. Caveats
-    for those channels are attached to the result whether or not the gate is on.
-
-    Args:
-        allocator: Compiled allocator for the fitted model.
-        draws: Posterior draws from the same model.
-        total_budget: Budget for the window; defaults to what was spent last quarter.
-        minimum: Per-channel floors (period totals).
-        maximum: Per-channel ceilings (period totals).
-        max_change: Maximum relative change per channel versus last quarter.
-        objective: ``"mean"`` for expected revenue, ``"percentile"`` for a conservative plan.
-        percentile: Percentile used by the conservative objective.
-        gate: Apply the confidence gate to channels with measurement caveats.
-
+    - ``mean``: expected revenue.
+    - ``profit``: expected gross profit, ``margin * revenue - spend``.
+    - ``risk_adjusted``: mean minus ``risk_lambda`` standard deviations, which penalises plans
+      whose payoff the model is unsure about.
+    - ``percentile``: the revenue still achieved in a bad case (e.g. the 10th percentile).
     """
-    n_weeks = allocator.n_weeks
-    current = last_quarter_spend(draws, n_weeks)
-    budget = float(total_budget if total_budget is not None else sum(current.values()))
-    caveats = channel_caveats(draws)
-    limits: float | dict[str, float] | None = max_change
-    if gate and max_change is not None:
-        limits = {
-            channel: min(max_change, config.GATED_MAX_CHANGE) if channel in caveats else max_change
-            for channel in current
-        }
-        peak = dict(zip(draws.channels, draws.spend.max(axis=0) * n_weeks, strict=True))
-        gated_ceiling = {
-            channel: min(current[channel] * (1 + limits[channel]), float(peak[channel]))
-            for channel in caveats
-        }
-        maximum = {**gated_ceiling, **(maximum or {})}
-    bounds = build_bounds(current, budget, minimum, maximum, limits)
-    plan, converged, message = allocator.allocate(budget, bounds, objective, percentile)
+    if objective == "profit":
+        return float(margin * revenue.mean() - total_spend)
+    if objective == "risk_adjusted":
+        return float(revenue.mean() - risk_lambda * revenue.std())
+    if objective == "percentile":
+        return float(np.percentile(revenue, percentile))
+    return float(revenue.mean())
 
+
+def solve_allocation(
+    draws: PosteriorDraws,
+    budget: float,
+    bounds: Bounds,
+    n_weeks: int,
+    objective: Objective = "mean",
+    margin: float = config.DEFAULT_MARGIN,
+    risk_lambda: float = config.RISK_LAMBDA,
+    percentile: float = config.RISK_PERCENTILE,
+    starts: list[Plan] | None = None,
+) -> tuple[Plan, bool, str]:
+    """Split ``budget`` across channels to maximise the objective over the posterior.
+
+    Every candidate plan is evaluated on (a thinned set of) posterior draws, so the objective
+    reflects uncertainty rather than a single best-guess curve. The response surface is not
+    concave for S-shaped curves, so the search starts from several points and keeps the best.
+
+    Returns the plan (period totals), whether the solver converged, and its message.
+    """
+    names = list(bounds)
+    low = np.array([bounds[name][0] for name in names])
+    high = np.array([bounds[name][1] for name in names])
+    if budget <= 0 or np.allclose(low, high):
+        return dict(zip(names, low.tolist(), strict=True)), True, "Bounds leave no freedom."
+    sample = thin(draws)
+
+    def score(shares: FloatArray) -> float:
+        plan = dict(zip(names, (shares * budget).tolist(), strict=True))
+        revenue = plan_revenue_draws(sample, plan, n_weeks).sum(axis=1)
+        return objective_value(revenue, budget, objective, margin, risk_lambda, percentile)
+
+    room = high - low
+    spread = (budget - low.sum()) / room.sum() if room.sum() > 0 else 0.0
+    candidates = [low + spread * room]
+    for start in starts or []:
+        values = np.array([start.get(name, 0.0) for name in names])
+        if abs(values.sum() - budget) <= config.BOUND_TOLERANCE * budget and np.all(
+            (values >= low - 1.0) & (values <= high + 1.0)
+        ):
+            candidates.append(np.clip(values, low, high))
+    reference = abs(score(candidates[0] / budget)) or 1.0
+    best: tuple[float, FloatArray, bool, str] | None = None
+    for start in candidates:
+        result = minimize(
+            lambda shares: -score(shares) / reference,
+            start / budget,
+            method="SLSQP",
+            bounds=list(zip(low / budget, high / budget, strict=True)),
+            constraints=[{"type": "eq", "fun": lambda shares: shares.sum() - 1.0}],
+            options={"ftol": config.OPTIMIZER_FTOL, "maxiter": config.OPTIMIZER_MAX_ITERATIONS},
+        )
+        shares = np.clip(result.x, low / budget, high / budget)
+        value = score(shares)
+        if best is None or value > best[0]:
+            best = (value, shares, bool(result.success), str(result.message))
+    assert best is not None
+    plan = dict(zip(names, (best[1] * budget).tolist(), strict=True))
+    return plan, best[2], best[3]
+
+
+def channel_limits(
+    draws: PosteriorDraws, n_weeks: int, base_change: float = config.DEFAULT_MAX_CHANGE
+) -> dict[str, dict[str, Any]]:
+    """Return how far each channel may move by default, and why.
+
+    Limits tighten with the evidence against trusting a channel's curve:
+
+    - ran in bursts, or is a very small share of spend: ``config.GATED_MAX_CHANGE``;
+    - its ROI range is wide relative to its estimate: ``config.UNCERTAIN_MAX_CHANGE``;
+    - otherwise the standard ``base_change``.
+
+    No channel is pushed above its highest weekly spend on record, where the curve is an
+    extrapolation.
+    """
+    flags = measurement_flags(draws.spend, draws.channels)
+    roi = draws.channel_contribution.sum(axis=1) / draws.spend.sum(axis=0)
+    low, high = hdi(roi)
+    peak = draws.spend.max(axis=0) * n_weeks
+    limits: dict[str, dict[str, Any]] = {}
+    for index, channel in enumerate(draws.channels):
+        width = (high[index] - low[index]) / max(float(roi[:, index].mean()), 1e-9)
+        if flags[channel]:
+            change, reason = config.GATED_MAX_CHANGE, "; ".join(flags[channel])
+        elif width > config.UNCERTAIN_RELATIVE_WIDTH:
+            change = config.UNCERTAIN_MAX_CHANGE
+            reason = (
+                f"its ROI is uncertain (94% range {low[index]:.2f} to {high[index]:.2f}), "
+                "so moves are kept small until a test narrows it"
+            )
+        else:
+            change, reason = base_change, "measured well enough for the standard limit"
+        limits[channel] = {
+            "max_change": min(change, base_change),
+            "reason": reason,
+            "ceiling": float(peak[index]),
+        }
+    return limits
+
+
+def corner_check(plan: Plan, bounds: Bounds) -> tuple[bool, str]:
+    """Flag a plan where most channels sit on a limit, and say what that means."""
+    at_limit = [
+        channel
+        for channel, (low, high) in bounds.items()
+        if high > low
+        and (
+            abs(plan[channel] - low) <= 0.005 * max(high, 1.0)
+            or abs(plan[channel] - high) <= 0.005 * max(high, 1.0)
+        )
+    ]
+    if len(at_limit) < config.CORNER_SHARE * len(bounds):
+        return False, ""
+    return True, (
+        f"{len(at_limit)} of {len(bounds)} channels are at a limit, so the limits, not the "
+        "response curves, are deciding this plan. Read it as the direction to move in, not as "
+        "a precise optimum; loosening a limit would change the answer."
+    )
+
+
+def _window(allocator_or_weeks: Any) -> int:
+    """Return the planning window from an allocator or a plain number of weeks."""
+    return int(getattr(allocator_or_weeks, "n_weeks", allocator_or_weeks))
+
+
+def build_result(
+    draws: PosteriorDraws,
+    n_weeks: int,
+    current: Plan,
+    plan: Plan,
+    bounds: Bounds,
+    label: str,
+    converged: bool,
+    message: str,
+    limits: dict[str, dict[str, Any]] | None = None,
+    shrinkage: float = config.UPLIFT_SHRINKAGE,
+    margin: float = config.DEFAULT_MARGIN,
+) -> OptimizationResult:
+    """Assemble the comparison of a recommended plan with the current one."""
     current_draws = plan_revenue_draws(draws, current, n_weeks).sum(axis=1)
     plan_draws = plan_revenue_draws(draws, plan, n_weeks).sum(axis=1)
-    same_budget = abs(budget - sum(current.values())) <= config.BOUND_TOLERANCE * budget
-    if same_budget and _score(plan_draws, objective, percentile) < _score(
-        current_draws, objective, percentile
-    ):
-        # A Hill response surface is not concave, so the solver can stop at a local optimum
-        # that is worse than where it started. Search again from the current plan, and if
-        # that is no better either, recommend no change rather than a plan known to be worse.
-        retry, converged, message = allocator.allocate(
-            budget, bounds, objective, percentile, start=current
-        )
-        retry_draws = plan_revenue_draws(draws, retry, n_weeks).sum(axis=1)
-        if _score(retry_draws, objective, percentile) >= _score(
-            current_draws, objective, percentile
-        ):
-            plan, plan_draws = retry, retry_draws
-        else:
-            plan, plan_draws = dict(current), current_draws
-            message = "No better plan found; keeping the current allocation."
     uplift = plan_draws - current_draws
-    historical_peak = draws.spend.max(axis=0)
+    peak = draws.spend.max(axis=0)
     extrapolated = [
         channel
-        for channel, peak in zip(draws.channels, historical_peak, strict=True)
-        if plan[channel] / n_weeks > peak
+        for channel, highest in zip(draws.channels, peak, strict=True)
+        if plan[channel] / n_weeks > highest * (1 + config.BOUND_TOLERANCE)
     ]
-    label = "expected revenue" if objective == "mean" else f"{percentile:g}th percentile revenue"
+    corner, note = corner_check(plan, bounds)
     return OptimizationResult(
         objective=label,
         converged=converged,
@@ -386,17 +522,185 @@ def optimize_budget(
         uplift_pct=summarize(100 * uplift / current_draws),
         prob_recommended_beats_current=float((uplift > 0).mean()),
         extrapolated_channels=extrapolated,
-        caveats=caveats,
-        realistic_uplift=config.UPLIFT_SHRINKAGE * float(uplift.mean()),
-        realistic_uplift_pct=config.UPLIFT_SHRINKAGE * float((100 * uplift / current_draws).mean()),
+        caveats=channel_caveats(draws),
+        realistic_uplift=shrinkage * float(uplift.mean()),
+        realistic_uplift_pct=shrinkage * float((100 * uplift / current_draws).mean()),
+        limits=limits or {},
+        corner_solution=corner,
+        corner_note=note,
+        shrinkage=shrinkage,
+        margin=margin,
     )
+
+
+def optimize_budget(
+    allocator: Any,
+    draws: PosteriorDraws,
+    total_budget: float | None = None,
+    minimum: Plan | None = None,
+    maximum: Plan | None = None,
+    max_change: float | None = None,
+    objective: Objective = "mean",
+    percentile: float = config.RISK_PERCENTILE,
+    gate: bool = False,
+    margin: float = config.DEFAULT_MARGIN,
+    risk_lambda: float = config.RISK_LAMBDA,
+    shrinkage: float = config.UPLIFT_SHRINKAGE,
+) -> OptimizationResult:
+    """Find the best allocation of a budget and compare it with the current allocation.
+
+    Candidate plans are scored across posterior draws (``solve_allocation``). With
+    ``gate=True`` each channel's limit comes from ``channel_limits``: tighter where the
+    evidence is weak, and never above the channel's highest week on record.
+
+    Args:
+        allocator: A ``BudgetAllocator`` or simply the number of weeks in the window.
+        draws: Posterior draws from the fitted model.
+        total_budget: Budget for the window; defaults to what was spent last quarter.
+        minimum: Per-channel floors (period totals).
+        maximum: Per-channel ceilings (period totals).
+        max_change: Maximum relative change per channel versus last quarter.
+        objective: ``mean``, ``profit``, ``risk_adjusted`` or ``percentile``.
+        percentile: Percentile used by the ``percentile`` objective.
+        gate: Apply uncertainty-aware limits.
+        margin: Product margin, used by the ``profit`` objective.
+        risk_lambda: Weight on the standard deviation in the ``risk_adjusted`` objective.
+        shrinkage: Share of the expected uplift to report as the realistic uplift.
+
+    """
+    n_weeks = _window(allocator)
+    current = last_quarter_spend(draws, n_weeks)
+    budget = float(total_budget if total_budget is not None else sum(current.values()))
+    change: float | dict[str, float] | None = max_change
+    explained: dict[str, dict[str, Any]] = {}
+    if gate and max_change is not None:
+        explained = channel_limits(draws, n_weeks, max_change)
+        change = {channel: info["max_change"] for channel, info in explained.items()}
+        ceilings = {
+            channel: max(min(current[channel] * (1 + change[channel]), info["ceiling"]), 0.0)
+            for channel, info in explained.items()
+        }
+        maximum = {**ceilings, **(maximum or {})}
+    bounds = build_bounds(current, budget, minimum, maximum, change)
+    plan, converged, message = solve_allocation(
+        draws, budget, bounds, n_weeks, objective, margin, risk_lambda, percentile, [current]
+    )
+
+    def score(candidate: Plan) -> float:
+        revenue = plan_revenue_draws(draws, candidate, n_weeks).sum(axis=1)
+        total = sum(candidate.values())
+        return objective_value(revenue, total, objective, margin, risk_lambda, percentile)
+
+    same_budget = abs(budget - sum(current.values())) <= config.BOUND_TOLERANCE * max(budget, 1)
+    if same_budget and score(plan) < score(current):
+        # The solver works on a subset of draws; on the full posterior the current plan can
+        # still come out ahead. Never recommend a plan the model itself rates below it.
+        plan, message = dict(current), "No better plan found; keeping the current allocation."
+    return build_result(
+        draws,
+        n_weeks,
+        current,
+        plan,
+        bounds,
+        OBJECTIVE_LABELS[objective],
+        converged,
+        message,
+        explained,
+        shrinkage,
+        margin,
+    )
+
+
+def optimize_goal(
+    draws: PosteriorDraws,
+    n_weeks: int,
+    revenue_target: float | None = None,
+    roi_target: float | None = None,
+    max_change: float | None = None,
+) -> OptimizationResult:
+    """Find the plan that meets a business goal other than "spend this budget".
+
+    - ``revenue_target``: the cheapest plan whose expected incremental revenue reaches the
+      target ("minimise spend to hit a revenue number").
+    - ``roi_target``: the largest plan whose expected revenue per rupee stays at or above the
+      target ("grow as far as a target ROI allows").
+
+    Exactly one target must be given. Customer acquisition cost is not supported: the data
+    has revenue, not customers.
+
+    Raises:
+        ValueError: If no plan within the limits can meet the target.
+
+    """
+    if (revenue_target is None) == (roi_target is None):
+        raise ValueError("Give exactly one of revenue_target or roi_target.")
+    current = last_quarter_spend(draws, n_weeks)
+    names = list(current)
+    values = np.array([current[name] for name in names])
+    if max_change is None:
+        low, high = np.zeros_like(values), draws.spend.max(axis=0) * n_weeks
+    else:
+        low, high = values * (1 - max_change), values * (1 + max_change)
+    scale = float(values.sum())
+    sample = thin(draws)
+
+    def revenue(spend: FloatArray) -> float:
+        plan = dict(zip(names, spend.tolist(), strict=True))
+        return float(plan_revenue_draws(sample, plan, n_weeks).sum(axis=1).mean())
+
+    if revenue_target is not None:
+        if revenue(high) < revenue_target:
+            raise ValueError(
+                f"Even at the upper limits expected revenue is {revenue(high):,.0f}, below the "
+                f"target of {revenue_target:,.0f}. Raise the limits or lower the target."
+            )
+        label = f"lowest spend for {revenue_target / config.INR_PER_CRORE:.2f} Cr of revenue"
+        result = minimize(
+            lambda x: x.sum(),
+            high / scale,
+            method="SLSQP",
+            bounds=list(zip(low / scale, high / scale, strict=True)),
+            constraints=[
+                {"type": "ineq", "fun": lambda x: (revenue(x * scale) - revenue_target) / scale}
+            ],
+            options={"ftol": config.OPTIMIZER_FTOL, "maxiter": config.OPTIMIZER_MAX_ITERATIONS},
+        )
+    else:
+        if revenue(low) < roi_target * low.sum() and low.sum() > 0:
+            raise ValueError(
+                f"Even at the lower limits the ROI is {revenue(low) / low.sum():.2f}, below the "
+                f"target of {roi_target:.2f}. Widen the limits or lower the target."
+            )
+        label = f"largest plan with ROI of at least {roi_target:.2f}"
+        result = minimize(
+            lambda x: -revenue(x * scale) / scale,
+            np.maximum(low, 1.0) / scale,
+            method="SLSQP",
+            bounds=list(zip(low / scale, high / scale, strict=True)),
+            constraints=[
+                {
+                    "type": "ineq",
+                    "fun": lambda x: (revenue(x * scale) - roi_target * x.sum() * scale) / scale,
+                }
+            ],
+            options={"ftol": config.OPTIMIZER_FTOL, "maxiter": config.OPTIMIZER_MAX_ITERATIONS},
+        )
+    spend = np.clip(result.x * scale, low, high)
+    plan = dict(zip(names, spend.tolist(), strict=True))
+    bounds = {name: (float(a), float(b)) for name, a, b in zip(names, low, high, strict=True)}
+    outcome = build_result(
+        draws, n_weeks, current, plan, bounds, label, bool(result.success), str(result.message)
+    )
+    # The search targets the expected value; say how likely the goal is to be met at all.
+    achieved = plan_revenue_draws(draws, plan, n_weeks).sum(axis=1)
+    threshold = revenue_target if revenue_target is not None else roi_target * spend.sum()
+    outcome.goal_probability = float((achieved >= threshold).mean())
+    return outcome
 
 
 def _score(revenue_draws: FloatArray, objective: Objective, percentile: float) -> float:
     """Return the value the optimizer is maximising for a plan's revenue draws."""
-    if objective == "mean":
-        return float(revenue_draws.mean())
-    return float(np.percentile(revenue_draws, percentile))
+    return objective_value(revenue_draws, 0.0, objective, percentile=percentile)
 
 
 def channel_caveats(draws: PosteriorDraws) -> dict[str, str]:
@@ -436,6 +740,187 @@ def measured_shrinkage(summaries: list[dict[str, Any]]) -> float | None:
         if check and check["model_expected_uplift"] > 0:
             ratios.append(check["true_uplift"] / check["model_expected_uplift"])
     return float(np.mean(ratios)) if ratios else None
+
+
+# --- Timing, rollout and optimism -----------------------------------------------------------
+
+
+def weekly_plan(
+    draws: PosteriorDraws,
+    plan: Plan,
+    n_weeks: int,
+    burst_minimum: Plan | None = None,
+    min_burst_weeks: int = config.MIN_BURST_WEEKS,
+) -> pd.DataFrame:
+    """Turn period totals into a week-by-week spend plan, respecting carryover and flighting.
+
+    For each channel the total is either spread evenly or concentrated into one burst of
+    ``k`` consecutive weeks; the option with the highest expected revenue (carryover included)
+    wins. A channel listed in ``burst_minimum`` must spend at least that much in any week it is
+    on, which rules out thin bursts ("TV at no less than 20 lakh a week").
+
+    The model is additive, so a channel's effect does not depend on which calendar weeks it
+    runs in; bursts are therefore placed at the start of the window, and festival timing
+    should be decided by the planner, not read off this output.
+
+    Returns a frame with one row per week and one column per channel.
+    """
+    sample = thin(draws)
+    schedule = np.zeros((n_weeks, len(draws.channels)))
+    for index, channel in enumerate(draws.channels):
+        total = plan.get(channel, 0.0)
+        if total <= 0:
+            continue
+        floor = (burst_minimum or {}).get(channel, 0.0)
+        best_value, best_weeks = -np.inf, n_weeks
+        for weeks in range(min(min_burst_weeks, n_weeks), n_weeks + 1):
+            if total / weeks < floor:
+                break
+            matrix = np.zeros((n_weeks + draws.l_max, len(draws.channels)))
+            matrix[:weeks, index] = total / weeks
+            value = float(simulate_contributions(sample, matrix)[:, :, index].sum(axis=1).mean())
+            if value > best_value + 1e-6:
+                best_value, best_weeks = value, weeks
+        schedule[:best_weeks, index] = total / best_weeks
+    frame = pd.DataFrame(schedule, columns=draws.channels)
+    frame.insert(0, "week", range(1, n_weeks + 1))
+    return frame
+
+
+def rollout_plan(
+    draws: PosteriorDraws,
+    result: OptimizationResult,
+    steps: int = config.ROLLOUT_STEPS,
+    weeks_per_step: int = config.ROLLOUT_WEEKS_PER_STEP,
+) -> list[dict[str, Any]]:
+    """Turn a recommendation into stepped changes with a checkpoint after each.
+
+    Each step moves a further ``1 / steps`` of the way from the current plan to the
+    recommended one. The checkpoint states what the model expects, how that compares with
+    ordinary week-to-week noise, and the result that should stop the rollout.
+    """
+    n_weeks = result.current.n_weeks
+    current, target = result.current.spend, result.recommended.spend
+    base = plan_revenue_draws(draws, current, n_weeks).sum(axis=1)
+    noise = float(np.median(draws.noise_sigma)) if draws.noise_sigma is not None else 0.0
+    # Average weekly revenue over a step is known to within this much from noise alone.
+    step_noise = 2 * noise / np.sqrt(weeks_per_step)
+    plan_steps = []
+    for step in range(1, steps + 1):
+        share = step / steps
+        spend = {c: current[c] + share * (target[c] - current[c]) for c in current}
+        weekly = (plan_revenue_draws(draws, spend, n_weeks).sum(axis=1) - base) / n_weeks
+        estimate = summarize(weekly)
+        visible = abs(estimate.mean) > step_noise
+        plan_steps.append(
+            {
+                "step": step,
+                "weeks": f"{(step - 1) * weeks_per_step + 1} to {step * weeks_per_step}",
+                "share_of_change": share,
+                "spend": spend,
+                "expected_weekly_revenue_change": estimate.model_dump(),
+                "weekly_noise": noise,
+                "visible_in_topline": bool(visible),
+                "confirm": (
+                    "Average weekly revenue over the step is at or above the forecast."
+                    if visible
+                    else "The expected change is smaller than normal week-to-week noise, so "
+                    "revenue alone cannot confirm it. Confirm with a holdout test, or proceed "
+                    "if nothing below triggers."
+                ),
+                "stop": (
+                    f"Average weekly revenue over the step is more than {step_noise:,.0f} below "
+                    "the forecast for the current plan."
+                ),
+            }
+        )
+    return plan_steps
+
+
+def estimate_optimism(
+    df: pd.DataFrame,
+    settings: Any,
+    draws: PosteriorDraws,
+    n_weeks: int,
+    max_change: float = config.DEFAULT_MAX_CHANGE,
+    n_boot: int = config.OPTIMISM_BOOTSTRAPS,
+    seed: int = config.RANDOM_SEED,
+) -> dict[str, Any]:
+    """Estimate how inflated the optimizer's expected uplift is, without using any truth.
+
+    The optimizer's curse: a plan is chosen because the model rates it highly, and plans rated
+    highly are disproportionately ones the model overrates. To measure the effect, each
+    replicate treats one posterior draw as the real world, simulates revenue from it, refits
+    the model on that simulated history, optimizes, and then scores the chosen plan under the
+    world that generated the data. The ratio of uplift delivered to uplift expected, pooled
+    over replicates, is the haircut to apply to this brand's expected uplift.
+    """
+    rng = np.random.default_rng(seed)
+    quick = settings.model_copy(
+        update={
+            "sampler": settings.sampler.model_copy(
+                update={"draws": config.OPTIMISM_DRAWS, "tune": config.OPTIMISM_DRAWS, "chains": 2}
+            )
+        }
+    )
+    mean = sum(draws.organic.values()) + draws.channel_contribution.sum(axis=2)
+    pairs = []
+    for replicate in rng.choice(mean.shape[0], size=n_boot, replace=False):
+        noise = rng.normal(0.0, draws.noise_sigma[replicate], mean.shape[1])
+        simulated = df.assign(**{config.TARGET_COL: np.maximum(mean[replicate] + noise, 1.0)})
+        model = MixLabModel().build(simulated, quick)
+        model.fit(progressbar=False)
+        refit = extract_draws(model, simulated)
+        result = optimize_budget(n_weeks, refit, max_change=max_change, gate=True)
+        world = _single_draw(draws, int(replicate))
+        delivered = float(
+            plan_revenue_draws(world, result.recommended.spend, n_weeks).sum()
+            - plan_revenue_draws(world, result.current.spend, n_weeks).sum()
+        )
+        pairs.append({"expected": result.uplift.mean, "delivered": delivered})
+    expected = sum(pair["expected"] for pair in pairs)
+    delivered = sum(pair["delivered"] for pair in pairs)
+    ratio = delivered / expected if expected > 0 else 1.0
+    # With few replicates the haircut is itself uncertain; resample them to show how much.
+    resampled = []
+    for _ in range(config.OPTIMISM_RESAMPLES):
+        chosen = rng.integers(0, len(pairs), len(pairs))
+        total = sum(pairs[i]["expected"] for i in chosen)
+        if total > 0:
+            resampled.append(sum(pairs[i]["delivered"] for i in chosen) / total)
+    low, high = (
+        (float(np.clip(q, 0.0, 1.0)) for q in np.percentile(resampled, [10, 90]))
+        if resampled
+        else (0.0, 1.0)
+    )
+    return {
+        "shrinkage": float(np.clip(ratio, 0.0, 1.0)),
+        "shrinkage_low": low,
+        "shrinkage_high": high,
+        "raw_ratio": float(ratio),
+        "replicates": pairs,
+        "method": "parametric bootstrap from the posterior, refit and re-optimize",
+    }
+
+
+def _single_draw(draws: PosteriorDraws, index: int) -> PosteriorDraws:
+    """Return a copy of ``draws`` holding only one posterior draw (a possible real world)."""
+    pick = slice(index, index + 1)
+
+    def cut(values: FloatArray | None) -> FloatArray | None:
+        return None if values is None else values[pick]
+
+    return dataclasses.replace(
+        draws,
+        alpha=draws.alpha[pick],
+        lam=draws.lam[pick],
+        beta=draws.beta[pick],
+        slope=cut(draws.slope),
+        kappa=cut(draws.kappa),
+        noise_sigma=cut(draws.noise_sigma),
+        organic={name: values[pick] for name, values in draws.organic.items()},
+        channel_contribution=draws.channel_contribution[pick],
+    )
 
 
 # --- Scenarios ------------------------------------------------------------------------------
@@ -494,15 +979,14 @@ def compare_scenarios(
 # --- Budget-level curve ---------------------------------------------------------------------
 
 
-def budget_curve(
-    allocator: BudgetAllocator, draws: PosteriorDraws, budgets: FloatArray
-) -> pd.DataFrame:
+def budget_curve(allocator: Any, draws: PosteriorDraws, budgets: FloatArray) -> pd.DataFrame:
     """Return the best achievable incremental revenue at each total budget.
 
     Each budget is optimally allocated with no channel bounds. ``marginal_return`` is the
     extra revenue per extra rupee between consecutive budgets.
     """
     channels = draws.channels
+    n_weeks = _window(allocator)
     rows = []
     plan: Plan | None = None
     for budget in np.sort(np.asarray(budgets, dtype=np.float64)):
@@ -510,8 +994,10 @@ def budget_curve(
         # Start each budget from the previous optimum, scaled up to the new total.
         scale = budget / sum(plan.values()) if plan else 0.0
         start = {channel: spend * scale for channel, spend in plan.items()} if plan else None
-        plan, _, _ = allocator.allocate(float(budget), bounds, start=start)
-        estimate = summarize(plan_revenue_draws(draws, plan, allocator.n_weeks).sum(axis=1))
+        plan, _, _ = solve_allocation(
+            draws, float(budget), bounds, n_weeks, starts=[start] if start else None
+        )
+        estimate = summarize(plan_revenue_draws(draws, plan, n_weeks).sum(axis=1))
         rows.append(
             {
                 "budget": float(budget),
@@ -747,35 +1233,60 @@ def describe(result: OptimizationResult) -> str:
 
 
 def build_optimizer_summary(
-    allocator: BudgetAllocator,
+    allocator: Any,
     draws: PosteriorDraws,
     brand: BrandConfig | None = None,
     max_change: float = config.DEFAULT_MAX_CHANGE,
     curve_points: int = config.BUDGET_CURVE_POINTS,
+    optimism: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run every optimizer analysis and return one JSON-ready summary.
 
-    Contains three recommendations (expected revenue and conservative, both within
-    ``max_change``; and unconstrained), the pre-built scenarios, and the budget-level curve.
+    Contains three recommendations (expected revenue and conservative, both with
+    uncertainty-aware limits; and unconstrained), a rollout plan and week-by-week schedule for
+    the main one, the pre-built scenarios, and the budget-level curve. ``optimism`` is the
+    output of ``estimate_optimism``; its haircut replaces the default for "realistic uplift".
     If ``brand`` is given (synthetic data), each result is also scored against the truth.
     """
-    n_weeks = allocator.n_weeks
+    n_weeks = _window(allocator)
     current = last_quarter_spend(draws, n_weeks)
+    shrinkage = optimism["shrinkage"] if optimism else config.UPLIFT_SHRINKAGE
     runs = {
-        "expected_revenue": optimize_budget(allocator, draws, max_change=max_change, gate=True),
-        "conservative": optimize_budget(
-            allocator, draws, max_change=max_change, objective="percentile", gate=True
+        "expected_revenue": optimize_budget(
+            n_weeks, draws, max_change=max_change, gate=True, shrinkage=shrinkage
         ),
-        "unconstrained": optimize_budget(allocator, draws),
+        "conservative": optimize_budget(
+            n_weeks,
+            draws,
+            max_change=max_change,
+            objective="percentile",
+            gate=True,
+            shrinkage=shrinkage,
+        ),
+        "unconstrained": optimize_budget(n_weeks, draws, shrinkage=shrinkage),
     }
     summary: dict[str, Any] = {"n_weeks": n_weeks, "max_change": max_change}
+    if optimism:
+        summary["optimism"] = optimism
     for name, result in runs.items():
         summary[name] = result.model_dump()
         if brand is not None:
             summary[name]["truth_check"] = validate_against_truth(brand, result)
 
+    main_result = runs["expected_revenue"]
+    summary["rollout"] = rollout_plan(draws, main_result)
+    bursts = {
+        channel: float(draws.spend[draws.spend[:, index] > 0, index].min())
+        for index, channel in enumerate(draws.channels)
+        if config.CAVEAT_BURSTS in main_result.caveats.get(channel, "")
+    }
+    summary["weekly_plan"] = weekly_plan(
+        draws, main_result.recommended.spend, n_weeks, bursts
+    ).to_dict(orient="records")
+    summary["burst_minimum"] = bursts
+
     scenarios = prebuilt_scenarios(current)
-    scenarios["recommended (same budget)"] = runs["expected_revenue"].recommended.spend
+    scenarios["recommended (same budget)"] = main_result.recommended.spend
     table = compare_scenarios(draws, scenarios, n_weeks)
     if brand is not None:
         true_base = sum(true_plan_revenue(brand, current, n_weeks).values())
@@ -787,7 +1298,7 @@ def build_optimizer_summary(
 
     total = sum(current.values())
     budgets = total * np.linspace(*config.BUDGET_CURVE_MULTIPLES, curve_points)
-    curve = budget_curve(allocator, draws, budgets)
+    curve = budget_curve(n_weeks, draws, budgets)
     summary["budget_curve"] = curve.astype(object).where(curve.notna(), None).to_dict("records")
     summary["payback_budget"] = payback_budget(curve)
     summary["current_budget"] = total

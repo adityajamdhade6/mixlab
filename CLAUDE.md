@@ -50,6 +50,8 @@ explains results to a non-technical CMO.
 - Compare model variants: `uv run python scripts/compare_models.py` (LOO, holdout, recovery; about 30 minutes)
 - Meridian benchmark (own environment): `uv run --isolated --python 3.11 --with google-meridian --with pandas python scripts/benchmark_meridian.py`
 - Model decisions and their evidence: `docs/model_log.md`
+- Re-estimate the optimizer's-curse haircut: `uv run python scripts/build_demo.py --stage curse` (six quick refits per brand)
+- Optimizer benchmark on random brands: `uv run python scripts/optimizer_benchmark.py --brands 20`
 
 ## Model defaults (v2)
 - `configs/default.yaml` and `configs/demo.yaml` select Hill saturation with an independent ROI prior. `ModelSettings()` with no file is still the v1 model (logistic, coefficient priors); tests rely on that.
@@ -63,3 +65,4 @@ explains results to a non-technical CMO.
 - PyMC-Marketing's `BudgetOptimizer` takes a per-week budget, not a period total; `optimizer.py` converts.
 - The AI layer uses `claude-opus-5-5` via the Anthropic SDK; the key comes from `.env` (`ANTHROPIC_API_KEY`). Tests always mock the client; never call the live API from tests.
 - The app never fits a model; it loads `artifacts/<brand>/`. App pages live in `app/views/` and are tested headlessly in `tests/test_app.py`.
+- The optimizer runs on posterior draws with SciPy (`optimizer.solve_allocation`); it does not need the PyMC model. `BudgetAllocator` (the library optimizer) is only a cross-check in tests.

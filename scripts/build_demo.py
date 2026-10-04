@@ -22,7 +22,7 @@ from mixlab.data_gen import generate, save_dataset
 from mixlab.evaluate import convergence_diagnostics, explain_convergence, rolling_backtest
 from mixlab.insights import build_summary, decomposition_weekly, export_summary, extract_draws
 from mixlab.model import MixLabModel
-from mixlab.optimizer import BudgetAllocator, build_optimizer_summary
+from mixlab.optimizer import build_optimizer_summary, estimate_optimism
 
 
 def generate_brand(name: str, root: Path = config.ARTIFACTS_DIR) -> Path:
@@ -32,7 +32,12 @@ def generate_brand(name: str, root: Path = config.ARTIFACTS_DIR) -> Path:
     return folder
 
 
-def train_brand(name: str, settings: ModelSettings, root: Path = config.ARTIFACTS_DIR) -> Path:
+def train_brand(
+    name: str,
+    settings: ModelSettings,
+    root: Path = config.ARTIFACTS_DIR,
+    estimate_curse: bool = True,
+) -> Path:
     """Fit one brand from its saved data and save the model, insights and optimizer results."""
     folder = root / name
     data = pd.read_csv(folder / config.WEEKLY_DATA_FILENAME, parse_dates=[config.DATE_COL])
@@ -48,25 +53,42 @@ def train_brand(name: str, settings: ModelSettings, root: Path = config.ARTIFACT
     draws = extract_draws(model, data)
     export_summary(build_summary(draws), folder)
     decomposition_weekly(draws).to_csv(folder / config.DECOMPOSITION_FILENAME)
-    write_optimizer_summary(name, model, data, folder)
+    write_optimizer_summary(name, model, data, folder, estimate_curse)
     backtest_brand(name, settings, root)
     return folder
 
 
 def write_optimizer_summary(
-    name: str, model: MixLabModel, data: pd.DataFrame, folder: Path
+    name: str,
+    model: MixLabModel,
+    data: pd.DataFrame,
+    folder: Path,
+    estimate_curse: bool = True,
 ) -> None:
-    """Run the optimizer analyses for a fitted model and save them."""
+    """Run the optimizer analyses for a fitted model and save them.
+
+    With ``estimate_curse`` the optimizer's-curse haircut is re-estimated by bootstrap (several
+    quick refits); otherwise the one already saved for this brand is reused.
+    """
     draws = extract_draws(model, data)
-    optimizer = build_optimizer_summary(BudgetAllocator(model), draws, config.BRAND_PRESETS[name])
-    (folder / config.OPTIMIZER_SUMMARY_FILENAME).write_text(json.dumps(optimizer, indent=2) + "\n")
+    path = folder / config.OPTIMIZER_SUMMARY_FILENAME
+    optimism = json.loads(path.read_text()).get("optimism") if path.exists() else None
+    if estimate_curse:
+        optimism = estimate_optimism(data, model.settings, draws, config.OPTIMIZER_WEEKS)
+        print(f"  optimizer's-curse haircut: {optimism['shrinkage']:.2f}")
+    optimizer = build_optimizer_summary(
+        config.OPTIMIZER_WEEKS, draws, config.BRAND_PRESETS[name], optimism=optimism
+    )
+    path.write_text(json.dumps(optimizer, indent=2) + "\n")
 
 
-def optimize_brand(name: str, root: Path = config.ARTIFACTS_DIR) -> Path:
-    """Recompute the optimizer summary from the saved model, without refitting."""
+def optimize_brand(
+    name: str, root: Path = config.ARTIFACTS_DIR, estimate_curse: bool = False
+) -> Path:
+    """Recompute the optimizer summary from the saved model, without refitting it."""
     folder = root / name
     data = pd.read_csv(folder / config.WEEKLY_DATA_FILENAME, parse_dates=[config.DATE_COL])
-    write_optimizer_summary(name, MixLabModel.load(folder), data, folder)
+    write_optimizer_summary(name, MixLabModel.load(folder), data, folder, estimate_curse)
     return folder
 
 
@@ -91,10 +113,15 @@ def backtest_brand(name: str, settings: ModelSettings, root: Path = config.ARTIF
     return folder
 
 
-def build_brand(name: str, settings: ModelSettings, root: Path = config.ARTIFACTS_DIR) -> Path:
+def build_brand(
+    name: str,
+    settings: ModelSettings,
+    root: Path = config.ARTIFACTS_DIR,
+    estimate_curse: bool = True,
+) -> Path:
     """Generate, fit and save one brand; return its folder."""
     generate_brand(name, root)
-    return train_brand(name, settings, root)
+    return train_brand(name, settings, root, estimate_curse)
 
 
 def main() -> None:
@@ -103,7 +130,9 @@ def main() -> None:
     parser.add_argument("--brands", nargs="+", default=list(config.BRAND_PRESETS))
     parser.add_argument("--config", type=Path, default=config.PROJECT_ROOT / "configs/demo.yaml")
     parser.add_argument(
-        "--stage", choices=["data", "train", "optimize", "backtest", "all"], default="all"
+        "--stage",
+        choices=["data", "train", "optimize", "curse", "backtest", "all"],
+        default="all",
     )
     args = parser.parse_args()
     settings = ModelSettings.from_yaml(args.config)
@@ -114,8 +143,8 @@ def main() -> None:
             folder = generate_brand(name)
         if args.stage in ("train", "all"):
             folder = train_brand(name, settings)
-        if args.stage == "optimize":
-            folder = optimize_brand(name)
+        if args.stage in ("optimize", "curse"):
+            folder = optimize_brand(name, estimate_curse=args.stage == "curse")
         if args.stage == "backtest":
             folder = backtest_brand(name, settings)
         print(f"  saved to {folder} in {time.perf_counter() - start:.0f}s")

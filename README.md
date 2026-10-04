@@ -55,7 +55,7 @@ All on synthetic brands where the true answer is known (`reports/evaluation_summ
 | Does the model recover the true channel ROI? | True ROI inside the 94% range for **30 of 30** channel estimates across five seeds, and 18 of 18 across the three demo brands (v1: 27 of 30 and 15 of 18) |
 | Are the ranges narrow enough to use? | Average ROI range width fell from 7.3 to **2.6**; Email went from "0 to 34" to **0.02 to 4.35** (truth 3.47) |
 | Does it predict weeks it has not seen? | **1.2% to 1.4% MAPE** on the most recent 12 weeks; 3% to 4.6% on two earlier windows of a rolling backtest |
-| Is the optimizer's advice worth following? | Default (gated, capped) plan: model expects +2.9%, the truth delivers **+2.0%**. With no cap: +6.8% expected, **+4.0%** true. In v1 the uncapped plan promised +16.4% and delivered -0.1% |
+| Is the optimizer's advice worth following? | Across 20 random brands the robust optimizer promised +1.4% and delivered **+1.7%**, making 10% of brands worse (worst -1.6%). A naive optimizer promised +6.6%, delivered +2.6%, and made 20% worse (worst -28.8%) |
 | What does one experiment buy? | A simulated 8-week lift test narrowed Meta's ROI range by **79%** (0.08 to 1.99 became 0.88 to 1.29; truth 1.18) |
 | How does it compare with Google Meridian? | On the same brand with default settings Meridian recovered 4 of 6 channels and over-credited Search (4.45 against a truth of 1.71); see the model log for caveats |
 | Does it work on someone else's data? | On pymc-marketing's public dataset both documented carryover rates were recovered (v1 model; 0.40 and 0.19 vs. 0.4 and 0.2) |
@@ -93,7 +93,9 @@ CI on every push).
   value (3.47), though the truth is inside its range.
 - **Curve-shape dependence.** The v1 curve gave a confident wrong answer for one channel.
 - **Static, independent effects.** No cross-channel effects such as TV driving search demand.
-- **Optimistic optimizer.** Expected uplift is about 1.5 times the true uplift.
+- **Cautious optimizer.** The robust optimizer keeps its promises but delivers less uplift
+  on average than large unconstrained moves would; its haircut is estimated from only six
+  refits per brand.
 - **AI layer not exercised live** in this repository's tests; it is tested against a mocked
   client.
 - **The case study and launch drafts describe v1.**

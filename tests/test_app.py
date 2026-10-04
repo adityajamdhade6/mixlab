@@ -34,7 +34,7 @@ def demo_root(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Path]:
     from build_demo import build_brand
 
     root = tmp_path_factory.mktemp("artifacts")
-    build_brand("performance_heavy", TINY, root)
+    build_brand("performance_heavy", TINY, root, estimate_curse=False)
     patch = pytest.MonkeyPatch()
     patch.setattr(config, "ARTIFACTS_DIR", root)
     patch.setattr(config, "AI_CACHE_DIR", root / "ai_cache")
@@ -194,15 +194,28 @@ def test_health_page_reports_out_of_sample_accuracy_recovery_and_notes(demo_root
     assert "(s)" not in captions and "1 warnings" not in captions
 
 
-def test_optimizer_page_shows_the_confidence_gate(demo_root: Path) -> None:
+def test_optimizer_page_explains_limits_rollout_and_schedule(demo_root: Path) -> None:
     app = run_view("optimizer")
-    assert "Confidence gate" in app.info[0].value
-    gated = [slider.label for slider in app.slider if "gated" in slider.label]
-    assert any(label.startswith("TV") for label in gated)
-    assert any(label.startswith("Email") for label in gated)
-    table = app.dataframe[0].value.set_index("Channel")
-    assert table.loc["TV", "Caveat"] and not table.loc["Meta Ads", "Caveat"]
+    limits = app.dataframe[0].value.set_index("Channel")
+    assert limits.loc["TV", "Default limit"] == "±10%" and "bursts" in limits.loc["TV", "Why"]
+    assert limits.loc["Email", "Default limit"] == "±10%"
+    labels = [slider.label for slider in app.slider]
+    assert any(label.startswith("TV") and "±10%" in label for label in labels)
+    allocation = app.dataframe[1].value.set_index("Channel")
+    assert allocation.loc["TV", "Caveat"] and not allocation.loc["Meta Ads", "Caveat"]
     assert "Realistic uplift" in [m.label for m in app.metric]
+    rollout = app.dataframe[2].value
+    assert len(rollout) == config.ROLLOUT_STEPS and "Stop if" in rollout.columns
+    assert any("How to roll it out" in h.value for h in app.subheader)
+
+
+def test_optimizer_goal_search_reports_impossible_targets(demo_root: Path) -> None:
+    app = run_view("optimizer")
+    target = next(n for n in app.number_input if "revenue to reach" in n.label)
+    target.set_value(9999.0)
+    next(b for b in app.button if b.label == "Find the plan").click().run()
+    assert not app.exception
+    assert "No plan can meet that goal" in app.error[0].value
 
 
 def test_app_explains_when_nothing_is_built(

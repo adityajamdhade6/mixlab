@@ -77,15 +77,18 @@ realistic.metric(
     crore(recommendation.realistic_uplift, 2),
     f"{recommendation.realistic_uplift_pct:+.1f}%",
 )
-realistic.caption(f"Expected uplift x {config.UPLIFT_SHRINKAGE:.0%}")
+realistic.caption(f"Expected uplift x {recommendation.shrinkage:.0%}")
 odds.metric("Chance it beats current", chance(recommendation.prob_recommended_beats_current))
 odds.caption(f"Same budget, next {recommendation.current.n_weeks} weeks")
 st.caption(
     "Why two numbers: an optimizer moves money to the channels the model rates highest, and "
-    "the highest ratings are disproportionately overestimates. On synthetic brands with known "
-    f"truth, about {config.UPLIFT_SHRINKAGE:.0%} of the expected uplift was actually delivered, "
-    "so plan on the realistic figure. Details are on the Budget optimizer page."
+    "the highest ratings are disproportionately overestimates. Refitting the model on "
+    f"simulated histories shows about {recommendation.shrinkage:.0%} of the expected uplift is "
+    "actually delivered, so plan on the realistic figure. Details are on the Budget optimizer "
+    "page."
 )
+if recommendation.corner_solution:
+    st.caption(recommendation.corner_note)
 
 st.subheader("Executive summary")
 context = ai_context(brand)
