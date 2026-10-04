@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -123,6 +124,9 @@ class BrandConfig:
         revenue_noise: Standard deviation of revenue noise, as a fraction of baseline.
         demand_noise: Standard deviation of noise on the latent demand index.
         adstock_l_max: Number of weeks over which adstock carries over.
+        true_saturation: Shape of the true response curve: ``"hill"`` or ``"logistic"``. The
+            logistic form reaches half its ceiling at the same ``half_saturation`` spend and is
+            used to test the model on data its own curve does not match.
 
     """
 
@@ -143,6 +147,7 @@ class BrandConfig:
     revenue_noise: float = 0.05
     demand_noise: float = 0.05
     adstock_l_max: int = 12
+    true_saturation: str = "hill"
 
 
 INDIA_EVENTS: tuple[EventConfig, ...] = (
@@ -416,6 +421,14 @@ class PriorSettings(BaseModel):
     fourier_scale: float = Field(default=0.1, gt=0)
     noise_sigma: float = Field(default=0.1, gt=0)
     trend_scale: float = Field(default=0.2, gt=0)
+    # Hill curve shape (used when ``saturation: hill``). Slope near 1 is a plain concave
+    # curve; kappa is the spend, as a share of the channel's peak week, at which the channel
+    # reaches half its ceiling. LogNormal keeps both away from zero, where the curve
+    # degenerates and the sampler diverges.
+    hill_slope_median: float = Field(default=1.0, gt=0)
+    hill_slope_sigma: float = Field(default=0.3, gt=0)
+    hill_kappa_median: float = Field(default=0.5, gt=0)
+    hill_kappa_sigma: float = Field(default=0.75, gt=0)
 
 
 class SamplerSettings(BaseModel):
@@ -430,10 +443,47 @@ class SamplerSettings(BaseModel):
     nuts_sampler: str = "nutpie"
 
 
+class RoiPriorSettings(BaseModel):
+    """Prior beliefs stated on channel ROI (revenue per rupee) instead of raw coefficients.
+
+    Attributes:
+        mode: ``"pooled"`` learns a shared typical ROI and how far channels spread around it,
+            so a channel with little data is pulled toward the others (partial pooling).
+            ``"independent"`` gives each channel its own fixed prior.
+        median: Prior median ROI of a typical channel.
+        median_sigma: Uncertainty (log scale) about that typical ROI; pooled mode only.
+        spread: How far channels may sit from the typical ROI (log scale). In pooled mode this
+            is the scale of the prior on the between-channel spread; in independent mode it is
+            the prior's own width.
+        benchmarks: Optional prior median ROI per channel (e.g. industry benchmarks). A listed
+            channel is centred on its benchmark instead of ``median``.
+
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    mode: Literal["pooled", "independent"] = "pooled"
+    median: float = Field(default=1.0, gt=0)
+    median_sigma: float = Field(default=0.5, gt=0)
+    spread: float = Field(default=0.5, gt=0)
+    benchmarks: dict[str, float] = Field(default_factory=dict)
+    benchmarks_file: str | None = None
+
+
+def load_benchmarks(path: Path) -> dict[str, float]:
+    """Read prior median ROI per channel from a YAML file of ``channel: roi`` pairs."""
+    values = yaml.safe_load(Path(path).read_text()) or {}
+    return {str(channel): float(roi) for channel, roi in values.items()}
+
+
 class ModelSettings(BaseModel):
     """Everything that defines one MixLab model run; loadable from a YAML file."""
 
     model_config = ConfigDict(extra="forbid")
+    adstock: Literal["geometric", "delayed"] = "geometric"
+    saturation: Literal["logistic", "hill"] = "logistic"
+    time_varying_intercept: bool = False
+    time_varying_media: bool = False
+    roi_prior: RoiPriorSettings | None = None
     adstock_l_max: int = Field(default=8, ge=1)
     yearly_seasonality_order: int = Field(default=2, ge=1)
     trend_changepoints: int = Field(default=2, ge=2)
@@ -447,7 +497,13 @@ class ModelSettings(BaseModel):
     @classmethod
     def from_yaml(cls, path: Path) -> "ModelSettings":
         """Load settings from a YAML file; unknown keys are rejected."""
-        return cls.model_validate(yaml.safe_load(Path(path).read_text()) or {})
+        settings = cls.model_validate(yaml.safe_load(Path(path).read_text()) or {})
+        roi = settings.roi_prior
+        if roi is not None and roi.benchmarks_file:
+            # The benchmarks file is given relative to the settings file; inline values win.
+            loaded = load_benchmarks(Path(path).parent / roi.benchmarks_file)
+            roi.benchmarks = {**loaded, **roi.benchmarks}
+        return settings
 
 
 # --- Insights -------------------------------------------------------------------------------
@@ -572,8 +628,9 @@ GATED_MAX_CHANGE: float = 0.10
 CAVEAT_BURSTS: str = "ran in bursts, so its effect is tangled with the season"
 CAVEAT_SMALL: str = "too small a share of spend to measure precisely"
 # Optimizer's curse: share of the model's expected uplift that the truth delivered, averaged
-# over the three synthetic demo brands (see `optimizer.measured_shrinkage`).
-UPLIFT_SHRINKAGE: float = 0.40
+# over the three synthetic demo brands (see `optimizer.measured_shrinkage`). It was 0.38 with
+# the v1 model (logistic saturation) and is 0.65 with the v2 model (Hill, ROI priors).
+UPLIFT_SHRINKAGE: float = 0.65
 DEFAULT_MARGIN: float = 0.40
 PROFIT_BREAKEVEN: float = 1.0
 BACKTEST_HORIZON_WEEKS: int = 12
@@ -587,3 +644,10 @@ REPO_URL: str = "https://github.com/adityajamdhade6/mixlab"
 CASE_STUDY_URL: str = f"{REPO_URL}/blob/main/docs/case_study.md"
 UNEVEN_BACKTEST_RATIO: float = 2.0
 MIN_R2: float = 0.5
+ROI_TRANSFORM_PREFIX: str = "mixlab_roi_to_beta_"
+MODEL_COMPARISON_FILENAME: str = "model_comparison.json"
+SATURATION_GRID_POINTS: int = 400
+SATURATION_GRID_MAX_MULTIPLE: float = 5.0
+# The Hill curve's gradient is undefined at exactly zero spend, which the sampler reports as
+# divergences, so zero-spend weeks are modelled as one rupee.
+HILL_MIN_SPEND: float = 1.0

@@ -1,0 +1,58 @@
+{
+  "brand": "performance_heavy",
+  "interval": "3rd to 97th percentile",
+  "sampling": {
+    "brand": "performance_heavy",
+    "chains": 4,
+    "adapt": 500,
+    "burnin": 500,
+    "keep": 500,
+    "seed": 42
+  },
+  "fit_seconds": 32.95633779099444,
+  "recovered": 4,
+  "channels": {
+    "meta_ads": {
+      "true_roi": 1.182429430052238,
+      "mean": 0.8878095313281124,
+      "low": 0.20436800252422635,
+      "high": 2.067867286375935,
+      "truth_inside_range": true
+    },
+    "google_search": {
+      "true_roi": 1.7103463209881842,
+      "mean": 4.449719111552769,
+      "low": 2.1486383482556835,
+      "high": 7.875297115705751,
+      "truth_inside_range": false
+    },
+    "youtube": {
+      "true_roi": 0.890556064591602,
+      "mean": 2.5243403022945,
+      "low": 0.6168278590461785,
+      "high": 5.275006519855518,
+      "truth_inside_range": true
+    },
+    "influencers": {
+      "true_roi": 0.8940037966680756,
+      "mean": 1.3722960551146124,
+      "low": 0.3048092416465895,
+      "high": 3.3245714800958828,
+      "truth_inside_range": true
+    },
+    "email": {
+      "true_roi": 3.4732145221819044,
+      "mean": 1.597237184262068,
+      "low": 0.2126428057924491,
+      "high": 5.426846581477698,
+      "truth_inside_range": true
+    },
+    "tv": {
+      "true_roi": 0.7518381314861983,
+      "mean": 0.34144514233405343,
+      "low": 0.18250625782408544,
+      "high": 0.5164241992033668,
+      "truth_inside_range": false
+    }
+  }
+}

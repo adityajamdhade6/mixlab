@@ -151,3 +151,22 @@ def test_trust_notes_flag_uneven_backtests() -> None:
     title = "Forecast accuracy is uneven across periods"
     assert title in [n["title"] for n in trust_notes(insights, optimizer, backtest=uneven)]
     assert title not in [n["title"] for n in trust_notes(insights, optimizer, backtest=even)]
+
+
+def test_loo_and_posterior_roi_on_a_fitted_model(df, fitted) -> None:
+    from mixlab.evaluate import loo, pointwise_log_likelihood, roi_from_posterior, roi_recovery
+    from mixlab.insights import build_summary, extract_draws
+
+    pointwise = pointwise_log_likelihood(fitted.idata)
+    assert pointwise.shape == (2, 40, len(df)) and np.isfinite(pointwise).all()
+    result = loo(fitted.idata)
+    assert np.isfinite(result["elpd_loo"]) and result["se"] > 0
+
+    quick = roi_from_posterior(fitted.idata, df)
+    full = build_summary(extract_draws(fitted, df))
+    for channel, metrics in quick["channels"].items():
+        assert metrics["roi"]["mean"] == pytest.approx(
+            full["channels"][channel]["roi"]["mean"], rel=1e-6
+        )
+    truth = {"channels": {c: {"true_roi": 1.0} for c in quick["channels"]}}
+    assert len(roi_recovery(quick, truth)) == 6

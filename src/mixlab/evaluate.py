@@ -142,6 +142,13 @@ def trust_notes(
             "detail": "Predictions for spend far above or below the historical range are "
             "extrapolations from an assumed curve shape, not evidence.",
         },
+        {
+            "title": "The shape of diminishing returns is an assumption",
+            "detail": "Results depend on the saturation curve chosen. An earlier version of "
+            "this model used a different curve and consistently underestimated a channel with "
+            "uneven spend, while every sampler check passed. The model log records the "
+            "comparison.",
+        },
     ]
     if diagnostics and not is_converged(diagnostics):
         notes.append(
@@ -322,3 +329,59 @@ def rolling_backtest(
             }
         )
     return {"horizon_weeks": horizon, "folds": results, "holdout": results[-1]}
+
+
+def roi_from_posterior(idata: az.InferenceData, df: pd.DataFrame) -> dict[str, Any]:
+    """Return ROI per channel straight from the posterior contributions.
+
+    Works for any adstock or trend option, unlike the full insights summary, so it is what
+    model comparison uses. The result has the shape ``roi_recovery`` expects.
+    """
+    scale = float(np.ravel(idata.constant_data["target_scale"].to_numpy())[0])
+    contribution = idata.posterior["channel_contribution"].sum("date") * scale
+    channels: dict[str, Any] = {}
+    for column in contribution["channel"].to_numpy():
+        draws = contribution.sel(channel=column).to_numpy().ravel() / float(df[column].sum())
+        low, high = az.hdi(draws, hdi_prob=config.HDI_PROB)
+        channels[str(column).removeprefix(config.SPEND_PREFIX)] = {
+            "roi": {"mean": float(draws.mean()), "hdi_low": float(low), "hdi_high": float(high)}
+        }
+    return {"channels": channels}
+
+
+def pointwise_log_likelihood(idata: az.InferenceData) -> np.ndarray:
+    """Return the log-likelihood of each observed week under each draw (chain, draw, week).
+
+    The model's mean is rebuilt from its saved components in scaled units, then compared with
+    scaled revenue under the Normal likelihood.
+    """
+    posterior = idata.posterior
+    constant = idata.constant_data
+    scale = float(np.ravel(constant["target_scale"].to_numpy())[0])
+    observed = np.ravel(constant["target_data"].to_numpy()) / scale
+    mean = posterior["channel_contribution"].sum("channel")
+    for name in posterior.data_vars:
+        if name in ("intercept_contribution", "yearly_seasonality_contribution") or (
+            name.endswith("_effect_contribution")
+        ):
+            mean = mean + posterior[name]
+    if "control_contribution" in posterior:
+        mean = mean + posterior["control_contribution"].sum("control")
+    mean = mean.transpose("chain", "draw", "date").to_numpy()
+    sigma = posterior["y_sigma"].to_numpy()[:, :, None]
+    return -0.5 * np.log(2 * np.pi * sigma**2) - (observed - mean) ** 2 / (2 * sigma**2)
+
+
+def loo(idata: az.InferenceData) -> dict[str, float]:
+    """Return leave-one-out cross-validation results (higher elpd is better)."""
+    wrapped = az.from_dict(
+        posterior={"y_sigma": idata.posterior["y_sigma"].to_numpy()},
+        log_likelihood={"y": pointwise_log_likelihood(idata)},
+    )
+    result = az.loo(wrapped)
+    return {
+        "elpd_loo": float(result.elpd_loo),
+        "se": float(result.se),
+        "p_loo": float(result.p_loo),
+        "bad_pareto_k": int((np.asarray(result.pareto_k) > 0.7).sum()),
+    }

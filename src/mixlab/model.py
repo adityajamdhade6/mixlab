@@ -10,6 +10,7 @@ Scaling: PyMC-Marketing divides revenue by its peak week and each channel's spen
 peak week before fitting. Every prior below is therefore in "share of peak week" units.
 """
 
+import hashlib
 import json
 import os
 import time
@@ -19,17 +20,24 @@ from typing import Any, Self
 import arviz as az
 import numpy as np
 import pandas as pd
+import pytensor.xtensor as ptx
 import xarray as xr
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter
-from pymc_extras.prior import Prior
-from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
+from pymc_extras.prior import Prior, register_tensor_transform
+from pymc_marketing.mmm import (
+    DelayedAdstock,
+    GeometricAdstock,
+    HillSaturation,
+    LogisticSaturation,
+)
 from pymc_marketing.mmm.additive_effect import LinearTrendEffect
 from pymc_marketing.mmm.linear_trend import LinearTrend
 from pymc_marketing.mmm.multidimensional import MMM
 
 from mixlab import config
 from mixlab.config import ModelSettings
+from mixlab.transforms import logistic_saturation
 from mixlab.validate import channel_name, spend_columns
 
 # --- Data preparation -----------------------------------------------------------------------
@@ -43,16 +51,20 @@ def default_control_columns(df: pd.DataFrame) -> list[str]:
 
 
 def design_matrix(
-    df: pd.DataFrame, channels: list[str], controls: list[str]
+    df: pd.DataFrame, channels: list[str], controls: list[str], min_spend: float = 0.0
 ) -> tuple[pd.DataFrame, pd.Series | None]:
     """Return the model inputs ``X`` and, if present, the target ``y``.
 
     The price index is re-centred on its base of 1.0 so that "no price change" is zero.
     PyMC-Marketing does not scale controls, and an uncentred index would be almost
     indistinguishable from the intercept.
+
+    ``min_spend`` floors every spend value (see ``config.HILL_MIN_SPEND``).
     """
     X = df[[config.DATE_COL, *channels, *controls]].copy()
     X[config.DATE_COL] = pd.to_datetime(X[config.DATE_COL])
+    if min_spend > 0:
+        X[channels] = X[channels].clip(lower=min_spend)
     if config.PRICE_COL in controls:
         X[config.PRICE_COL] = X[config.PRICE_COL] - config.PRICE_INDEX_BASE
     y = df[config.TARGET_COL].astype(float) if config.TARGET_COL in df.columns else None
@@ -100,6 +112,87 @@ def channel_prior_values(
     return values
 
 
+# Weibull adstock is not offered: its gradient is unavailable on the Numba backend this
+# project runs on, so NUTS cannot sample it (see docs/model_log.md).
+ADSTOCKS = {"geometric": GeometricAdstock, "delayed": DelayedAdstock}
+SATURATIONS = {"logistic": LogisticSaturation, "hill": HillSaturation}
+
+
+def roi_scale(df: pd.DataFrame, channels: list[str], settings: ModelSettings) -> np.ndarray:
+    """Return, per channel, the model coefficient (beta) that corresponds to an ROI of 1.
+
+    In the model, a channel's revenue is ``beta * peak_revenue * sum_t saturation(x_t)`` with
+    spend scaled by its peak week, so ``ROI = beta * peak_revenue * S / total_spend``. ``S`` is
+    evaluated at the prior-mean saturation speed, which makes this an approximate but
+    well-scaled conversion: it is only used to place priors, never to report results.
+    """
+    lam = settings.priors.saturation_lam.alpha / settings.priors.saturation_lam.beta
+    slope, kappa = settings.priors.hill_slope_median, settings.priors.hill_kappa_median
+    peak_revenue = float(df[config.TARGET_COL].max())
+    scale = []
+    for column in channels:
+        spend = df[column].to_numpy(dtype=float)
+        x = spend / spend.max()
+        if settings.saturation == "logistic":
+            saturated = logistic_saturation(x, lam).sum()
+        else:
+            saturated = (x**slope / (kappa**slope + x**slope)).sum()
+        scale.append(spend.sum() / (peak_revenue * saturated))
+    return np.array(scale)
+
+
+def register_roi_transform(scale: np.ndarray) -> str:
+    """Register the "log ROI -> beta" transform for these channels and return its name.
+
+    The transform is ``beta = exp(log_roi) * scale``. PyMC-Marketing looks transforms up by
+    name when a saved model is reloaded, so the name encodes the scale values.
+    """
+    digest = hashlib.sha256(np.asarray(scale, dtype=float).tobytes()).hexdigest()[:12]
+    name = f"{config.ROI_TRANSFORM_PREFIX}{digest}"
+
+    def to_beta(log_roi: Any) -> Any:
+        return ptx.math.exp(log_roi) * ptx.as_xtensor(np.asarray(scale), dims=("channel",))
+
+    register_tensor_transform(name, to_beta)
+    return name
+
+
+def roi_beta_prior(
+    channels: list[str], settings: ModelSettings, scale: np.ndarray
+) -> tuple[Prior, np.ndarray]:
+    """Return the effect-size prior implied by the ROI prior, and the scale it used.
+
+    Pooled mode (partial pooling): ``log ROI_c = mu + tau * z_c`` with a shared typical ROI
+    ``mu`` and a learned between-channel spread ``tau``. A small or noisy channel cannot be
+    estimated on its own, so it is pulled toward the typical ROI instead of being left with a
+    range of "anything from 0 to 34".
+
+    Independent mode: each channel gets ``LogNormal(log(median_c), spread)``.
+
+    Benchmarks shift a channel's centre: the pooled quantity becomes ROI relative to its
+    benchmark.
+    """
+    roi = settings.roi_prior
+    if roi is None:
+        raise ValueError("settings.roi_prior is not set")
+    centres = np.array([roi.benchmarks.get(channel_name(c), roi.median) for c in channels])
+    if roi.mode == "independent":
+        prior = Prior(
+            "LogNormal", mu=np.log(centres * scale).tolist(), sigma=roi.spread, dims="channel"
+        )
+        return prior, scale
+    relative = scale * centres / roi.median
+    prior = Prior(
+        "Normal",
+        mu=Prior("Normal", mu=float(np.log(roi.median)), sigma=roi.median_sigma),
+        sigma=Prior("HalfNormal", sigma=roi.spread),
+        dims="channel",
+        centered=False,
+        transform=register_roi_transform(relative),
+    )
+    return prior, relative
+
+
 def build_priors(
     channels: list[str], settings: ModelSettings, shares: dict[str, float]
 ) -> dict[str, Prior]:
@@ -115,12 +208,36 @@ def build_priors(
         # Beta(1, 3) leans towards short memory (average 0.25) but allows anything from 0 to
         # about 0.7. Most digital channels fade within a week or two; channels believed to
         # linger (TV, video) get their own prior from the YAML file.
-        "adstock_alpha": Prior("Beta", **per_channel["adstock_alpha"], dims="channel"),
+        **(
+            {"adstock_alpha": Prior("Beta", **per_channel["adstock_alpha"], dims="channel")}
+            if settings.adstock in ("geometric", "delayed")
+            else {}
+        ),
         # Saturation speed: how quickly extra spend stops paying off. Gamma(3, 1) centres on
         # a curve that is about 90% saturated at the channel's biggest-ever week, and allows
         # anything from nearly linear to saturating at a third of that. We stay vague here
         # because the data usually says little about the shape.
-        "saturation_lam": Prior("Gamma", **per_channel["saturation_lam"], dims="channel"),
+        **(
+            {"saturation_lam": Prior("Gamma", **per_channel["saturation_lam"], dims="channel")}
+            if settings.saturation == "logistic"
+            else {
+                # Hill shape. Slope: how sharply the curve bends (1 is a plain concave curve).
+                # Kappa: spend, as a share of the channel's peak week, that reaches half the
+                # channel's ceiling. Both are LogNormal so they stay away from zero.
+                "saturation_slope": Prior(
+                    "LogNormal",
+                    mu=float(np.log(p.hill_slope_median)),
+                    sigma=p.hill_slope_sigma,
+                    dims="channel",
+                ),
+                "saturation_kappa": Prior(
+                    "LogNormal",
+                    mu=float(np.log(p.hill_kappa_median)),
+                    sigma=p.hill_kappa_sigma,
+                    dims="channel",
+                ),
+            }
+        ),
         # Effect size: the most revenue a channel could add per week, as a share of the
         # peak week. HalfNormal keeps it non-negative (advertising does not reduce sales) and
         # sigma 0.3 says "probably under 30% of peak revenue, almost surely under 60%".
@@ -284,6 +401,7 @@ class MixLabModel:
         self.X: pd.DataFrame | None = None
         self.y: pd.Series | None = None
         self.fit_seconds: float | None = None
+        self.roi_transform_scale: list[float] | None = None
 
     def _require_mmm(self) -> MMM:
         """Return the underlying model or fail with a clear message."""
@@ -300,6 +418,11 @@ class MixLabModel:
         return idata
 
     @property
+    def min_spend(self) -> float:
+        """Return the spend floor this model's saturation curve needs."""
+        return config.HILL_MIN_SPEND if self.settings.saturation == "hill" else 0.0
+
+    @property
     def target_scale(self) -> float:
         """Return the INR value of 1.0 in the model's scaled revenue units (the peak week)."""
         return float(np.ravel(self.idata.constant_data["target_scale"].values)[0])
@@ -314,22 +437,29 @@ class MixLabModel:
         self.settings = settings or ModelSettings()
         self.channels = spend_columns(df)
         self.controls = self.settings.control_columns or default_control_columns(df)
-        self.X, self.y = design_matrix(df, self.channels, self.controls)
+        self.X, self.y = design_matrix(df, self.channels, self.controls, self.min_spend)
         if self.y is None:
             raise ValueError(f"Training data needs a '{config.TARGET_COL}' column.")
 
         sampler = self.settings.sampler
+        priors = build_priors(self.channels, self.settings, spend_shares(df, self.channels))
+        self.roi_transform_scale = None
+        if self.settings.roi_prior is not None:
+            scale = roi_scale(df, self.channels, self.settings)
+            priors["saturation_beta"], used = roi_beta_prior(self.channels, self.settings, scale)
+            if self.settings.roi_prior.mode == "pooled":
+                self.roi_transform_scale = used.tolist()
         self.mmm = MMM(
             date_column=config.DATE_COL,
             channel_columns=self.channels,
             target_column=config.TARGET_COL,
-            adstock=GeometricAdstock(l_max=self.settings.adstock_l_max),
-            saturation=LogisticSaturation(),
+            adstock=ADSTOCKS[self.settings.adstock](l_max=self.settings.adstock_l_max),
+            saturation=SATURATIONS[self.settings.saturation](),
+            time_varying_intercept=self.settings.time_varying_intercept,
+            time_varying_media=self.settings.time_varying_media,
             control_columns=self.controls,
             yearly_seasonality=self.settings.yearly_seasonality_order,
-            model_config=build_priors(
-                self.channels, self.settings, spend_shares(df, self.channels)
-            ),
+            model_config=priors,
             sampler_config={
                 "chains": sampler.chains,
                 "draws": sampler.draws,
@@ -395,7 +525,7 @@ class MixLabModel:
         internally so advertising carryover is continuous.
         """
         mmm = self._require_mmm()
-        X, _ = design_matrix(df, self.channels, self.controls)
+        X, _ = design_matrix(df, self.channels, self.controls, self.min_spend)
         training_end = pd.to_datetime(self.idata.fit_data[config.DATE_COL].values).max()
         is_future = bool(X[config.DATE_COL].min() > training_end)
         draws = mmm.sample_posterior_predictive(
@@ -432,6 +562,7 @@ class MixLabModel:
             "controls": self.controls,
             "fit_seconds": self.fit_seconds,
             "settings": self.settings.model_dump(mode="json"),
+            "roi_transform_scale": self.roi_transform_scale,
             **(extra or {}),
         }
         (directory / config.MODEL_META_FILENAME).write_text(json.dumps(meta, indent=2) + "\n")
@@ -471,6 +602,10 @@ class MixLabModel:
         directory = Path(directory)
         meta = json.loads((directory / config.MODEL_META_FILENAME).read_text())
         model = cls()
+        model.roi_transform_scale = meta.get("roi_transform_scale")
+        if model.roi_transform_scale:
+            # The saved model refers to its ROI transform by name; make it available again.
+            register_roi_transform(np.array(model.roi_transform_scale))
         full = directory / config.MODEL_FILENAME
         path = full if full.exists() else directory / config.MODEL_SLIM_FILENAME
         model.mmm = MMM.load(str(path))

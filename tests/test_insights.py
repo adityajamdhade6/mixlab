@@ -177,3 +177,36 @@ def test_chance_next_rupee_profitable_tightens_with_lower_margin(draws: Posterio
     thin = chance_next_rupee_profitable(marginal, 0.2)
     np.testing.assert_allclose(full, (marginal > 1).mean(axis=0))
     assert (thin <= full).all() and thin.shape == (2,)
+
+
+def test_hill_saturation_point_matches_slope_of_one() -> None:
+    from mixlab.insights import saturate
+
+    rng = np.random.default_rng(1)
+    n_draws, spend = 50, np.column_stack([np.linspace(1e5, 9e5, 40)])
+    hill = PosteriorDraws(
+        dates=pd.date_range("2024-01-01", periods=40, freq="7D"),
+        channels=["only"],
+        spend=spend,
+        revenue=np.full(40, 5e6),
+        channel_scale=spend.max(axis=0),
+        target_scale=1e7,
+        l_max=4,
+        alpha=np.full((n_draws, 1), 0.3),
+        lam=np.zeros((n_draws, 1)),
+        beta=rng.uniform(0.3, 0.5, (n_draws, 1)),
+        organic={"baseline": np.full((n_draws, 40), 4e6)},
+        channel_contribution=np.zeros((n_draws, 40, 1)),
+        saturation="hill",
+        slope=np.full((n_draws, 1), 1.0),
+        kappa=rng.uniform(0.4, 0.8, (n_draws, 1)),
+    )
+    half = saturate(hill, hill.kappa[:, :, None] * np.ones((n_draws, 1, 1)))
+    np.testing.assert_allclose(half, 0.5)  # a Hill curve is at half its ceiling at kappa
+    assert simulate_contributions(hill, np.zeros_like(spend)).sum() == 0
+
+    point = saturation_spend_draws(hill)[:, 0]
+    # With slope 1 the curve is B*x/(k+x): its gradient is 1 where x = sqrt(B*k*scale) - k*scale.
+    b = hill.beta[:, 0] * hill.target_scale
+    k = hill.kappa[:, 0] * hill.channel_scale[0]
+    np.testing.assert_allclose(point, np.sqrt(b * k) - k, rtol=0.02)

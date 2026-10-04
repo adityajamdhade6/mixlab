@@ -52,15 +52,17 @@ All on synthetic brands where the true answer is known (`reports/evaluation_summ
 
 | Question | Result |
 |---|---|
-| Does the model recover the true channel ROI? | True ROI inside the 94% range for **27 of 30** channel estimates across five seeds (90%); 5 of 6 in each demo brand |
-| Does it predict weeks it has not seen? | **1.2% to 1.6% MAPE** on the most recent 12 weeks; 3% to 4% on two earlier 12-week windows of a rolling backtest |
-| Is the optimizer's advice worth following? | With channel moves capped at 30%: model expects +7.4%, the truth delivers **+3.3%**. With no cap: model expects +16.4%, truth delivers **-0.1%**. The app's default adds a confidence gate (hard-to-measure channels held to 10%) and reports a realistic uplift of 40% of the expected one |
-| What does one experiment buy? | A simulated 8-week lift test narrowed Google Search's ROI range by **85%** (0.02 to 4.19 became 1.33 to 1.94; truth 1.71) |
-| Does it work on someone else's data? | On pymc-marketing's public dataset both documented carryover rates were recovered (0.40 and 0.19 vs. 0.4 and 0.2) |
+| Does the model recover the true channel ROI? | True ROI inside the 94% range for **30 of 30** channel estimates across five seeds, and 18 of 18 across the three demo brands (v1: 27 of 30 and 15 of 18) |
+| Are the ranges narrow enough to use? | Average ROI range width fell from 7.3 to **2.6**; Email went from "0 to 34" to **0.02 to 4.35** (truth 3.47) |
+| Does it predict weeks it has not seen? | **1.2% to 1.4% MAPE** on the most recent 12 weeks; 3% to 4.6% on two earlier windows of a rolling backtest |
+| Is the optimizer's advice worth following? | Default (gated, capped) plan: model expects +2.9%, the truth delivers **+2.0%**. With no cap: +6.8% expected, **+4.0%** true. In v1 the uncapped plan promised +16.4% and delivered -0.1% |
+| What does one experiment buy? | A simulated 8-week lift test narrowed Meta's ROI range by **79%** (0.08 to 1.99 became 0.88 to 1.29; truth 1.18) |
+| How does it compare with Google Meridian? | On the same brand with default settings Meridian recovered 4 of 6 channels and over-credited Search (4.45 against a truth of 1.71); see the model log for caveats |
+| Does it work on someone else's data? | On pymc-marketing's public dataset both documented carryover rates were recovered (v1 model; 0.40 and 0.19 vs. 0.4 and 0.2) |
 
-The optimizer row is the one to read twice: the model is right about direction and wrong about
-size, and unconstrained optimization chases its own errors. The dashboard says so on the Model
-health page.
+How v1 became v2 is in [docs/model_log.md](docs/model_log.md): the v1 model passed every
+sampler check while systematically underestimating one channel, and the cause was the shape of
+its saturation curve.
 
 ## Quickstart
 Requires [uv](https://docs.astral.sh/uv/); it installs Python 3.11 and every dependency on
@@ -85,14 +87,16 @@ CI on every push).
 ## Limitations
 - **Synthetic validation only.** Recovery, holdout and optimizer results come from generated
   data. One public dataset has been run through the pipeline; no real brand has.
-- **Wide ranges.** Most channel ROIs span poor to good. Only TV, with its distinctive flights,
-  is pinned down without an experiment.
-- **Revenue, not profit.** ROI is revenue per rupee; no margin is applied.
-- **Static, independent effects.** No time-varying effectiveness and no cross-channel effects
-  such as TV driving search demand.
-- **Optimistic optimizer.** Expected uplift is about twice the true uplift.
+- **Ranges are still wide.** A typical channel's ROI spans about 0.05 to 3; only TV is pinned
+  down without an experiment.
+- **Small channels lean on the prior.** Email's best estimate (1.5) is well below its true
+  value (3.47), though the truth is inside its range.
+- **Curve-shape dependence.** The v1 curve gave a confident wrong answer for one channel.
+- **Static, independent effects.** No cross-channel effects such as TV driving search demand.
+- **Optimistic optimizer.** Expected uplift is about 1.5 times the true uplift.
 - **AI layer not exercised live** in this repository's tests; it is tested against a mocked
   client.
+- **The case study and launch drafts describe v1.**
 
 See [docs/model_card.md](docs/model_card.md) for assumptions and failure modes.
 
@@ -130,5 +134,5 @@ See [docs/model_card.md](docs/model_card.md) for assumptions and failure modes.
 
 ## More
 [Case study](docs/case_study.md) · [Architecture](docs/architecture.md) ·
-[Model card](docs/model_card.md) ·
+[Model card](docs/model_card.md) · [Model log](docs/model_log.md) ·
 [Deployment](docs/DEPLOY.md) · [Public dataset test](reports/public_dataset_test.md)

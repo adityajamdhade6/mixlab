@@ -113,3 +113,16 @@ def test_one_plot_per_channel(dataset: SyntheticDataset, tmp_path: Path) -> None
     paths = save_channel_plots(dataset, tmp_path)
     assert len(paths) == len(CHANNELS)
     assert all(p.exists() and p.stat().st_size > 0 for p in paths)
+
+
+def test_logistic_truth_changes_the_response_but_keeps_half_saturation() -> None:
+    from mixlab.data_gen import channel_contribution
+
+    channel = CFG.channels[0]
+    at_half = np.full(60, channel.half_saturation)
+    hill = channel_contribution(at_half, channel, 12)[-1]
+    logistic = channel_contribution(at_half, channel, 12, form="logistic")[-1]
+    assert hill == pytest.approx(0.5 * channel.beta) == pytest.approx(logistic)
+    other = generate(replace(CFG, true_saturation="logistic"))
+    assert not other.contributions[channel.name].equals(generate(CFG).contributions[channel.name])
+    assert other.data[SPEND_COLS].equals(generate(CFG).data[SPEND_COLS])  # same spend, new truth

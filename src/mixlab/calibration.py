@@ -138,8 +138,8 @@ def simulate_lift_test(
     window = ((dates >= pd.Timestamp(start)) & (dates <= pd.Timestamp(end))).to_numpy()
     switched_off = np.where(window, 0.0, spend)
     truth = float(
-        channel_contribution(spend, spec, brand.adstock_l_max).sum()
-        - channel_contribution(switched_off, spec, brand.adstock_l_max).sum()
+        channel_contribution(spend, spec, brand.adstock_l_max, brand.true_saturation).sum()
+        - channel_contribution(switched_off, spec, brand.adstock_l_max, brand.true_saturation).sum()
     )
     error = relative_se * truth
     measured = truth + float(np.random.default_rng(seed).normal(0.0, error))

@@ -28,17 +28,27 @@ optimizer, backtest), or `optimize` / `backtest` alone to refresh without refitt
 ## Model specification
 ```
 revenue = baseline + linear trend + yearly Fourier seasonality + controls
-          + Σ_c beta_c · logistic_saturation(geometric_adstock(spend_c)) + noise
+          + Σ_c beta_c · hill_saturation(geometric_adstock(spend_c)) + noise
 ```
-- Adstock: geometric, 8 weeks, normalised. Saturation: logistic.
+- Adstock: geometric, 8 weeks, normalised (`adstock: delayed` is available; it did worse).
+- Saturation: **Hill** curve (`saturation: hill`). The v1 logistic curve is still available
+  (`saturation: logistic`) and is what `ModelSettings()` gives with no settings file.
+- Zero-spend weeks are modelled as one rupee: the Hill gradient is undefined at exactly zero
+  and the sampler reports that as divergences.
 - Controls: `holiday_*`, `promo_flag`, `price_index` (centred on 1.0).
 - Scaling: revenue and each channel's spend divided by their peak week.
-- Priors: `config.PriorSettings`, per-channel overrides from YAML, optional spend-share prior.
+- Priors: stated on **channel ROI** (`roi_prior`), converted to the model's coefficient with
+  `model.roi_scale`. `independent` (default): each channel LogNormal around a median ROI of 1,
+  or around a per-channel benchmark. `pooled`: a learned shared ROI (partial pooling). Shape
+  priors and per-channel overrides come from `config.PriorSettings` and YAML.
+- Options kept for comparison: `time_varying_intercept`, `time_varying_media`.
 - Sampling: nutpie, 4 chains x (1,000 tune + 1,000 draws), Numba backend, fixed seed.
 - Checks: prior predictive before fitting; r-hat, effective sample size and divergences
-  after; rolling backtest (three 12-week windows); ROI recovery against ground truth.
+  after; rolling backtest (three 12-week windows); ROI recovery against ground truth;
+  `scripts/compare_models.py` (LOO, holdout, recovery across seeds) for model form.
 
-See [model_card.md](model_card.md) for assumptions and failure modes.
+See [model_card.md](model_card.md) for assumptions and [model_log.md](model_log.md) for why
+the model has this form.
 
 ## Optimizer
 - Uses PyMC-Marketing's `BudgetOptimizer` (budget is per week there; converted here).
@@ -47,8 +57,8 @@ See [model_card.md](model_card.md) for assumptions and failure modes.
 - **Bounds:** ±30% per channel by default. **Confidence gate:** channels that ran in bursts
   or are under 2% of spend (`evaluate.measurement_flags`) are held to ±10% and never pushed
   above their historical peak; their caveat travels with the recommendation.
-- **Realistic uplift:** expected uplift x `config.UPLIFT_SHRINKAGE` (0.40; measured 0.38 as
-  true / expected uplift across the three synthetic brands, `optimizer.measured_shrinkage`).
+- **Realistic uplift:** expected uplift x `config.UPLIFT_SHRINKAGE` (0.65: true / expected
+  uplift across the three synthetic brands with the v2 model; it was 0.38 with v1).
 - Scenario simulator (`what_if`, `compare_scenarios`) and budget-level curve with the point
   where an extra rupee returns under a rupee.
 

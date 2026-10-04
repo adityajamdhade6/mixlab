@@ -1,5 +1,5 @@
 {
-  "saved_at": "2026-10-03T20:02:08.727692+00:00",
+  "saved_at": "2026-10-04T16:17:45.576420+00:00",
   "channels": [
     "spend_meta_ads",
     "spend_google_search",
@@ -15,8 +15,20 @@
     "promo_flag",
     "price_index"
   ],
-  "fit_seconds": 63.7894813749881,
+  "fit_seconds": 54.99673695900128,
   "settings": {
+    "adstock": "geometric",
+    "saturation": "hill",
+    "time_varying_intercept": false,
+    "time_varying_media": false,
+    "roi_prior": {
+      "mode": "independent",
+      "median": 1.0,
+      "median_sigma": 0.5,
+      "spread": 1.0,
+      "benchmarks": {},
+      "benchmarks_file": null
+    },
     "adstock_l_max": 8,
     "yearly_seasonality_order": 2,
     "trend_changepoints": 2,
@@ -40,7 +52,11 @@
       "control_sigma": 0.3,
       "fourier_scale": 0.1,
       "noise_sigma": 0.1,
-      "trend_scale": 0.2
+      "trend_scale": 0.2,
+      "hill_slope_median": 1.0,
+      "hill_slope_sigma": 0.3,
+      "hill_kappa_median": 0.5,
+      "hill_kappa_sigma": 0.75
     },
     "channel_priors": {
       "tv": {
@@ -69,15 +85,16 @@
       "nuts_sampler": "nutpie"
     }
   },
+  "roi_transform_scale": null,
   "diagnostics": {
     "chains": 4,
     "draws_per_chain": 1000,
-    "n_parameters": 31,
+    "n_parameters": 37,
     "max_r_hat": 1.01,
-    "max_r_hat_parameter": "saturation_beta[spend_youtube]",
-    "min_ess_bulk": 958.0,
-    "min_ess_bulk_parameter": "intercept_contribution",
-    "min_ess_tail": 879.0,
+    "max_r_hat_parameter": "delta[1]",
+    "min_ess_bulk": 754.0,
+    "min_ess_bulk_parameter": "saturation_kappa[spend_tv]",
+    "min_ess_tail": 1042.0,
     "min_ess_tail_parameter": "intercept_contribution",
     "divergences": 0,
     "converged": true

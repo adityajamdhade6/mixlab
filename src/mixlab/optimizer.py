@@ -349,6 +349,24 @@ def optimize_budget(
 
     current_draws = plan_revenue_draws(draws, current, n_weeks).sum(axis=1)
     plan_draws = plan_revenue_draws(draws, plan, n_weeks).sum(axis=1)
+    same_budget = abs(budget - sum(current.values())) <= config.BOUND_TOLERANCE * budget
+    if same_budget and _score(plan_draws, objective, percentile) < _score(
+        current_draws, objective, percentile
+    ):
+        # A Hill response surface is not concave, so the solver can stop at a local optimum
+        # that is worse than where it started. Search again from the current plan, and if
+        # that is no better either, recommend no change rather than a plan known to be worse.
+        retry, converged, message = allocator.allocate(
+            budget, bounds, objective, percentile, start=current
+        )
+        retry_draws = plan_revenue_draws(draws, retry, n_weeks).sum(axis=1)
+        if _score(retry_draws, objective, percentile) >= _score(
+            current_draws, objective, percentile
+        ):
+            plan, plan_draws = retry, retry_draws
+        else:
+            plan, plan_draws = dict(current), current_draws
+            message = "No better plan found; keeping the current allocation."
     uplift = plan_draws - current_draws
     historical_peak = draws.spend.max(axis=0)
     extrapolated = [
@@ -372,6 +390,13 @@ def optimize_budget(
         realistic_uplift=config.UPLIFT_SHRINKAGE * float(uplift.mean()),
         realistic_uplift_pct=config.UPLIFT_SHRINKAGE * float((100 * uplift / current_draws).mean()),
     )
+
+
+def _score(revenue_draws: FloatArray, objective: Objective, percentile: float) -> float:
+    """Return the value the optimizer is maximising for a plan's revenue draws."""
+    if objective == "mean":
+        return float(revenue_draws.mean())
+    return float(np.percentile(revenue_draws, percentile))
 
 
 def channel_caveats(draws: PosteriorDraws) -> dict[str, str]:
@@ -539,7 +564,7 @@ def true_plan_revenue(brand: BrandConfig, spend: Plan, n_weeks: int) -> Plan:
             ]
         )
         revenue[channel.name] = float(
-            channel_contribution(weekly, channel, brand.adstock_l_max).sum()
+            channel_contribution(weekly, channel, brand.adstock_l_max, brand.true_saturation).sum()
         )
     return revenue
 

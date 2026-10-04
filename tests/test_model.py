@@ -173,3 +173,94 @@ def test_predicting_weeks_after_training_carries_over_adstock(df: pd.DataFrame) 
     assert prediction[config.DATE_COL].tolist() == test[config.DATE_COL].tolist()
     error = prediction_error(prediction, test[config.TARGET_COL])
     assert 0 <= error["mape_pct"] < 30 and 0 <= error["coverage_pct"] <= 100
+
+
+def test_roi_scale_converts_roi_to_model_coefficient(df: pd.DataFrame) -> None:
+    from mixlab.model import roi_scale
+    from mixlab.transforms import logistic_saturation
+
+    channels = spend_columns(df)
+    settings = ModelSettings()
+    scale = roi_scale(df, channels, settings)
+    spend = df["spend_tv"].to_numpy()
+    saturated = logistic_saturation(spend / spend.max(), 3.0).sum()
+    expected = spend.sum() / (df[config.TARGET_COL].max() * saturated)
+    assert scale[channels.index("spend_tv")] == pytest.approx(expected)
+    assert (scale > 0).all() and len(scale) == len(channels)
+
+
+def test_pooled_roi_prior_builds_fits_and_reloads_in_a_fresh_registry(
+    df: pd.DataFrame, tmp_path: Path
+) -> None:
+    import pymc_extras.prior as prior_module
+
+    from mixlab.config import RoiPriorSettings
+
+    settings = TINY.model_copy(update={"roi_prior": RoiPriorSettings(benchmarks={"email": 3.0})})
+    model = MixLabModel().build(df, settings)
+    names = {v.name for v in model.mmm.model.free_RVs}
+    assert {"saturation_beta_raw_mu", "saturation_beta_raw_sigma"} <= names  # shared hyper-priors
+    model.fit(progressbar=False)
+    assert (model.idata.posterior["saturation_beta"] > 0).all()
+    model.save(tmp_path)
+
+    for name in [
+        n for n in prior_module.CUSTOM_TRANSFORMS if n.startswith(config.ROI_TRANSFORM_PREFIX)
+    ]:
+        del prior_module.CUSTOM_TRANSFORMS[name]  # as in a new process
+    loaded = MixLabModel.load(tmp_path)
+    assert loaded.settings.roi_prior.benchmarks == {"email": 3.0}
+    assert len(loaded.predict(df)) == len(df)
+
+
+def test_independent_roi_prior_centres_each_channel_on_its_benchmark(df: pd.DataFrame) -> None:
+    from mixlab.config import RoiPriorSettings
+    from mixlab.model import roi_beta_prior, roi_scale
+
+    channels = spend_columns(df)
+    settings = ModelSettings(
+        roi_prior=RoiPriorSettings(mode="independent", median=1.0, benchmarks={"tv": 2.0})
+    )
+    scale = roi_scale(df, channels, settings)
+    prior, _ = roi_beta_prior(channels, settings, scale)
+    centres = np.exp(prior.parameters["mu"]) / scale
+    assert centres[channels.index("spend_tv")] == pytest.approx(2.0)
+    assert centres[channels.index("spend_meta_ads")] == pytest.approx(1.0)
+
+
+def test_delayed_adstock_and_time_varying_baseline_build(df: pd.DataFrame) -> None:
+    delayed = MixLabModel().build(df, TINY.model_copy(update={"adstock": "delayed"}))
+    assert type(delayed.mmm.adstock).__name__ == "DelayedAdstock"
+    drifting = MixLabModel().build(df, TINY.model_copy(update={"time_varying_intercept": True}))
+    assert drifting.mmm.time_varying_intercept
+
+
+def test_hill_model_fits_and_the_numpy_response_matches_it(df: pd.DataFrame) -> None:
+    from mixlab.insights import build_summary, extract_draws, simulate_contributions
+
+    model = MixLabModel().build(df, TINY.model_copy(update={"saturation": "hill"}))
+    assert type(model.mmm.saturation).__name__ == "HillSaturation"
+    model.fit(progressbar=False)
+    draws = extract_draws(model, df)
+    assert draws.saturation == "hill" and draws.slope is not None
+    np.testing.assert_allclose(
+        simulate_contributions(draws, draws.spend), draws.channel_contribution, rtol=1e-4, atol=1.0
+    )
+    summary = build_summary(draws)
+    assert set(summary["channels"]["tv"]["saturation_weekly_spend"]) == {
+        "mean",
+        "median",
+        "hdi_low",
+        "hdi_high",
+    }
+
+
+def test_roi_benchmarks_load_from_a_file_and_inline_values_win(tmp_path: Path) -> None:
+    (tmp_path / "bench.yaml").write_text("tv: 0.7\nemail: 3.0\n")
+    (tmp_path / "model.yaml").write_text(
+        "roi_prior:\n  mode: independent\n  benchmarks_file: bench.yaml\n  benchmarks: {tv: 0.9}\n"
+    )
+    settings = ModelSettings.from_yaml(tmp_path / "model.yaml")
+    assert settings.roi_prior.benchmarks == {"tv": 0.9, "email": 3.0}
+    shipped = config.load_benchmarks(config.PROJECT_ROOT / "configs/benchmarks/illustrative.yaml")
+    assert set(shipped) == {c.name for c in config.PERFORMANCE_HEAVY_BRAND.channels}
