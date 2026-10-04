@@ -37,7 +37,9 @@ if recovery is not None:
     fourth.caption("Channels with the truth inside the model's 94% range")
 
 st.subheader("When not to trust this model")
-notes = trust_notes(results["insights"], results["optimizer"], diagnostics, recovery, label)
+notes = trust_notes(
+    results["insights"], results["optimizer"], diagnostics, recovery, label, backtest
+)
 for start in range(0, len(notes), 2):
     for column, note in zip(st.columns(2), notes[start : start + 2], strict=False):
         with column.container(border=True):

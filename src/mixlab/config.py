@@ -585,3 +585,5 @@ CHANCE_CEILING_PCT: float = 99.0
 AUTHOR_NAME: str = "Aditya Jamdhade"
 REPO_URL: str = "https://github.com/adityajamdhade6/mixlab"
 CASE_STUDY_URL: str = f"{REPO_URL}/blob/main/docs/case_study.md"
+UNEVEN_BACKTEST_RATIO: float = 2.0
+MIN_R2: float = 0.5

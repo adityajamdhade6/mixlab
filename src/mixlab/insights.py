@@ -192,6 +192,15 @@ def marginal_roi_draws(draws: PosteriorDraws) -> FloatArray:
     return result
 
 
+def chance_next_rupee_profitable(marginal: FloatArray, margin: float) -> FloatArray:
+    """Return, per channel, the share of draws where the next rupee earns over a rupee of profit.
+
+    ``marginal`` is the output of ``marginal_roi_draws`` (S, C). At a 40% margin the next
+    rupee must bring in more than 2.5 rupees of revenue to pay for itself.
+    """
+    return (marginal * margin > config.PROFIT_BREAKEVEN).mean(axis=0)
+
+
 def response_curve_draws(draws: PosteriorDraws, index: int, weekly_spend: FloatArray) -> FloatArray:
     """Return weekly incremental revenue (S, G) if the channel spent a steady amount each week."""
     scaled = np.asarray(weekly_spend, dtype=np.float64)[None, :] / draws.channel_scale[index]

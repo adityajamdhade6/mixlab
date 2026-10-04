@@ -14,7 +14,7 @@ from streamlit.errors import StreamlitSecretNotFoundError
 import mixlab  # noqa: F401  (sets the PyTensor backend before PyMC is imported)
 from mixlab import config
 from mixlab.ai_explainer import DataContext, build_facts
-from mixlab.insights import PosteriorDraws, extract_draws
+from mixlab.insights import PosteriorDraws, extract_draws, marginal_roi_draws
 from mixlab.model import MixLabModel
 from mixlab.optimizer import BudgetAllocator
 from mixlab.validate import validate
@@ -169,6 +169,12 @@ def load_facts(brand: str, margin_share: float) -> dict[str, Any]:
     return build_facts(
         results["insights"], results["optimizer"], results["meta"], results["report"], margin_share
     )
+
+
+@st.cache_data(show_spinner="Working out what the next rupee earns…")
+def load_marginal_roi(brand: str) -> Any:
+    """Return marginal ROI draws (draws x channels) for a brand, computed once."""
+    return marginal_roi_draws(load_runtime(brand).draws)
 
 
 def ai_context(brand: str, with_model: bool = False) -> DataContext:

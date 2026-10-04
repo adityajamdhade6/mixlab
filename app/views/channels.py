@@ -3,9 +3,10 @@
 import charts
 import pandas as pd
 import streamlit as st
-from common import label, lakh, load_runtime, margin, range_text, setup, show
+from common import label, lakh, load_marginal_roi, load_runtime, margin, range_text, setup, show
 
 from mixlab import config
+from mixlab.insights import chance_next_rupee_profitable
 
 brand, results = setup(
     "Channel performance",
@@ -14,6 +15,9 @@ brand, results = setup(
 insights = results["insights"]
 channels = insights["channels"]
 
+profitable = dict(
+    zip(channels, chance_next_rupee_profitable(load_marginal_roi(brand), margin()), strict=True)
+)
 table = pd.DataFrame(
     [
         {
@@ -32,6 +36,7 @@ table = pd.DataFrame(
             "Marginal ROI low": m["marginal_roi"]["hdi_low"],
             "Marginal ROI high": m["marginal_roi"]["hdi_high"],
             "Chance next rupee pays back (%)": 100 * m["prob_marginal_roi_above_1"],
+            "Chance next rupee earns a profit (%)": 100 * profitable[name],
             "Weeks to 90% of effect": m["weeks_to_90pct_effect"]["mean"],
         }
         for name, m in channels.items()
@@ -61,6 +66,7 @@ display = pd.DataFrame(
         "Profit ROI (₹ per ₹1)": with_range("Profit ROI", 2),
         "Next ₹1 returns (₹)": with_range("Marginal ROI", 2),
         "Chance next ₹1 returns over ₹1": table["Chance next rupee pays back (%)"],
+        "Chance next ₹1 earns a profit": table["Chance next rupee earns a profit (%)"],
         "Weeks to 90% of effect": table["Weeks to 90% of effect"],
     }
 )
@@ -83,6 +89,13 @@ st.dataframe(
         ),
         "Chance next ₹1 returns over ₹1": st.column_config.ProgressColumn(
             format="%.0f%%", min_value=0, max_value=100
+        ),
+        "Chance next ₹1 earns a profit": st.column_config.ProgressColumn(
+            format="%.0f%%",
+            min_value=0,
+            max_value=100,
+            help="Chance the next ₹1 brings in more than ₹1 of gross profit at the margin set "
+            "in the sidebar. This, not the revenue version, decides whether to add budget.",
         ),
         "Weeks to 90% of effect": st.column_config.NumberColumn(format="%.1f wk"),
     },

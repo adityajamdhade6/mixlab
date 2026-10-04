@@ -130,6 +130,17 @@ st.caption(
     "that share of the expected uplift was actually delivered."
 )
 
+widest = max(
+    (abs(result.recommended.spend[c] / v - 1) for c, v in result.current.spend.items() if v),
+    default=0.0,
+)
+if widest > config.DEFAULT_MAX_CHANGE + 0.005:
+    st.warning(
+        f"This plan moves a channel by {widest:.0%}. The realistic-uplift haircut was measured "
+        f"with moves capped at {config.DEFAULT_MAX_CHANGE:.0%}; on synthetic brands, plans with "
+        "no cap delivered roughly none of their expected uplift. Treat the figures above as "
+        "optimistic."
+    )
 if not result.converged:
     st.warning("The solver stopped before fully converging, so this split may be slightly off.")
 if result.extrapolated_channels:

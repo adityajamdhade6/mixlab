@@ -121,6 +121,7 @@ def trust_notes(
     diagnostics: dict[str, Any] | None = None,
     recovery: pd.DataFrame | None = None,
     name: Callable[[str], str] = str,
+    backtest: dict[str, Any] | None = None,
 ) -> list[dict[str, str]]:
     """Return plain-English notes on when not to trust the model, specific to these results.
 
@@ -150,6 +151,18 @@ def trust_notes(
                 f"{diagnostics['max_r_hat']:.3f}. Treat ranges as approximate until refitted.",
             }
         )
+    if backtest:
+        errors = [fold["mape_pct"] for fold in backtest["folds"]]
+        fits = [fold["r2"] for fold in backtest["folds"]]
+        if max(errors) > config.UNEVEN_BACKTEST_RATIO * min(errors) or min(fits) < config.MIN_R2:
+            notes.append(
+                {
+                    "title": "Forecast accuracy is uneven across periods",
+                    "detail": f"Across the rolling backtest, error ranged from {min(errors):.1f}% "
+                    f"to {max(errors):.1f}% and R-squared from {min(fits):.2f} to "
+                    f"{max(fits):.2f}. The latest window is not representative of all of them.",
+                }
+            )
     n_weeks = insights["period"]["n_weeks"]
     total_spend = insights["totals"]["media_spend"]
     channels = insights["channels"]

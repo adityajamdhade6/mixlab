@@ -139,3 +139,15 @@ def test_prediction_error_r2_is_one_for_a_perfect_prediction() -> None:
     actual = pd.Series([10.0, 20.0, 30.0])
     perfect = pd.DataFrame({"mean": actual, "lower": actual - 1, "upper": actual + 1})
     assert prediction_error(perfect, actual) == {"mape_pct": 0.0, "r2": 1.0, "coverage_pct": 100.0}
+
+
+def test_trust_notes_flag_uneven_backtests() -> None:
+    from mixlab.evaluate import trust_notes
+
+    insights = {"period": {"n_weeks": 100}, "totals": {"media_spend": 1.0}, "channels": {}}
+    optimizer = {"expected_revenue": {"extrapolated_channels": []}}
+    uneven = {"folds": [{"mape_pct": 4.0, "r2": 0.4}, {"mape_pct": 1.5, "r2": 0.95}]}
+    even = {"folds": [{"mape_pct": 1.6, "r2": 0.9}, {"mape_pct": 1.5, "r2": 0.95}]}
+    title = "Forecast accuracy is uneven across periods"
+    assert title in [n["title"] for n in trust_notes(insights, optimizer, backtest=uneven)]
+    assert title not in [n["title"] for n in trust_notes(insights, optimizer, backtest=even)]
