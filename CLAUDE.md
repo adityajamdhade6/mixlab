@@ -21,6 +21,9 @@ explains results to a non-technical CMO.
 - Every module has tests.
 - Set random seeds (use `config.RANDOM_SEED`).
 
+## Commit and PR rule
+- Never add Co-Authored-By, Claude-Session, or 'Generated with Claude Code' lines to commit messages or PR descriptions.
+
 ## Workflow rule
 - Before writing code, explain the plan in 5 bullets.
 - After writing, run the tests and summarize what changed.
