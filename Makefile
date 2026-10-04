@@ -43,6 +43,8 @@ template:
 deploy-assets:
 	uv run python scripts/slim_models.py
 	uv export --no-dev --no-hashes -o requirements.txt
+	@# Streamlit Cloud keeps old modules in memory after a push; a changed requirements file forces a clean restart.
+	@printf '# deploy-build: %s\n' "$$(date +%Y-%m-%dT%H:%M:%S)" | cat - requirements.txt > requirements.tmp && mv requirements.tmp requirements.txt
 
 clean:
 	rm -rf .cache .pytest_cache .ruff_cache .coverage
