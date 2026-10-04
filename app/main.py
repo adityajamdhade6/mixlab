@@ -1,7 +1,35 @@
 """MixLab dashboard entry point. Run with: uv run streamlit run app/main.py."""
 
+import sys
+from pathlib import Path
+
 import streamlit as st
 
+APP_DIR = Path(__file__).resolve().parent
+CODE_DIRS = (APP_DIR, APP_DIR / "views", APP_DIR.parent / "src" / "mixlab")
+STALE_PREFIXES = ("common", "charts", "mixlab")
+
+
+def refresh_stale_modules() -> None:
+    """Drop in-memory copies of this project's modules when the code on disk has changed.
+
+    A hosted app keeps running after a new version is pulled. Streamlit re-reads this entry
+    script on every run, but modules it imported earlier stay in memory, so a page that needs
+    a newly added function fails with an ImportError until the process restarts. Comparing
+    the newest file timestamp with the one seen last run lets the app heal itself.
+    """
+    stamp = max(path.stat().st_mtime for folder in CODE_DIRS for path in folder.glob("*.py"))
+    previous = getattr(sys, "_mixlab_code_stamp", None)
+    if previous is not None and previous != stamp:
+        for name in list(sys.modules):
+            if name.split(".")[0] in STALE_PREFIXES:
+                del sys.modules[name]
+        st.cache_data.clear()
+        st.cache_resource.clear()
+    sys._mixlab_code_stamp = stamp  # type: ignore[attr-defined]
+
+
+refresh_stale_modules()
 st.set_page_config(page_title="MixLab", page_icon=":material/monitoring:", layout="wide")
 
 PAGES = [
