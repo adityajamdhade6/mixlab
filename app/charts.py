@@ -396,3 +396,55 @@ def budget_curve(optimizer: dict[str, Any]) -> go.Figure:
     figure.update_xaxes(title="Total quarterly media budget (₹ crore)", rangemode="tozero")
     figure.update_yaxes(title="Incremental revenue (₹ crore)", rangemode="tozero")
     return themed(figure, "How much is the next crore of budget worth?", height=420)
+
+
+def actual_vs_predicted(weeks: list[dict[str, Any]]) -> go.Figure:
+    """Return held-out weeks: actual revenue against the prediction and its 94% range."""
+    frame = pd.DataFrame(weeks)
+    x = pd.to_datetime(frame["date"])
+    figure = go.Figure()
+    figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=frame["lower"] / LAKH,
+            mode="lines",
+            line={"width": 0},
+            showlegend=False,
+            hoverinfo="skip",
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=frame["upper"] / LAKH,
+            mode="lines",
+            line={"width": 0},
+            fill="tonexty",
+            fillcolor=rgba(config.COLOR_SPEND, 0.18),
+            name="94% range",
+            hoverinfo="skip",
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=frame["predicted"] / LAKH,
+            mode="lines+markers",
+            name="Predicted",
+            line={"color": config.COLOR_SPEND, "width": 2.5},
+            hovertemplate="Predicted ₹%{y:,.1f} L<extra></extra>",
+        )
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=x,
+            y=frame["actual"] / LAKH,
+            mode="lines+markers",
+            name="Actual",
+            line={"color": config.COLOR_TEXT, "width": 2},
+            hovertemplate="Actual ₹%{y:,.1f} L<extra></extra>",
+        )
+    )
+    figure.update_layout(hovermode="x unified")
+    figure.update_yaxes(title="Weekly revenue (₹ lakh)")
+    return themed(figure, "Weeks the model never saw: actual vs. predicted", height=380)

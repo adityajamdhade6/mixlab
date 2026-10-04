@@ -1,11 +1,12 @@
-"""Overview: headline numbers, the executive summary and where revenue comes from."""
+"""Overview: is marketing paying for itself, what to change, and where revenue comes from."""
 
 import re
 
 import charts
 import streamlit as st
-from common import ai_context, crore, label, likely, setup, show
+from common import ai_context, chance, crore, label, margin, per_rupee, range_text, setup, show
 
+from mixlab import config
 from mixlab.ai_explainer import (
     TONE_PRESETS,
     ExplainerError,
@@ -14,6 +15,7 @@ from mixlab.ai_explainer import (
     generate_brief,
     template_brief,
 )
+from mixlab.optimizer import OptimizationResult
 
 TONE_LABELS = {"cmo": "CMO", "analyst": "Analyst", "founder": "Founder"}
 
@@ -28,17 +30,62 @@ media_revenue, roi, share = (
     totals["blended_media_roi"],
     totals["media_pct_of_revenue"],
 )
+share_of_margin = margin()
+profit = {key: value * share_of_margin for key, value in roi.items()}
 
-first, second, third, fourth = st.columns(4)
+verdict = (
+    f"each ₹1 of spend returns {per_rupee(profit['mean'])} of gross profit "
+    f"({range_text(per_rupee(profit['hdi_low']), per_rupee(profit['hdi_high']))})"
+)
+if profit["mean"] >= config.PROFIT_BREAKEVEN:
+    st.success(f"At a {share_of_margin:.0%} margin, marketing pays for itself: {verdict}.")
+else:
+    st.warning(
+        f"At a {share_of_margin:.0%} margin, marketing does not pay for itself on incremental "
+        f"revenue alone: {verdict}. Change the margin in the sidebar to match your product."
+    )
+
+first, second, third = st.columns(3)
 first.metric("Media spend", crore(totals["media_spend"]))
 first.caption(f"Measured over {insights['period']['n_weeks']} weeks")
 second.metric("Marketing revenue", crore(media_revenue["mean"]))
-second.caption(likely(crore(media_revenue["hdi_low"]), crore(media_revenue["hdi_high"])))
-third.metric("Blended ROI", f"{roi['mean']:.2f}")
-third.caption(likely(f"{roi['hdi_low']:.2f}", f"{roi['hdi_high']:.2f}"))
-fourth.metric("Marketing share", f"{share['mean']:.0f}%")
-share_range = likely(f"{share['hdi_low']:.0f}%", f"{share['hdi_high']:.0f}%")
-fourth.caption(f"{share_range} · baseline {baseline['mean']:.0f}%")
+second.caption(range_text(crore(media_revenue["hdi_low"]), crore(media_revenue["hdi_high"])))
+third.metric("Marketing share of revenue", f"{share['mean']:.0f}%")
+third.caption(
+    range_text(str(round(share["hdi_low"])) + "%", str(round(share["hdi_high"])) + "%")
+    + f" · baseline {baseline['mean']:.0f}%"
+)
+
+st.subheader("Return on each ₹1 of spend")
+left, right, _ = st.columns(3)
+left.metric("ROI: revenue per ₹1", per_rupee(roi["mean"]))
+left.caption(range_text(per_rupee(roi["hdi_low"]), per_rupee(roi["hdi_high"])))
+right.metric("Profit ROI: profit per ₹1", per_rupee(profit["mean"]))
+right.caption(
+    range_text(per_rupee(profit["hdi_low"]), per_rupee(profit["hdi_high"]))
+    + f" · at a {share_of_margin:.0%} margin · pays for itself above ₹1.00"
+)
+
+st.subheader("Recommended reallocation")
+recommendation = OptimizationResult.model_validate(results["optimizer"]["expected_revenue"])
+uplift = recommendation.uplift
+expected, realistic, odds = st.columns(3)
+expected.metric("Expected uplift", crore(uplift.mean, 2), f"{recommendation.uplift_pct.mean:+.1f}%")
+expected.caption(range_text(crore(uplift.hdi_low, 2), crore(uplift.hdi_high, 2)))
+realistic.metric(
+    "Realistic uplift",
+    crore(recommendation.realistic_uplift, 2),
+    f"{recommendation.realistic_uplift_pct:+.1f}%",
+)
+realistic.caption(f"Expected uplift x {config.UPLIFT_SHRINKAGE:.0%}")
+odds.metric("Chance it beats current", chance(recommendation.prob_recommended_beats_current))
+odds.caption(f"Same budget, next {recommendation.current.n_weeks} weeks")
+st.caption(
+    "Why two numbers: an optimizer moves money to the channels the model rates highest, and "
+    "the highest ratings are disproportionately overestimates. On synthetic brands with known "
+    f"truth, about {config.UPLIFT_SHRINKAGE:.0%} of the expected uplift was actually delivered, "
+    "so plan on the realistic figure. Details are on the Budget optimizer page."
+)
 
 st.subheader("Executive summary")
 context = ai_context(brand)
@@ -84,6 +131,6 @@ st.download_button(
 st.subheader("Revenue decomposition")
 show(charts.decomposition(results["weekly"], list(insights["channels"])))
 st.caption(
-    "Each band is the model's best estimate of weekly revenue from that driver. Bands below "
-    "zero (price, seasonal troughs) reduce revenue."
+    "Each band is the model's best estimate of weekly revenue (₹ lakh) from that driver. Bands "
+    "below zero (price, seasonal troughs) reduce revenue."
 )

@@ -565,3 +565,23 @@ POWER_Z: float = 2.8
 GEO_DESIGN_FACTOR: float = 2.0
 MIN_TEST_WEEKS: int = 2
 MAX_TEST_WEEKS: int = 26
+
+# --- Demo review fixes ----------------------------------------------------------------------
+# Confidence gate: channels the health checks cannot measure well get tighter default bounds.
+GATED_MAX_CHANGE: float = 0.10
+CAVEAT_BURSTS: str = "ran in bursts, so its effect is tangled with the season"
+CAVEAT_SMALL: str = "too small a share of spend to measure precisely"
+# Optimizer's curse: share of the model's expected uplift that the truth delivered, averaged
+# over the three synthetic demo brands (see `optimizer.measured_shrinkage`).
+UPLIFT_SHRINKAGE: float = 0.40
+DEFAULT_MARGIN: float = 0.40
+PROFIT_BREAKEVEN: float = 1.0
+BACKTEST_HORIZON_WEEKS: int = 12
+BACKTEST_FOLDS: int = 3
+BACKTEST_DRAWS: int = 500
+BACKTEST_FILENAME: str = "backtest.json"
+CHANCE_FLOOR_PCT: float = 1.0
+CHANCE_CEILING_PCT: float = 99.0
+AUTHOR_NAME: str = "Aditya Jamdhade"
+REPO_URL: str = "https://github.com/adityajamdhade6/mixlab"
+CASE_STUDY_URL: str = f"{REPO_URL}/blob/main/docs/case_study.md"

@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any
 
 import arviz as az
+import numpy as np
 import pandas as pd
 
 from mixlab import config
@@ -225,11 +226,86 @@ def trust_notes(
 
 
 def prediction_error(prediction: pd.DataFrame, actual: pd.Series) -> dict[str, float]:
-    """Return MAPE (%) and the share of weeks (%) inside the 94% predictive range."""
+    """Return MAPE (%), R-squared and the share of weeks (%) inside the 94% predictive range."""
     truth = actual.to_numpy(dtype=float)
     mean = prediction["mean"].to_numpy(dtype=float)
     inside = (truth >= prediction["lower"].to_numpy()) & (truth <= prediction["upper"].to_numpy())
+    total = float(((truth - truth.mean()) ** 2).sum())
     return {
-        "mape_pct": float(abs(mean - truth).__truediv__(truth).mean() * 100),
+        "mape_pct": float((np.abs(mean - truth) / truth).mean() * 100),
+        "r2": float(1 - ((truth - mean) ** 2).sum() / total) if total > 0 else float("nan"),
         "coverage_pct": float(inside.mean() * 100),
     }
+
+
+def measurement_flags(spend: np.ndarray, channels: list[str]) -> dict[str, list[str]]:
+    """Return, per channel, the reasons its effect is hard to measure (empty if none).
+
+    A channel is flagged if it ran in bursts (active in under half the weeks) or is a very
+    small share of total spend. These are the same conditions the trust notes report, and
+    the optimizer's confidence gate uses them to hold such channels to smaller moves.
+    """
+    active_share = (spend > 0).mean(axis=0)
+    spend_share = spend.sum(axis=0) / spend.sum()
+    flags: dict[str, list[str]] = {}
+    for index, channel in enumerate(channels):
+        reasons = []
+        if active_share[index] < config.FLIGHTED_ZERO_SHARE:
+            reasons.append(config.CAVEAT_BURSTS)
+        if spend_share[index] < config.MIN_SPEND_SHARE:
+            reasons.append(config.CAVEAT_SMALL)
+        flags[channel] = reasons
+    return flags
+
+
+def rolling_backtest(
+    df: pd.DataFrame,
+    fit_and_predict: Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame],
+    horizon: int = config.BACKTEST_HORIZON_WEEKS,
+    folds: int = config.BACKTEST_FOLDS,
+) -> dict[str, Any]:
+    """Score the model on weeks it has not seen, several times over.
+
+    Each fold trains on everything before a cut-off and predicts the next ``horizon`` weeks;
+    cut-offs step back by ``horizon`` so the test windows do not overlap. The last fold is the
+    most recent ``horizon`` weeks (the holdout).
+
+    Args:
+        df: Weekly contract frame.
+        fit_and_predict: Function taking (train, test) and returning a prediction frame with
+            date, mean, lower and upper.
+        horizon: Weeks per test window.
+        folds: Number of windows.
+
+    Returns:
+        ``folds`` (oldest first, each with metrics and week-level predictions) and ``holdout``
+        (the last fold).
+
+    """
+    results = []
+    for fold in range(folds, 0, -1):
+        stop = len(df) - (fold - 1) * horizon
+        train, test = df.iloc[: stop - horizon], df.iloc[stop - horizon : stop]
+        prediction = fit_and_predict(train, test)
+        actual = test[config.TARGET_COL]
+        results.append(
+            {
+                "train_weeks": len(train),
+                "test_start": str(pd.Timestamp(test[config.DATE_COL].iloc[0]).date()),
+                "test_end": str(pd.Timestamp(test[config.DATE_COL].iloc[-1]).date()),
+                **prediction_error(prediction, actual),
+                "weeks": [
+                    {
+                        "date": str(pd.Timestamp(date).date()),
+                        "actual": float(observed),
+                        "predicted": float(row.mean),
+                        "lower": float(row.lower),
+                        "upper": float(row.upper),
+                    }
+                    for date, observed, row in zip(
+                        test[config.DATE_COL], actual, prediction.itertuples(), strict=True
+                    )
+                ],
+            }
+        )
+    return {"horizon_weeks": horizon, "folds": results, "holdout": results[-1]}

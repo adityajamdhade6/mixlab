@@ -175,7 +175,7 @@ def map_shopify_orders(df: pd.DataFrame) -> pd.DataFrame:
     """
     required = {"Name", "Created at", "Total"}
     if missing := required - set(df.columns):
-        raise OnboardingError(f"Shopify export is missing column(s): {sorted(missing)}.")
+        raise OnboardingError(f"Shopify export is missing these columns: {sorted(missing)}.")
     orders = df.dropna(subset=["Total"]).drop_duplicates(subset="Name", keep="first").copy()
     if "Currency" in orders and orders["Currency"].nunique() > 1:
         currencies = sorted(orders["Currency"].dropna().unique())

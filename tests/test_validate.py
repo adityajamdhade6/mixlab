@@ -158,3 +158,17 @@ def test_command_line_reports_and_fails_on_critical_issues(
     with pytest.raises(SystemExit) as exit_info:
         module.main()
     assert exit_info.value.code == 1
+
+
+def test_messages_use_correct_singular_and_plural(clean: pd.DataFrame) -> None:
+    one = validate(clean.drop(index=[20]))
+    many = validate(clean.drop(index=[20, 21]))
+    assert "1 week is missing" in found(one, "weekly_frequency", Severity.CRITICAL)[0].message
+    assert "2 weeks are missing" in found(many, "weekly_frequency", Severity.CRITICAL)[0].message
+    broken = clean.copy()
+    broken.loc[3, "spend_meta_ads"] = None
+    assert (
+        "1 missing value."
+        in found(validate(broken), "missing_values", Severity.CRITICAL)[0].message
+    )
+    assert not any("(s)" in issue.message for issue in many.issues)

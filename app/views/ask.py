@@ -1,8 +1,9 @@
 """Ask MixLab: chat with the model's results. Claude calls the real analysis functions."""
 
 import streamlit as st
-from common import ai_context, setup
+from common import ai_context, has_api_key, setup
 
+from mixlab import config
 from mixlab.ai_explainer import TONE_PRESETS, ExplainerError, ask
 
 TONE_LABELS = {"cmo": "CMO", "analyst": "Analyst", "founder": "Founder"}
@@ -19,14 +20,21 @@ brand, results = setup(
 history_key = f"chat_{brand}"
 history: list[dict[str, str]] = st.session_state.setdefault(history_key, [])
 
+if not has_api_key():
+    st.warning(
+        "Ask MixLab needs a Claude API key, and none is set for this copy of the app, so "
+        "questions cannot be answered here. Everything else works without it. To try the chat, "
+        f"run the app locally with a key in `.env` ([setup steps]({config.REPO_URL}#quickstart))."
+    )
+
 picker, _ = st.columns([1, 3])
 tone = picker.selectbox("Answer as if for", list(TONE_PRESETS), format_func=TONE_LABELS.get)
 
-question = st.chat_input("Ask about channels, budgets or what-if plans")
+question = st.chat_input("Ask about channels, budgets or what-if plans", disabled=not has_api_key())
 if not history:
     st.markdown("**Try one of these**")
     for suggestion in SUGGESTIONS:
-        if st.button(suggestion, icon=":material/arrow_forward:"):
+        if st.button(suggestion, icon=":material/arrow_forward:", disabled=not has_api_key()):
             question = suggestion
 
 for message in history:

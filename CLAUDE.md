@@ -45,6 +45,8 @@ explains results to a non-technical CMO.
 - Onboard real exports: `uv run python scripts/onboard.py --shopify orders.csv --meta meta.csv --google google.csv --out data/processed/mmm_weekly.csv [--anonymize]`
 - Calibration demo: `uv run python scripts/calibrate_demo.py`
 - Public dataset test: `uv run python scripts/public_dataset_test.py`
+- Refresh saved results without refitting: `uv run python scripts/build_demo.py --stage optimize` (or `backtest`)
+- Architecture: `docs/architecture.md`
 
 ## Environment notes
 - PyTensor compiles with Numba, not C (`mixlab/__init__.py` sets `PYTENSOR_FLAGS`); the C backend fails to link on this macOS toolchain. Import `mixlab` before `pymc`.

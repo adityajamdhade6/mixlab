@@ -19,7 +19,7 @@ import mixlab  # noqa: F401  (sets the PyTensor backend before PyMC is imported)
 from mixlab import config
 from mixlab.config import ModelSettings
 from mixlab.data_gen import generate, save_dataset
-from mixlab.evaluate import convergence_diagnostics, explain_convergence
+from mixlab.evaluate import convergence_diagnostics, explain_convergence, rolling_backtest
 from mixlab.insights import build_summary, decomposition_weekly, export_summary, extract_draws
 from mixlab.model import MixLabModel
 from mixlab.optimizer import BudgetAllocator, build_optimizer_summary
@@ -48,8 +48,46 @@ def train_brand(name: str, settings: ModelSettings, root: Path = config.ARTIFACT
     draws = extract_draws(model, data)
     export_summary(build_summary(draws), folder)
     decomposition_weekly(draws).to_csv(folder / config.DECOMPOSITION_FILENAME)
+    write_optimizer_summary(name, model, data, folder)
+    backtest_brand(name, settings, root)
+    return folder
+
+
+def write_optimizer_summary(
+    name: str, model: MixLabModel, data: pd.DataFrame, folder: Path
+) -> None:
+    """Run the optimizer analyses for a fitted model and save them."""
+    draws = extract_draws(model, data)
     optimizer = build_optimizer_summary(BudgetAllocator(model), draws, config.BRAND_PRESETS[name])
     (folder / config.OPTIMIZER_SUMMARY_FILENAME).write_text(json.dumps(optimizer, indent=2) + "\n")
+
+
+def optimize_brand(name: str, root: Path = config.ARTIFACTS_DIR) -> Path:
+    """Recompute the optimizer summary from the saved model, without refitting."""
+    folder = root / name
+    data = pd.read_csv(folder / config.WEEKLY_DATA_FILENAME, parse_dates=[config.DATE_COL])
+    write_optimizer_summary(name, MixLabModel.load(folder), data, folder)
+    return folder
+
+
+def backtest_brand(name: str, settings: ModelSettings, root: Path = config.ARTIFACTS_DIR) -> Path:
+    """Run the rolling backtest (refits on shorter histories with fewer draws) and save it."""
+    folder = root / name
+    data = pd.read_csv(folder / config.WEEKLY_DATA_FILENAME, parse_dates=[config.DATE_COL])
+    draws = min(config.BACKTEST_DRAWS, settings.sampler.draws)
+    quick = settings.model_copy(
+        update={"sampler": settings.sampler.model_copy(update={"draws": draws, "tune": draws})}
+    )
+
+    def fit_and_predict(train: pd.DataFrame, test: pd.DataFrame) -> pd.DataFrame:
+        model = MixLabModel().build(train, quick)
+        model.fit(progressbar=False)
+        return model.predict(test)
+
+    result = rolling_backtest(data, fit_and_predict)
+    (folder / config.BACKTEST_FILENAME).write_text(json.dumps(result, indent=2) + "\n")
+    holdout = result["holdout"]
+    print(f"  backtest holdout: MAPE {holdout['mape_pct']:.1f}%, R2 {holdout['r2']:.2f}")
     return folder
 
 
@@ -64,7 +102,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--brands", nargs="+", default=list(config.BRAND_PRESETS))
     parser.add_argument("--config", type=Path, default=config.PROJECT_ROOT / "configs/demo.yaml")
-    parser.add_argument("--stage", choices=["data", "train", "all"], default="all")
+    parser.add_argument(
+        "--stage", choices=["data", "train", "optimize", "backtest", "all"], default="all"
+    )
     args = parser.parse_args()
     settings = ModelSettings.from_yaml(args.config)
     for name in args.brands:
@@ -74,6 +114,10 @@ def main() -> None:
             folder = generate_brand(name)
         if args.stage in ("train", "all"):
             folder = train_brand(name, settings)
+        if args.stage == "optimize":
+            folder = optimize_brand(name)
+        if args.stage == "backtest":
+            folder = backtest_brand(name, settings)
         print(f"  saved to {folder} in {time.perf_counter() - start:.0f}s")
 
 

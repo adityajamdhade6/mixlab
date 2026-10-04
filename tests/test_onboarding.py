@@ -152,7 +152,7 @@ def test_shopify_rejects_mixed_currencies_and_missing_columns() -> None:
     mixed.loc[3, "Currency"] = "USD"
     with pytest.raises(OnboardingError, match="mixes currencies"):
         map_shopify_orders(mixed)
-    with pytest.raises(OnboardingError, match="missing column"):
+    with pytest.raises(OnboardingError, match="missing these columns"):
         map_shopify_orders(pd.DataFrame({"Name": ["#1"], "Total": [1.0]}))
 
 

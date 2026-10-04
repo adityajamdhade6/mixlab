@@ -2,6 +2,7 @@
 
 import arviz as az
 import numpy as np
+import pytest
 
 from mixlab.evaluate import convergence_diagnostics, explain_convergence
 
@@ -83,3 +84,58 @@ def test_roi_recovery_and_grouped_trust_notes() -> None:
     )
     assert "EMAIL (1.0% of spend)" in by_title["Very small channels cannot be measured precisely"]
     assert "TV (true 1.50" in by_title["The model got some channels wrong"]
+
+
+def test_measurement_flags_mark_burst_and_tiny_channels() -> None:
+    from mixlab import config
+    from mixlab.evaluate import measurement_flags
+
+    steady = np.full(100, 100.0)
+    bursts = np.where(np.arange(100) < 20, 100.0, 0.0)
+    tiny = np.full(100, 1.0)
+    flags = measurement_flags(np.column_stack([steady, bursts, tiny]), ["steady", "bursts", "tiny"])
+    assert flags == {"steady": [], "bursts": [config.CAVEAT_BURSTS], "tiny": [config.CAVEAT_SMALL]}
+
+
+def test_rolling_backtest_uses_non_overlapping_windows_and_scores_each() -> None:
+    import pandas as pd
+
+    from mixlab.evaluate import rolling_backtest
+
+    frame = pd.DataFrame(
+        {
+            "date": pd.date_range("2024-01-01", periods=60, freq="7D"),
+            "revenue": np.arange(100.0, 160.0),
+        }
+    )
+    seen: list[tuple[int, int]] = []
+
+    def perfect(train: pd.DataFrame, test: pd.DataFrame) -> pd.DataFrame:
+        seen.append((len(train), len(test)))
+        return pd.DataFrame(
+            {
+                "date": test["date"],
+                "mean": test["revenue"] * 1.1,
+                "lower": test["revenue"] * 0.9,
+                "upper": test["revenue"] * 1.3,
+            }
+        )
+
+    result = rolling_backtest(frame, perfect, horizon=10, folds=3)
+    assert seen == [(30, 10), (40, 10), (50, 10)]
+    assert result["holdout"] == result["folds"][-1]
+    assert result["holdout"]["test_end"] == "2025-02-17"
+    for fold in result["folds"]:
+        assert fold["mape_pct"] == pytest.approx(10.0)
+        assert fold["coverage_pct"] == 100.0 and fold["r2"] < 1
+        assert len(fold["weeks"]) == 10
+
+
+def test_prediction_error_r2_is_one_for_a_perfect_prediction() -> None:
+    import pandas as pd
+
+    from mixlab.evaluate import prediction_error
+
+    actual = pd.Series([10.0, 20.0, 30.0])
+    perfect = pd.DataFrame({"mean": actual, "lower": actual - 1, "upper": actual + 1})
+    assert prediction_error(perfect, actual) == {"mape_pct": 0.0, "r2": 1.0, "coverage_pct": 100.0}

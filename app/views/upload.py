@@ -2,7 +2,7 @@
 
 import pandas as pd
 import streamlit as st
-from common import label, setup
+from common import label, plural, setup
 
 from mixlab import config
 from mixlab.validate import Severity, validate
@@ -23,6 +23,17 @@ with st.expander("What the file needs to look like"):
 uploaded = st.file_uploader("Weekly data (CSV)", type="csv")
 if uploaded is None:
     st.info("Upload a CSV to see its readiness score and anything that needs fixing.")
+    example = (
+        config.ARTIFACTS_DIR / config.PERFORMANCE_HEAVY_BRAND.name / config.WEEKLY_DATA_FILENAME
+    )
+    if example.exists():
+        st.download_button(
+            "Download an example file to try",
+            example.read_bytes(),
+            file_name="mixlab_example_weekly.csv",
+            mime="text/csv",
+            icon=":material/download:",
+        )
     st.stop()
 
 try:
@@ -42,10 +53,18 @@ first, second, third = st.columns(3)
 first.metric("Readiness score", f"{report.readiness_score}/{config.MAX_READINESS_SCORE}")
 second.metric("Weeks of data", report.n_weeks)
 third.metric("Channels found", len(report.channels))
+second.caption("At least 104 weeks recommended")
+if frame.empty:
+    st.error("The file has a header but no rows of data.")
+    st.stop()
 if critical:
-    st.error(f"{critical} critical issue(s) must be fixed before this data can be modelled.")
+    st.error(
+        f"{plural(critical, 'critical issue')} must be fixed before this data can be modelled."
+    )
 elif warnings:
-    st.warning(f"Usable, with {warnings} warning(s) that will make some estimates less certain.")
+    st.warning(
+        f"Usable, with {plural(warnings, 'warning')} that will make some estimates less certain."
+    )
 else:
     st.success("This data is ready to model.")
 

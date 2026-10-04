@@ -13,7 +13,16 @@ from mixlab import ai_explainer, config
 from mixlab.ai_explainer import Explanation, NumberCheck
 
 APP_DIR = config.PROJECT_ROOT / "app"
-VIEWS = ["overview", "channels", "optimizer", "scenarios", "ask", "health", "upload"]
+VIEWS = [
+    "overview",
+    "channels",
+    "optimizer",
+    "scenarios",
+    "ask",
+    "health",
+    "upload",
+    "how_it_works",
+]
 TIMEOUT = 180
 
 
@@ -51,16 +60,30 @@ def test_every_page_renders(demo_root: Path, view: str) -> None:
         assert not app.error
 
 
-def test_overview_shows_kpis_and_a_grounded_summary(demo_root: Path) -> None:
+def test_overview_shows_profit_verdict_kpis_and_both_uplifts(demo_root: Path) -> None:
     app = run_view("overview")
-    assert [m.label for m in app.metric] == [
-        "Media spend",
-        "Marketing revenue",
-        "Blended ROI",
-        "Marketing share",
-    ]
-    assert any("likely between" in caption.value for caption in app.caption)
+    labels = [m.label for m in app.metric]
+    assert labels[:3] == ["Media spend", "Marketing revenue", "Marketing share of revenue"]
+    assert "ROI: revenue per ₹1" in labels and "Profit ROI: profit per ₹1" in labels
+    assert not any(value.endswith("…") for value in (m.value for m in app.metric))
+    assert any("Performance-heavy demo brand" in caption.value for caption in app.caption)
+    assert labels.index("Realistic uplift") == labels.index("Expected uplift") + 1
+    verdict = [*app.success, *app.warning][0].value
+    assert "margin" in verdict and "gross profit" in verdict
+    assert any("94% range:" in caption.value for caption in app.caption)
+    assert any("disproportionately overestimates" in caption.value for caption in app.caption)
     assert any("##### Headline finding" in block.value for block in app.markdown)
+    assert any(config.AUTHOR_NAME in caption.value for caption in app.caption)
+
+
+def test_margin_slider_changes_the_profit_verdict(demo_root: Path) -> None:
+    app = run_view("overview")
+    app.slider[0].set_value(95).run()
+    high = [*app.success, *app.warning][0].value
+    app.slider[0].set_value(5).run()
+    low = [*app.success, *app.warning][0].value
+    assert "95% margin" in high and "5% margin" in low
+    assert "does not pay for itself" in low
 
 
 def test_overview_explains_a_missing_api_key(
@@ -78,9 +101,10 @@ def test_overview_explains_a_missing_api_key(
 
 def test_optimizer_runs_and_respects_the_budget(demo_root: Path) -> None:
     app = run_view("optimizer")
-    assert app.info  # saved recommendation shown before the first run
+    assert any("saved recommendation" in caption.value for caption in app.caption)
     app.button[0].click().run()
-    assert not app.exception and not app.error and not app.info
+    assert not app.exception and not app.error
+    assert not any("Showing the saved recommendation" in caption.value for caption in app.caption)
     assert app.metric[0].label == "Expected uplift"
 
 
@@ -92,13 +116,25 @@ def test_optimizer_explains_impossible_limits(demo_root: Path) -> None:
     assert "cannot be met" in app.error[0].value
 
 
+def scenario_sliders(app: AppTest) -> list:
+    return [slider for slider in app.slider if slider.label != "Product margin"]
+
+
+def test_scenario_page_starts_in_a_neutral_state(demo_root: Path) -> None:
+    app = run_view("scenarios")
+    values = {m.label: m.value for m in app.metric}
+    assert values["Chance revenue rises"] == "—" and values["Profit change"] == "—"
+    assert next(b for b in app.button if b.label == "Save scenario").disabled
+
+
 def test_scenario_sliders_update_revenue_and_scenarios_can_be_saved(demo_root: Path) -> None:
     app = run_view("scenarios")
     before = app.metric[1].value
-    for slider in app.slider:
+    for slider in scenario_sliders(app):
         slider.set_value(-100)
     app.run()
     assert app.metric[0].value == "₹0.00 Cr" and app.metric[1].value != before
+    assert {m.label: m.value for m in app.metric}["Chance revenue rises"] == "<1%"
     app.text_input[0].set_value("All off")
     next(b for b in app.button if b.label == "Save scenario").click().run()
     assert not app.exception
@@ -107,6 +143,8 @@ def test_scenario_sliders_update_revenue_and_scenarios_can_be_saved(demo_root: P
 
 def test_saving_an_unnamed_scenario_is_refused(demo_root: Path) -> None:
     app = run_view("scenarios")
+    scenario_sliders(app)[0].set_value(20)
+    app.run()
     next(b for b in app.button if b.label == "Save scenario").click().run()
     assert "name" in app.error[0].value
 
@@ -124,17 +162,47 @@ def test_ask_page_shows_answer_and_grounding(
         )
 
     monkeypatch.setattr(ai_explainer, "ask", fake_ask)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy-key-for-tests")
     app = run_view("ask")
+    assert not app.warning
     app.button[0].click().run()
     assert not app.exception
     assert [m.name for m in app.chat_message] == ["user", "assistant"]
     assert "Answer to: Why should I cut Meta?" in app.chat_message[1].markdown[0].value
 
 
-def test_health_page_reports_recovery_and_trust_notes(demo_root: Path) -> None:
+def test_ask_page_says_upfront_when_no_key_is_set(
+    demo_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_AUTH_TOKEN", raising=False)
+    monkeypatch.setattr(config, "ENV_FILE", demo_root / "no.env")
+    app = run_view("ask")
+    assert "needs a Claude API key" in app.warning[0].value
+    assert all(button.disabled for button in app.button)
+
+
+def test_health_page_reports_out_of_sample_accuracy_recovery_and_notes(demo_root: Path) -> None:
     app = run_view("health")
-    assert "True ROI recovered" in [m.label for m in app.metric]
+    labels = [m.label for m in app.metric]
+    assert {"True ROI recovered", "Holdout MAPE", "Holdout R²"} <= set(labels)
     assert any("revenue, not profit" in block.value for block in app.markdown)
+    assert any("Rolling backtest" in block.value for block in app.markdown)
+    backtest = app.dataframe[0].value
+    assert len(backtest) == config.BACKTEST_FOLDS and "MAPE (%)" in backtest.columns
+    captions = " ".join(caption.value for caption in app.caption)
+    assert "(s)" not in captions and "1 warnings" not in captions
+
+
+def test_optimizer_page_shows_the_confidence_gate(demo_root: Path) -> None:
+    app = run_view("optimizer")
+    assert "Confidence gate" in app.info[0].value
+    gated = [slider.label for slider in app.slider if "gated" in slider.label]
+    assert any(label.startswith("TV") for label in gated)
+    assert any(label.startswith("Email") for label in gated)
+    table = app.dataframe[0].value.set_index("Channel")
+    assert table.loc["TV", "Caveat"] and not table.loc["Meta Ads", "Caveat"]
+    assert "Realistic uplift" in [m.label for m in app.metric]
 
 
 def test_app_explains_when_nothing_is_built(
@@ -144,3 +212,17 @@ def test_app_explains_when_nothing_is_built(
     app = AppTest.from_file(str(APP_DIR / "views" / "overview.py"), default_timeout=TIMEOUT).run()
     assert not app.exception
     assert "No fitted demo brands" in app.error[0].value
+
+
+def test_money_is_formatted_with_the_sign_before_the_rupee(demo_root: Path) -> None:
+    from common import crore, lakh
+
+    assert crore(-200_000, 2) == "-₹0.02 Cr" and crore(54_600_000) == "₹5.5 Cr"
+    assert lakh(-150_000, 1) == "-₹1.5 L"
+
+
+def test_small_channel_keeps_a_usable_gated_range(demo_root: Path) -> None:
+    app = run_view("optimizer")
+    email = next(slider for slider in app.slider if slider.label.startswith("Email"))
+    low, high = email.value
+    assert high > low and email.step == 0.1

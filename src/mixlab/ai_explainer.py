@@ -81,7 +81,10 @@ Units and terms. Money is in Indian rupees: fields ending `_cr` are crore and fi
 `_lakh` are lakh. Fields ending `_pct` are percentages. ROI is revenue per rupee spent; it is \
 revenue-based, with no product margin applied, so an ROI of 1 means a rupee of revenue per \
 rupee spent, not break-even on profit. Marginal ROI is what the next rupee earns, which is \
-what a budget decision actually changes. "Incremental revenue" is revenue caused by marketing, \
+what a budget decision actually changes. Profit ROI is gross profit per rupee spent (ROI \
+times the product margin); above 1 the spend pays for itself. When you name a range, call it \
+the 94% range. Report a chance below 1% as "almost no chance (<1%)" and above 99% as "almost \
+certain (>99%)" rather than 0% or 100%. "Incremental revenue" is revenue caused by marketing, \
 excluding the baseline that would have happened anyway.
 
 Write counts that are not data as words ("three insights", "two risks") and do not number \
@@ -114,10 +117,13 @@ BRIEF_TASK = """\
 Write a one-page brief for this reader from the FACTS. Use Markdown with a short heading for \
 each of these four parts, in this order:
 
-- Headline finding: the single most important thing, in one or two sentences.
+- Headline finding: the single most important thing, in one or two sentences, including \
+whether marketing pays for itself after the product margin.
 - Top insights: the three findings that most change how the budget should be thought about.
 - Recommended budget shift: which channels go up and down under the main recommendation, the \
-expected uplift as a range, and the chance it beats the current plan.
+expected uplift as a range, the realistic uplift beside it with one sentence on why it is \
+lower, and the chance it beats the current plan. Where a channel carries a caveat in FACTS, \
+state that caveat right next to its change.
 - Risks and caveats: the two things most likely to make this recommendation wrong.
 
 Start directly with the headline; do not add an introduction or a sign-off.\
@@ -190,9 +196,29 @@ def estimate(raw: dict[str, float], convert: Any = ratio) -> dict[str, float]:
     }
 
 
-def channel_facts(metrics: dict[str, Any]) -> dict[str, Any]:
+def scaled(raw: dict[str, float], factor: float) -> dict[str, float]:
+    """Return an ``Estimate`` dump with every value multiplied by ``factor``."""
+    return {key: value * factor for key, value in raw.items()}
+
+
+def chance_text(chance_pct: float) -> str:
+    """Return a chance in words, avoiding false certainty at the extremes.
+
+    A posterior share of 0% or 100% only means no sampled draw disagreed, so those are
+    reported as "almost no chance (<1%)" and "almost certain (>99%)".
+    """
+    if chance_pct < config.CHANCE_FLOOR_PCT:
+        return f"almost no chance (<{config.CHANCE_FLOOR_PCT:g}%)"
+    if chance_pct > config.CHANCE_CEILING_PCT:
+        return f"an almost certain chance (>{config.CHANCE_CEILING_PCT:g}%)"
+    return f"a {chance_pct:.0f}% chance"
+
+
+def channel_facts(metrics: dict[str, Any], margin: float = config.DEFAULT_MARGIN) -> dict[str, Any]:
     """Return one channel's metrics in presentation units."""
     return {
+        "profit_roi": estimate(scaled(metrics["roi"], margin)),
+        "marginal_profit_roi": estimate(scaled(metrics["marginal_roi"], margin)),
         "total_spend_cr": crore(metrics["total_spend"]),
         "weeks_active": metrics["active_weeks"],
         "average_weekly_spend_lakh": lakh(metrics["current_weekly_spend"]),
@@ -226,6 +252,11 @@ def recommendation_facts(result: dict[str, Any]) -> dict[str, Any]:
             "current": lakh(spend),
             "recommended": lakh(recommended["spend"][channel]),
             "change_pct": pct(100 * (recommended["spend"][channel] / spend - 1)) if spend else None,
+            **(
+                {"caveat_to_state_with_this_change": result["caveats"][channel]}
+                if channel in result.get("caveats", {})
+                else {}
+            ),
         }
         for channel, spend in current["spend"].items()
     }
@@ -240,6 +271,12 @@ def recommendation_facts(result: dict[str, Any]) -> dict[str, Any]:
         },
         "uplift_vs_current_cr": estimate(result["uplift"], crore),
         "uplift_vs_current_pct": estimate(result["uplift_pct"], pct),
+        "realistic_uplift_vs_current_cr": crore(result.get("realistic_uplift", 0.0)),
+        "realistic_uplift_vs_current_pct": pct(result.get("realistic_uplift_pct", 0.0)),
+        "why_realistic_is_lower": "Optimizers move money to the channels the model happens to "
+        f"overestimate. On synthetic brands with known truth, about "
+        f"{round(100 * config.UPLIFT_SHRINKAGE)}% of the expected uplift was delivered, so the "
+        "expected uplift is scaled down by that share.",
         "chance_it_beats_current_plan_pct": pct(100 * result["prob_recommended_beats_current"]),
         "channels_pushed_beyond_any_historical_weekly_spend": result["extrapolated_channels"],
     }
@@ -306,8 +343,12 @@ def build_facts(
     optimizer: dict[str, Any],
     model_meta: dict[str, Any] | None = None,
     data_report: ValidationReport | None = None,
+    margin: float = config.DEFAULT_MARGIN,
 ) -> dict[str, Any]:
     """Build the single FACTS document the brief is written from.
+
+    ``margin`` is the product gross margin (0 to 1) used for profit ROI: gross profit earned
+    per rupee of spend, which must exceed 1 for the spend to pay for itself.
 
     Every value is already in the unit and precision it should be quoted in, so the model
     never has to convert, and the number check can match what it writes.
@@ -323,6 +364,11 @@ def build_facts(
             "currency": "INR",
             "interval_pct": round(100 * insights["hdi_prob"]),
             "roi_that_returns_one_rupee_of_revenue_per_rupee": config.MARGINAL_ROI_BREAKEVEN,
+            "gross_margin_pct": pct(100 * margin),
+            "profit_roi_meaning": "Gross profit per rupee spent (ROI x margin). Above 1 the "
+            "spend pays for itself; below 1 it does not.",
+            "chances_below_this_pct_are_reported_as_less_than": config.CHANCE_FLOOR_PCT,
+            "chances_above_this_pct_are_reported_as_more_than": config.CHANCE_CEILING_PCT,
             "channels": list(insights["channels"]),
         },
         "totals_over_data_period": {
@@ -331,13 +377,17 @@ def build_facts(
             "revenue_caused_by_media_cr": estimate(totals["media_revenue"], crore),
             "media_share_of_revenue_pct": estimate(totals["media_pct_of_revenue"], pct),
             "blended_media_roi": estimate(totals["blended_media_roi"]),
+            "blended_profit_roi": estimate(scaled(totals["blended_media_roi"], margin)),
+            "marketing_pays_for_itself_after_margin": bool(
+                totals["blended_media_roi"]["mean"] * margin >= config.PROFIT_BREAKEVEN
+            ),
         },
         "share_of_revenue_by_driver_pct": {
             name: estimate(values["pct_of_revenue"], pct)
             for name, values in insights["decomposition"].items()
         },
         "channels": {
-            name: channel_facts(metrics) for name, metrics in insights["channels"].items()
+            name: channel_facts(metrics, margin) for name, metrics in insights["channels"].items()
         },
         "main_recommendation": {
             "rule": f"Same budget as last quarter; no channel moves more than "
@@ -1055,9 +1105,16 @@ def ask(
 # --- Keyless brief and PDF export -----------------------------------------------------------
 
 
-def _likely(estimate_: dict[str, float], unit: str = "") -> str:
-    """Return a range phrase in the required 'likely between X and Y' form."""
-    return f"likely between {estimate_['low']:g} and {estimate_['high']:g}{unit}"
+def range_text(
+    estimate_: dict[str, float], prefix: str = "", suffix: str = "", digits: str = ".2f"
+) -> str:
+    """Return the standard range phrase, e.g. "94% range: ₹0.27 to ₹0.70"."""
+    interval = round(100 * config.HDI_PROB)
+    low, high = (
+        f"{'-' if estimate_[key] < 0 else ''}{prefix}{abs(estimate_[key]):{digits}}{suffix}"
+        for key in ("low", "high")
+    )
+    return f"{interval}% range: {low} to {high}"
 
 
 def template_brief(facts: dict[str, Any], name: Callable[[str], str] = str) -> str:
@@ -1067,6 +1124,7 @@ def template_brief(facts: dict[str, Any], name: Callable[[str], str] = str) -> s
     number is copied from the facts (percentages rounded to whole numbers), so it always
     passes the number check. ``name`` maps a channel id to the label shown to the reader.
     """
+    about = facts["about"]
     totals = facts["totals_over_data_period"]
     recommendation = facts["main_recommendation"]
     spend = recommendation["spend_by_channel_lakh"]
@@ -1077,49 +1135,60 @@ def template_brief(facts: dict[str, Any], name: Callable[[str], str] = str) -> s
     widest = max(channels, key=lambda c: channels[c]["roi"]["high"] - channels[c]["roi"]["low"])
 
     def moves(direction: int) -> str:
-        chosen = [
-            f"{name(c)} ({v['change_pct']:+.0f}%)"
-            for c, v in spend.items()
-            if (v["change_pct"] or 0) * direction > 0
-        ]
+        chosen = []
+        for channel, values in spend.items():
+            if (values["change_pct"] or 0) * direction <= 0:
+                continue
+            caveat = values.get("caveat_to_state_with_this_change")
+            note = f"; {caveat}" if caveat else ""
+            chosen.append(f"{name(channel)} ({values['change_pct']:+.0f}%{note})")
         return ", ".join(chosen) or "nothing"
 
     def percent(estimate_: dict[str, float]) -> str:
-        return f"likely between {estimate_['low']:.0f}% and {estimate_['high']:.0f}%"
+        whole = {key: round(value) for key, value in estimate_.items()}
+        return range_text(whole, suffix="%", digits="g")
 
     uplift = recommendation["uplift_vs_current_cr"]
     share = totals["media_share_of_revenue_pct"]
+    profit = totals["blended_profit_roi"]
+    pays = totals["marketing_pays_for_itself_after_margin"]
     baseline = facts["share_of_revenue_by_driver_pct"]["baseline"]
     lines = [
         "## Headline finding",
         f"Marketing drives about {share['best_estimate']:.0f}% of revenue ({percent(share)}). "
-        f"Reallocating the same budget is expected to add about {uplift['best_estimate']:g} "
-        f"crore over the next {recommendation['window_weeks']} weeks, "
-        f"{_likely(uplift, ' crore')}.",
+        f"At a {about['gross_margin_pct']:.0f}% product margin it "
+        f"{'pays for itself' if pays else 'does not pay for itself'}: each ₹1 of spend returns "
+        f"about ₹{profit['best_estimate']:.2f} of gross profit ({range_text(profit, '₹')}).",
         "",
         "## Top insights",
         f"- About {baseline['best_estimate']:.0f}% of revenue would have happened without "
         f"marketing ({percent(baseline)}).",
-        f"- {name(strongest)} has the strongest case for more budget: a "
-        f"{channels[strongest][chance]:.0f}% chance that the next rupee returns more than a "
-        "rupee of revenue.",
-        f"- {name(weakest)} has the weakest case: a {channels[weakest][chance]:.0f}% chance.",
+        f"- {name(strongest)} has the strongest case for more budget: "
+        f"{chance_text(channels[strongest][chance])} that the next ₹1 returns more than ₹1 of "
+        "revenue.",
+        f"- {name(weakest)} has the weakest case: {chance_text(channels[weakest][chance])}.",
         "",
         "## Recommended budget shift",
-        f"Increase {moves(1)}; reduce {moves(-1)}. There is a "
-        f"{recommendation['chance_it_beats_current_plan_pct']:.0f}% chance this beats the "
-        "current plan.",
+        f"Increase {moves(1)}. Reduce {moves(-1)}.",
+        "",
+        f"Expected uplift over the next {recommendation['window_weeks']} weeks: about "
+        f"₹{uplift['best_estimate']:.2f} crore ({range_text(uplift, '₹', ' crore')}). Realistic "
+        f"uplift: about ₹{recommendation['realistic_uplift_vs_current_cr']:.2f} crore, because "
+        "optimizers favour the channels a model happens to overestimate. "
+        f"There is {chance_text(recommendation['chance_it_beats_current_plan_pct'])} that this "
+        "plan beats the current one.",
         "",
         "## Risks and caveats",
-        f"- {name(widest)} is the least certain channel: its ROI is "
-        f"{_likely(channels[widest]['roi'])}.",
+        f"- {name(widest)} is the least certain channel: each ₹1 returns between "
+        f"₹{channels[widest]['roi']['low']:.2f} and ₹{channels[widest]['roi']['high']:.2f} of "
+        "revenue (94% range).",
     ]
     check = recommendation.get("ground_truth_check_synthetic_data_only")
     if check:
         lines.append(
-            f"- The model expected an uplift of {check['uplift_the_model_expected_cr']:g} crore; "
-            "scored against the known truth for this synthetic brand it delivers "
-            f"{check['uplift_it_would_really_have_delivered_cr']:g} crore."
+            f"- Scored against the known truth for this synthetic brand, the plan delivers "
+            f"₹{check['uplift_it_would_really_have_delivered_cr']:.2f} crore against the "
+            f"₹{check['uplift_the_model_expected_cr']:.2f} crore the model expected."
         )
     else:
         lines.append("- ROI here is revenue per rupee, before product margin.")

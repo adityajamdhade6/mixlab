@@ -197,3 +197,75 @@ def test_library_optimizer_objective_matches_our_plan_revenue(
     plan = dict(zip(current, allocation.to_numpy() * WEEKS, strict=True))
     ours = plan_revenue_draws(draws, plan, WEEKS).sum(axis=1).mean()
     assert -result.fun == pytest.approx(ours, rel=1e-6)
+
+
+def test_confidence_gate_holds_flagged_channels_to_ten_percent_with_caveats(
+    allocator: BudgetAllocator, draws: PosteriorDraws, current: dict[str, float]
+) -> None:
+    """The live-demo situation: TV (bursts) and Email (tiny) must not get the full +30%."""
+    from mixlab.ai_explainer import build_facts, template_brief
+    from mixlab.evaluate import trust_notes
+    from mixlab.insights import build_summary
+    from mixlab.optimizer import build_optimizer_summary, change_lines, channel_caveats
+
+    caveats = channel_caveats(draws)
+    assert set(caveats) == {"tv", "email"}
+    assert "bursts" in caveats["tv"] and "too small" in caveats["email"]
+
+    ungated = optimize_budget(allocator, draws, max_change=0.3)
+    gated = optimize_budget(allocator, draws, max_change=0.3, gate=True)
+    peak = dict(zip(draws.channels, draws.spend.max(axis=0) * WEEKS, strict=True))
+    for channel in current:
+        change = gated.recommended.spend[channel] / current[channel] - 1
+        limit = config.GATED_MAX_CHANGE if channel in caveats else 0.3
+        assert abs(change) <= limit + 1e-6
+        low, high = gated.bounds[channel]
+        assert low == pytest.approx(current[channel] * (1 - limit))
+        assert high <= current[channel] * (1 + limit) + TOLERANCE
+    for channel in caveats:
+        assert gated.recommended.spend[channel] <= peak[channel] + TOLERANCE
+        assert channel not in gated.extrapolated_channels
+    assert ungated.bounds["tv"][1] == pytest.approx(current["tv"] * 1.3)
+    assert gated.caveats == caveats == ungated.caveats
+    assert gated.realistic_uplift == pytest.approx(config.UPLIFT_SHRINKAGE * gated.uplift.mean)
+
+    # The caveat appears next to the change wherever the recommendation is described.
+    lines = change_lines(gated, name=str.upper)
+    for line in lines:
+        channel = line.split()[0].lower()
+        assert (channel in caveats) == (caveats.get(channel, "~") in line)
+
+    insights = build_summary(draws)
+    summary = build_optimizer_summary(allocator, draws, BRAND, curve_points=3)
+    assert summary["expected_revenue"]["caveats"] == caveats
+    brief = template_brief(build_facts(insights, summary))
+    shift = next(line for line in brief.splitlines() if line.startswith("Increase"))
+    for channel, caveat in caveats.items():
+        if f"{channel} (" in shift:
+            assert f"{caveat})" in shift.split(f"{channel} (")[1].split(")")[0] + ")"
+    assert "+30%" not in "".join(
+        part for part in shift.split(",") if "tv" in part or "email" in part
+    )
+
+    # Health notes and the gate agree on which channels are hard to measure.
+    notes = " ".join(
+        n["detail"]
+        for n in trust_notes(insights, summary)
+        if "bursts" in n["title"] or "small" in n["title"]
+    )
+    assert "tv" in notes and "email" in notes
+
+
+def test_measured_shrinkage_averages_true_over_expected_uplift() -> None:
+    from mixlab.optimizer import measured_shrinkage
+
+    def brand(expected: float, true: float) -> dict:
+        return {
+            "expected_revenue": {
+                "truth_check": {"model_expected_uplift": expected, "true_uplift": true}
+            }
+        }
+
+    assert measured_shrinkage([brand(10, 4), brand(20, 12)]) == pytest.approx(0.5)
+    assert measured_shrinkage([{"expected_revenue": {}}]) is None
+    assert measured_shrinkage([brand(-1, 5)]) is None
