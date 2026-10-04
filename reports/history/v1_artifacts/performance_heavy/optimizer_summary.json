@@ -1,0 +1,784 @@
+{
+  "n_weeks": 13,
+  "max_change": 0.3,
+  "expected_revenue": {
+    "objective": "expected revenue",
+    "converged": true,
+    "message": "Optimization terminated successfully",
+    "bounds": {
+      "meta_ads": [
+        17795882.299999997,
+        33049495.700000003
+      ],
+      "google_search": [
+        5555920.3,
+        10318137.700000001
+      ],
+      "youtube": [
+        6885625.6,
+        12787590.4
+      ],
+      "influencers": [
+        7765940.699999999,
+        14422461.3
+      ],
+      "email": [
+        777183.3,
+        949890.7000000001
+      ],
+      "tv": [
+        9165292.200000001,
+        11202023.8
+      ]
+    },
+    "current": {
+      "name": "current",
+      "n_weeks": 13,
+      "spend": {
+        "meta_ads": 25422689.0,
+        "google_search": 7937029.0,
+        "youtube": 9836608.0,
+        "influencers": 11094201.0,
+        "email": 863537.0,
+        "tv": 10183658.0
+      },
+      "total_spend": 65337722.0,
+      "incremental_revenue": {
+        "mean": 64151286.205001846,
+        "median": 62629192.675099954,
+        "hdi_low": 40158991.97382472,
+        "hdi_high": 89956853.74841043
+      },
+      "total_revenue": {
+        "mean": 162367575.52946436,
+        "median": 162165476.12174612,
+        "hdi_low": 159013609.56652486,
+        "hdi_high": 166165149.70854637
+      },
+      "revenue_at_risk_percentile": 48437921.21502698,
+      "roi": {
+        "mean": 0.9818414882141414,
+        "median": 0.9585457031253699,
+        "hdi_low": 0.6146371612684127,
+        "hdi_high": 1.376798134290792
+      },
+      "channel_revenue": {
+        "meta_ads": 17314178.9598843,
+        "google_search": 15784545.461713642,
+        "youtube": 10878676.510210665,
+        "influencers": 2376010.160202922,
+        "email": 9182411.016231967,
+        "tv": 8615464.096758358
+      }
+    },
+    "recommended": {
+      "name": "recommended",
+      "n_weeks": 13,
+      "spend": {
+        "meta_ads": 22314138.699999996,
+        "google_search": 10318137.700000001,
+        "youtube": 12787590.4,
+        "influencers": 7765940.699999999,
+        "email": 949890.6999999996,
+        "tv": 11202023.8
+      },
+      "total_spend": 65337722.0,
+      "incremental_revenue": {
+        "mean": 67648739.7457767,
+        "median": 66268141.83151822,
+        "hdi_low": 44341676.470536776,
+        "hdi_high": 94742042.68875006
+      },
+      "total_revenue": {
+        "mean": 165865029.0702392,
+        "median": 165734240.30291426,
+        "hdi_low": 160416021.29575384,
+        "hdi_high": 170748177.3898031
+      },
+      "revenue_at_risk_percentile": 51298483.29367455,
+      "roi": {
+        "mean": 1.0353703446498594,
+        "median": 1.0142401633090028,
+        "hdi_low": 0.6786535421381354,
+        "hdi_high": 1.450035902518151
+      },
+      "channel_revenue": {
+        "meta_ads": 16106979.248644078,
+        "google_search": 18239921.997617945,
+        "youtube": 12684272.433006838,
+        "influencers": 1728094.2863533266,
+        "email": 9496231.031566242,
+        "tv": 9393240.74858828
+      }
+    },
+    "uplift": {
+      "mean": 3497453.540774853,
+      "median": 3422635.884523753,
+      "hdi_low": -220002.81161345541,
+      "hdi_high": 6991688.165866539
+    },
+    "uplift_pct": {
+      "mean": 5.647011161042498,
+      "median": 5.4209888236306085,
+      "hdi_low": -0.3260832840761157,
+      "hdi_high": 11.949046650061137
+    },
+    "prob_recommended_beats_current": 0.9685,
+    "extrapolated_channels": [],
+    "caveats": {
+      "email": "too small a share of spend to measure precisely",
+      "tv": "ran in bursts, so its effect is tangled with the season"
+    },
+    "realistic_uplift": 1398981.4163099413,
+    "realistic_uplift_pct": 2.258804464416999,
+    "truth_check": {
+      "true_revenue_current": 65076347.5960345,
+      "true_revenue_recommended": 66344506.36998985,
+      "true_uplift": 1268158.7739553526,
+      "true_uplift_pct": 1.948724568605982,
+      "model_expected_uplift": 3497453.540774853,
+      "model_expected_uplift_pct": 5.647011161042498,
+      "model_uplift_hdi": [
+        -220002.81161345541,
+        6991688.165866539
+      ],
+      "true_uplift_inside_model_hdi": true,
+      "true_revenue_by_channel": {
+        "current": {
+          "meta_ads": 25692100.19463124,
+          "google_search": 12705788.23120715,
+          "youtube": 7913165.702658245,
+          "influencers": 7515959.463658346,
+          "email": 2667979.378028127,
+          "tv": 8581354.625851393
+        },
+        "recommended": {
+          "meta_ads": 24415229.811148122,
+          "google_search": 13937622.816038845,
+          "youtube": 9091545.894936185,
+          "influencers": 6631366.197749549,
+          "email": 2781523.533552386,
+          "tv": 9487218.116564756
+        }
+      }
+    }
+  },
+  "conservative": {
+    "objective": "10th percentile revenue",
+    "converged": true,
+    "message": "Optimization terminated successfully",
+    "bounds": {
+      "meta_ads": [
+        17795882.299999997,
+        33049495.700000003
+      ],
+      "google_search": [
+        5555920.3,
+        10318137.700000001
+      ],
+      "youtube": [
+        6885625.6,
+        12787590.4
+      ],
+      "influencers": [
+        7765940.699999999,
+        14422461.3
+      ],
+      "email": [
+        777183.3,
+        949890.7000000001
+      ],
+      "tv": [
+        9165292.200000001,
+        11202023.8
+      ]
+    },
+    "current": {
+      "name": "current",
+      "n_weeks": 13,
+      "spend": {
+        "meta_ads": 25422689.0,
+        "google_search": 7937029.0,
+        "youtube": 9836608.0,
+        "influencers": 11094201.0,
+        "email": 863537.0,
+        "tv": 10183658.0
+      },
+      "total_spend": 65337722.0,
+      "incremental_revenue": {
+        "mean": 64151286.205001846,
+        "median": 62629192.675099954,
+        "hdi_low": 40158991.97382472,
+        "hdi_high": 89956853.74841043
+      },
+      "total_revenue": {
+        "mean": 162367575.52946436,
+        "median": 162165476.12174612,
+        "hdi_low": 159013609.56652486,
+        "hdi_high": 166165149.70854637
+      },
+      "revenue_at_risk_percentile": 48437921.21502698,
+      "roi": {
+        "mean": 0.9818414882141414,
+        "median": 0.9585457031253699,
+        "hdi_low": 0.6146371612684127,
+        "hdi_high": 1.376798134290792
+      },
+      "channel_revenue": {
+        "meta_ads": 17314178.9598843,
+        "google_search": 15784545.461713642,
+        "youtube": 10878676.510210665,
+        "influencers": 2376010.160202922,
+        "email": 9182411.016231967,
+        "tv": 8615464.096758358
+      }
+    },
+    "recommended": {
+      "name": "recommended",
+      "n_weeks": 13,
+      "spend": {
+        "meta_ads": 24211745.955246083,
+        "google_search": 10318137.700000001,
+        "youtube": 10916347.943225715,
+        "influencers": 7765940.700000323,
+        "email": 923525.9015278837,
+        "tv": 11202023.799999993
+      },
+      "total_spend": 65337722.0,
+      "incremental_revenue": {
+        "mean": 67223383.68662848,
+        "median": 65883193.78693759,
+        "hdi_low": 44089603.29848261,
+        "hdi_high": 94082842.27739504
+      },
+      "total_revenue": {
+        "mean": 165439673.01109093,
+        "median": 165288106.8433449,
+        "hdi_low": 161200536.91062742,
+        "hdi_high": 170037426.98302063
+      },
+      "revenue_at_risk_percentile": 51106848.67318878,
+      "roi": {
+        "mean": 1.028860230031106,
+        "median": 1.0083484971658117,
+        "hdi_low": 0.6747955384560639,
+        "hdi_high": 1.4399467780250288
+      },
+      "channel_revenue": {
+        "meta_ads": 16864563.67693441,
+        "google_search": 18239921.997617945,
+        "youtube": 11592790.171659758,
+        "influencers": 1728094.2863533956,
+        "email": 9404772.805474704,
+        "tv": 9393240.748588275
+      }
+    },
+    "uplift": {
+      "mean": 3072097.4816266163,
+      "median": 2975613.2011353113,
+      "hdi_low": 317812.8529680744,
+      "hdi_high": 5892329.807248652
+    },
+    "uplift_pct": {
+      "mean": 4.974396096098464,
+      "median": 4.694344189667396,
+      "hdi_low": 0.14697666149960997,
+      "hdi_high": 9.755784430038217
+    },
+    "prob_recommended_beats_current": 0.99075,
+    "extrapolated_channels": [],
+    "caveats": {
+      "email": "too small a share of spend to measure precisely",
+      "tv": "ran in bursts, so its effect is tangled with the season"
+    },
+    "realistic_uplift": 1228838.9926506465,
+    "realistic_uplift_pct": 1.9897584384393856,
+    "truth_check": {
+      "true_revenue_current": 65076347.5960345,
+      "true_revenue_recommended": 66407196.55005206,
+      "true_uplift": 1330848.9540175647,
+      "true_uplift_pct": 2.04505784848113,
+      "model_expected_uplift": 3072097.4816266163,
+      "model_expected_uplift_pct": 4.974396096098464,
+      "model_uplift_hdi": [
+        317812.8529680744,
+        5892329.807248652
+      ],
+      "true_uplift_inside_model_hdi": true,
+      "true_revenue_by_channel": {
+        "current": {
+          "meta_ads": 25692100.19463124,
+          "google_search": 12705788.23120715,
+          "youtube": 7913165.702658245,
+          "influencers": 7515959.463658346,
+          "email": 2667979.378028127,
+          "tv": 8581354.625851393
+        },
+        "recommended": {
+          "meta_ads": 25217478.49643757,
+          "google_search": 13937622.816038845,
+          "youtube": 8385407.293396661,
+          "influencers": 6631366.197749656,
+          "email": 2748103.6298645902,
+          "tv": 9487218.11656475
+        }
+      }
+    }
+  },
+  "unconstrained": {
+    "objective": "expected revenue",
+    "converged": true,
+    "message": "Optimization terminated successfully",
+    "bounds": {
+      "meta_ads": [
+        0.0,
+        65337722.0
+      ],
+      "google_search": [
+        0.0,
+        65337722.0
+      ],
+      "youtube": [
+        0.0,
+        65337722.0
+      ],
+      "influencers": [
+        0.0,
+        65337722.0
+      ],
+      "email": [
+        0.0,
+        65337722.0
+      ],
+      "tv": [
+        0.0,
+        65337722.0
+      ]
+    },
+    "current": {
+      "name": "current",
+      "n_weeks": 13,
+      "spend": {
+        "meta_ads": 25422689.0,
+        "google_search": 7937029.0,
+        "youtube": 9836608.0,
+        "influencers": 11094201.0,
+        "email": 863537.0,
+        "tv": 10183658.0
+      },
+      "total_spend": 65337722.0,
+      "incremental_revenue": {
+        "mean": 64151286.205001846,
+        "median": 62629192.675099954,
+        "hdi_low": 40158991.97382472,
+        "hdi_high": 89956853.74841043
+      },
+      "total_revenue": {
+        "mean": 162367575.52946436,
+        "median": 162165476.12174612,
+        "hdi_low": 159013609.56652486,
+        "hdi_high": 166165149.70854637
+      },
+      "revenue_at_risk_percentile": 48437921.21502698,
+      "roi": {
+        "mean": 0.9818414882141414,
+        "median": 0.9585457031253699,
+        "hdi_low": 0.6146371612684127,
+        "hdi_high": 1.376798134290792
+      },
+      "channel_revenue": {
+        "meta_ads": 17314178.9598843,
+        "google_search": 15784545.461713642,
+        "youtube": 10878676.510210665,
+        "influencers": 2376010.160202922,
+        "email": 9182411.016231967,
+        "tv": 8615464.096758358
+      }
+    },
+    "recommended": {
+      "name": "recommended",
+      "n_weeks": 13,
+      "spend": {
+        "meta_ads": 15605104.797495421,
+        "google_search": 14548113.784444489,
+        "youtube": 11934918.446629105,
+        "influencers": 1.753821985100816e-13,
+        "email": 3186704.6545635173,
+        "tv": 20062880.31686746
+      },
+      "total_spend": 65337721.999999985,
+      "incremental_revenue": {
+        "mean": 74095366.21158661,
+        "median": 72812860.57450035,
+        "hdi_low": 47596432.94009134,
+        "hdi_high": 100547069.90610512
+      },
+      "total_revenue": {
+        "mean": 172311655.5360491,
+        "median": 171896660.9976748,
+        "hdi_low": 160465839.89072487,
+        "hdi_high": 185060185.8176145
+      },
+      "revenue_at_risk_percentile": 56783084.47196345,
+      "roi": {
+        "mean": 1.1340365709656457,
+        "median": 1.1144077011821802,
+        "hdi_low": 0.7284678969997049,
+        "hdi_high": 1.5388823917997192
+      },
+      "channel_revenue": {
+        "meta_ads": 12799364.8022385,
+        "google_search": 21287859.90537813,
+        "youtube": 12208025.66782859,
+        "influencers": 0.0,
+        "email": 12508648.932754342,
+        "tv": 15291466.903387059
+      }
+    },
+    "uplift": {
+      "mean": 9944080.006584765,
+      "median": 9525198.686440624,
+      "hdi_low": -1514946.2951941118,
+      "hdi_high": 22614277.30515749
+    },
+    "uplift_pct": {
+      "mean": 16.38532805952003,
+      "median": 15.109198202370631,
+      "hdi_low": -3.3623553072064825,
+      "hdi_high": 38.831970361001005
+    },
+    "prob_recommended_beats_current": 0.9515,
+    "extrapolated_channels": [
+      "google_search",
+      "email"
+    ],
+    "caveats": {
+      "email": "too small a share of spend to measure precisely",
+      "tv": "ran in bursts, so its effect is tangled with the season"
+    },
+    "realistic_uplift": 3977632.0026339064,
+    "realistic_uplift_pct": 6.554131223808013,
+    "truth_check": {
+      "true_revenue_current": 65076347.5960345,
+      "true_revenue_recommended": 64997834.558530726,
+      "true_uplift": -78513.03750377148,
+      "true_uplift_pct": -0.1206475784276433,
+      "model_expected_uplift": 9944080.006584765,
+      "model_expected_uplift_pct": 16.38532805952003,
+      "model_uplift_hdi": [
+        -1514946.2951941118,
+        22614277.30515749
+      ],
+      "true_uplift_inside_model_hdi": true,
+      "true_revenue_by_channel": {
+        "current": {
+          "meta_ads": 25692100.19463124,
+          "google_search": 12705788.23120715,
+          "youtube": 7913165.702658245,
+          "influencers": 7515959.463658346,
+          "email": 2667979.378028127,
+          "tv": 8581354.625851393
+        },
+        "recommended": {
+          "meta_ads": 20820303.740037676,
+          "google_search": 15406590.600136615,
+          "youtube": 8785677.143709868,
+          "influencers": 4.09225129856857e-13,
+          "email": 4012092.4633004684,
+          "tv": 15973170.611346103
+        }
+      }
+    }
+  },
+  "scenarios": [
+    {
+      "scenario": "current",
+      "spend": 65337722.0,
+      "spend_change": 0.0,
+      "revenue_mean": 64151286.205001846,
+      "revenue_hdi_low": 40158991.97382472,
+      "revenue_hdi_high": 89956853.74841043,
+      "revenue_change_mean": 0.0,
+      "revenue_change_hdi_low": 0.0,
+      "revenue_change_hdi_high": 0.0,
+      "net_change_mean": 0.0,
+      "prob_revenue_up": 0.0,
+      "roi_mean": 0.9818414882141414,
+      "true_revenue_change": 0.0
+    },
+    {
+      "scenario": "budget cut 20%",
+      "spend": 52270177.60000001,
+      "spend_change": -13067544.399999991,
+      "revenue_mean": 55684545.605034836,
+      "revenue_hdi_low": 33093627.549853075,
+      "revenue_hdi_high": 80177445.417493,
+      "revenue_change_mean": -8466740.599967012,
+      "revenue_change_hdi_low": -10963870.771191962,
+      "revenue_change_hdi_high": -6219675.223009154,
+      "net_change_mean": 4600803.800032979,
+      "prob_revenue_up": 0.0,
+      "roi_mean": 1.0653215305898411,
+      "true_revenue_change": -7029016.193097323
+    },
+    {
+      "scenario": "budget increase 20%",
+      "spend": 78405266.39999999,
+      "spend_change": 13067544.399999991,
+      "revenue_mean": 71279748.40598577,
+      "revenue_hdi_low": 46401062.51797034,
+      "revenue_hdi_high": 97815153.84864642,
+      "revenue_change_mean": 7128462.20098392,
+      "revenue_change_hdi_low": 5080750.794782385,
+      "revenue_change_hdi_high": 9451447.257548794,
+      "net_change_mean": -5939082.199016071,
+      "prob_revenue_up": 1.0,
+      "roi_mean": 0.9091193956581695,
+      "true_revenue_change": 5840467.635997027
+    },
+    {
+      "scenario": "shift 15% of meta_ads to youtube",
+      "spend": 65337722.0,
+      "spend_change": 0.0,
+      "revenue_mean": 64899921.23190121,
+      "revenue_hdi_low": 40706780.04979978,
+      "revenue_hdi_high": 90620819.11787592,
+      "revenue_change_mean": 748635.0268993711,
+      "revenue_change_hdi_low": -2244393.399355583,
+      "revenue_change_hdi_high": 3885856.0577634275,
+      "net_change_mean": 748635.0268993711,
+      "prob_revenue_up": 0.6625,
+      "roi_mean": 0.9932994179365667,
+      "true_revenue_change": -130985.76230986416
+    },
+    {
+      "scenario": "pause tv",
+      "spend": 55154064.0,
+      "spend_change": -10183658.0,
+      "revenue_mean": 55535822.10824349,
+      "revenue_hdi_low": 30684372.976458922,
+      "revenue_hdi_high": 81745553.13571127,
+      "revenue_change_mean": -8615464.096758367,
+      "revenue_change_hdi_low": -12073863.865302548,
+      "revenue_change_hdi_high": -5664911.712069824,
+      "net_change_mean": 1568193.9032416325,
+      "prob_revenue_up": 0.0,
+      "roi_mean": 1.0069216677894033,
+      "true_revenue_change": -8581354.625851393
+    },
+    {
+      "scenario": "recommended (same budget)",
+      "spend": 65337722.0,
+      "spend_change": 0.0,
+      "revenue_mean": 67648739.7457767,
+      "revenue_hdi_low": 44341676.470536776,
+      "revenue_hdi_high": 94742042.68875006,
+      "revenue_change_mean": 3497453.540774853,
+      "revenue_change_hdi_low": -220002.81161345541,
+      "revenue_change_hdi_high": 6991688.165866539,
+      "net_change_mean": 3497453.540774853,
+      "prob_revenue_up": 0.9685,
+      "roi_mean": 1.0353703446498594,
+      "true_revenue_change": 1268158.7739553526
+    }
+  ],
+  "budget_curve": [
+    {
+      "budget": 3266886.1,
+      "revenue_mean": 15647584.65548542,
+      "revenue_hdi_low": 1898433.1976335612,
+      "revenue_hdi_high": 35301697.906889364,
+      "spend_meta_ads": 1.3481230586744155e-11,
+      "spend_google_search": 2071457.803247615,
+      "spend_youtube": 0.0,
+      "spend_influencers": 3.385965976785619e-11,
+      "spend_email": 1195428.296752385,
+      "spend_tv": 1.454871072734946e-11,
+      "marginal_return": null
+    },
+    {
+      "budget": 14700987.450000003,
+      "revenue_mean": 33725238.01600344,
+      "revenue_hdi_low": 11191714.236414919,
+      "revenue_hdi_high": 59651155.32348311,
+      "spend_meta_ads": 3.347138729309199e-13,
+      "spend_google_search": 8220272.27036212,
+      "spend_youtube": 4472474.371135388,
+      "spend_influencers": 0.0,
+      "spend_email": 2008240.8085024958,
+      "spend_tv": 0.0,
+      "marginal_return": 1.5810296591885649
+    },
+    {
+      "budget": 26135088.8,
+      "revenue_mean": 44966289.538673416,
+      "revenue_hdi_low": 22614637.265726794,
+      "revenue_hdi_high": 72503516.19053732,
+      "spend_meta_ads": 6157369.442760027,
+      "spend_google_search": 10403485.416325167,
+      "spend_youtube": 7185634.501784893,
+      "spend_influencers": 3.337338830723999e-19,
+      "spend_email": 2388599.4391299114,
+      "spend_tv": 0.0,
+      "marginal_return": 0.9831163095882459
+    },
+    {
+      "budget": 37569190.150000006,
+      "revenue_mean": 54788234.86376627,
+      "revenue_hdi_low": 31465547.22462571,
+      "revenue_hdi_high": 81350793.39315727,
+      "spend_meta_ads": 8220617.616277572,
+      "spend_google_search": 11131736.19281537,
+      "spend_youtube": 8037491.853072277,
+      "spend_influencers": 1.0001759220683899e-12,
+      "spend_email": 2522117.7538799737,
+      "spend_tv": 7657226.73395481,
+      "marginal_return": 0.8590045710144809
+    },
+    {
+      "budget": 49003291.50000001,
+      "revenue_mean": 63558615.81450085,
+      "revenue_hdi_low": 39882965.302785486,
+      "revenue_hdi_high": 90664378.16446608,
+      "spend_meta_ads": 11212599.261492934,
+      "spend_google_search": 12393829.292836597,
+      "spend_youtube": 9488473.04759035,
+      "spend_influencers": 0.0,
+      "spend_email": 2760573.360376457,
+      "spend_tv": 13147816.537703665,
+      "marginal_return": 0.7670371883431473
+    },
+    {
+      "budget": 60437392.85000001,
+      "revenue_mean": 71167212.86925848,
+      "revenue_hdi_low": 45543374.20280499,
+      "revenue_hdi_high": 98074140.59423447,
+      "spend_meta_ads": 14288777.60674163,
+      "spend_google_search": 13873258.60428594,
+      "spend_youtube": 11170025.21803333,
+      "spend_influencers": 0.0,
+      "spend_email": 3050740.1151929717,
+      "spend_tv": 18054591.305746134,
+      "marginal_return": 0.6654302617981975
+    },
+    {
+      "budget": 71871494.2,
+      "revenue_mean": 77716509.65853772,
+      "revenue_hdi_low": 52221445.693666786,
+      "revenue_hdi_high": 105904502.87669316,
+      "spend_meta_ads": 17353092.712748356,
+      "spend_google_search": 15474791.762134451,
+      "spend_youtube": 12985720.971362997,
+      "spend_influencers": 1.975486577504725e-13,
+      "spend_email": 3376907.895729198,
+      "spend_tv": 22680980.858025,
+      "marginal_return": 0.5727863160211748
+    },
+    {
+      "budget": 83305595.55000001,
+      "revenue_mean": 83354986.98948023,
+      "revenue_hdi_low": 56327397.92413077,
+      "revenue_hdi_high": 111535380.09562808,
+      "spend_meta_ads": 20389130.01804304,
+      "spend_google_search": 17150036.500032783,
+      "spend_youtube": 14892352.804448808,
+      "spend_influencers": 1.6165678780895247e-13,
+      "spend_email": 3730623.341664635,
+      "spend_tv": 27143452.885810748,
+      "marginal_return": 0.49312815746053423
+    },
+    {
+      "budget": 94739696.9,
+      "revenue_mean": 88228013.19732413,
+      "revenue_hdi_low": 62314128.31784934,
+      "revenue_hdi_high": 118981284.05120142,
+      "spend_meta_ads": 23396622.158848148,
+      "spend_google_search": 18870418.98091737,
+      "spend_youtube": 16865682.287875034,
+      "spend_influencers": 2.32179747120126e-15,
+      "spend_email": 4106420.162876731,
+      "spend_tv": 31500553.30948273,
+      "marginal_return": 0.4261835765382561
+    },
+    {
+      "budget": 106173798.25000001,
+      "revenue_mean": 92462777.03099209,
+      "revenue_hdi_low": 64287515.882709585,
+      "revenue_hdi_high": 122402880.59360802,
+      "spend_meta_ads": 26379446.147664238,
+      "spend_google_search": 20617805.984830145,
+      "spend_youtube": 18889876.24532197,
+      "spend_influencers": 5.28622330802798e-16,
+      "spend_email": 4500462.35196331,
+      "spend_tv": 35786207.520220354,
+      "marginal_return": 0.370362628775191
+    },
+    {
+      "budget": 117607899.60000002,
+      "revenue_mean": 96165654.25848018,
+      "revenue_hdi_low": 67367402.20446172,
+      "revenue_hdi_high": 127085784.2237072,
+      "spend_meta_ads": 29342451.562179316,
+      "spend_google_search": 22380246.31646777,
+      "spend_youtube": 20953523.073788684,
+      "spend_influencers": 2.639889408766917e-20,
+      "spend_email": 4909966.023570101,
+      "spend_tv": 40021712.62399414,
+      "marginal_return": 0.32384505910366823
+    },
+    {
+      "budget": 129042000.95000002,
+      "revenue_mean": 99423933.62826224,
+      "revenue_hdi_low": 69331172.51746722,
+      "revenue_hdi_high": 130384503.55235998,
+      "spend_meta_ads": 32290435.782503024,
+      "spend_google_search": 24149718.881265562,
+      "spend_youtube": 23047922.326945648,
+      "spend_influencers": 0.0,
+      "spend_email": 5332893.312939287,
+      "spend_tv": 44221030.6463465,
+      "marginal_return": 0.28496156103969306
+    },
+    {
+      "budget": 140476102.29999998,
+      "revenue_mean": 102308749.27761605,
+      "revenue_hdi_low": 72208885.41141577,
+      "revenue_hdi_high": 134678799.78758875,
+      "spend_meta_ads": 35227776.54999879,
+      "spend_google_search": 25920821.295805216,
+      "spend_youtube": 25166246.537503432,
+      "spend_influencers": 3.964935631413754e-16,
+      "spend_email": 5767755.0966105405,
+      "spend_tv": 48393502.82008201,
+      "marginal_return": 0.25229928973419724
+    },
+    {
+      "budget": 151910203.65,
+      "revenue_mean": 104932279.12087524,
+      "revenue_hdi_low": 73761361.17986116,
+      "revenue_hdi_high": 137258759.3593639,
+      "spend_meta_ads": 37010628.20509811,
+      "spend_google_search": 26997157.499094594,
+      "spend_youtube": 26463890.885429163,
+      "spend_influencers": 4480235.521595663,
+      "spend_email": 6037585.929871047,
+      "spend_tv": 50920705.60891141,
+      "marginal_return": 0.22944783878963781
+    },
+    {
+      "budget": 163344305.0,
+      "revenue_mean": 107371551.1771423,
+      "revenue_hdi_low": 74084305.40717393,
+      "revenue_hdi_high": 138576070.55447698,
+      "spend_meta_ads": 39115631.1214271,
+      "spend_google_search": 28267569.35292261,
+      "spend_youtube": 28005028.666380238,
+      "spend_influencers": 7695381.075166958,
+      "spend_email": 6361418.9052602,
+      "spend_tv": 53899275.8788429,
+      "marginal_return": 0.21333307984602298
+    }
+  ],
+  "payback_budget": 20095165.54244424,
+  "current_budget": 65337722.0
+}

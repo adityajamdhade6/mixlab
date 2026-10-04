@@ -269,3 +269,35 @@ def test_measured_shrinkage_averages_true_over_expected_uplift() -> None:
     assert measured_shrinkage([brand(10, 4), brand(20, 12)]) == pytest.approx(0.5)
     assert measured_shrinkage([{"expected_revenue": {}}]) is None
     assert measured_shrinkage([brand(-1, 5)]) is None
+
+
+def test_optimizer_works_on_a_hill_model_with_roi_priors(df: pd.DataFrame) -> None:
+    from conftest import TINY
+
+    from mixlab.config import RoiPriorSettings
+
+    settings = TINY.model_copy(
+        update={"saturation": "hill", "roi_prior": RoiPriorSettings(mode="independent")}
+    )
+    model = MixLabModel().build(df, settings)
+    model.fit(progressbar=False)
+    hill_draws = extract_draws(model, df)
+    result = optimize_budget(BudgetAllocator(model, WEEKS), hill_draws, max_change=0.3, gate=True)
+    spend = result.recommended.spend
+    assert sum(spend.values()) == pytest.approx(result.current.total_spend, abs=TOLERANCE)
+    assert all(np.isfinite(value) for value in spend.values())
+    assert result.uplift.mean >= -TOLERANCE
+
+
+def test_unconstrained_recommendation_is_never_rated_below_the_current_plan(
+    allocator: BudgetAllocator, draws: PosteriorDraws
+) -> None:
+    for objective in ("mean", "percentile"):
+        result = optimize_budget(allocator, draws, objective=objective)
+        current = plan_revenue_draws(draws, result.current.spend, WEEKS).sum(axis=1)
+        recommended = plan_revenue_draws(draws, result.recommended.spend, WEEKS).sum(axis=1)
+        if objective == "mean":
+            assert recommended.mean() >= current.mean() - TOLERANCE
+        else:
+            level = config.RISK_PERCENTILE
+            assert np.percentile(recommended, level) >= np.percentile(current, level) - TOLERANCE

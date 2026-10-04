@@ -1,0 +1,682 @@
+{
+  "currency": "INR",
+  "hdi_prob": 0.94,
+  "n_posterior_draws": 4000,
+  "period": {
+    "start": "2023-01-02",
+    "end": "2025-12-22",
+    "n_weeks": 156
+  },
+  "totals": {
+    "revenue": 1676057925.0,
+    "media_spend": 479822605.0,
+    "media_revenue": {
+      "mean": 545951817.9097142,
+      "median": 526428521.130816,
+      "hdi_low": 320500372.3325041,
+      "hdi_high": 834617162.0656791
+    },
+    "media_pct_of_revenue": {
+      "mean": 32.57356501623977,
+      "median": 31.408730765126506,
+      "hdi_low": 19.122273016459385,
+      "hdi_high": 49.79643899035763
+    },
+    "blended_media_roi": {
+      "mean": 1.13782012814864,
+      "median": 1.0971315557982433,
+      "hdi_low": 0.6679559674611497,
+      "hdi_high": 1.7394286000045351
+    },
+    "unexplained_revenue": {
+      "mean": -31982.64872955358,
+      "median": 44269.91453242302,
+      "hdi_low": -7758769.743986368,
+      "hdi_high": 7381857.903395176
+    }
+  },
+  "decomposition": {
+    "baseline": {
+      "revenue": {
+        "mean": 981262378.8673543,
+        "median": 1003423366.9107478,
+        "hdi_low": 728759536.6098013,
+        "hdi_high": 1206920373.732411
+      },
+      "pct_of_revenue": {
+        "mean": 58.54585120423892,
+        "median": 59.86806016329942,
+        "hdi_low": 43.48056983828893,
+        "hdi_high": 72.00946672128953
+      }
+    },
+    "trend": {
+      "revenue": {
+        "mean": 150314451.36190417,
+        "median": 150525743.7985319,
+        "hdi_low": 96491848.22931793,
+        "hdi_high": 205588483.7761371
+      },
+      "pct_of_revenue": {
+        "mean": 8.968332724055715,
+        "median": 8.980939235649146,
+        "hdi_low": 5.757071207984529,
+        "hdi_high": 12.266192039641895
+      }
+    },
+    "seasonality": {
+      "revenue": {
+        "mean": -33879.82142765305,
+        "median": -33057.56388162053,
+        "hdi_low": -102424.93954699975,
+        "hdi_high": 33487.348164931405
+      },
+      "pct_of_revenue": {
+        "mean": -0.0020213991964301023,
+        "median": -0.001972340179210723,
+        "hdi_low": -0.006111062035460364,
+        "hdi_high": 0.0019979827466244287
+      }
+    },
+    "holidays": {
+      "revenue": {
+        "mean": 12435166.12133445,
+        "median": 12445799.170972288,
+        "hdi_low": 10220186.259436062,
+        "hdi_high": 14573973.692317009
+      },
+      "pct_of_revenue": {
+        "mean": 0.7419293770132944,
+        "median": 0.742563785256544,
+        "hdi_low": 0.6097752414753841,
+        "hdi_high": 0.8695387835308263
+      }
+    },
+    "promos": {
+      "revenue": {
+        "mean": 16895340.58487193,
+        "median": 16928652.067218255,
+        "hdi_low": 13744606.92956952,
+        "hdi_high": 19860898.423613604
+      },
+      "pct_of_revenue": {
+        "mean": 1.008040374551609,
+        "median": 1.0100278644736134,
+        "hdi_low": 0.8200556033628444,
+        "hdi_high": 1.184976851179747
+      }
+    },
+    "price": {
+      "revenue": {
+        "mean": -30735367.375021767,
+        "median": -30774459.604690764,
+        "hdi_low": -58968458.91086089,
+        "hdi_high": -6978474.358739309
+      },
+      "pct_of_revenue": {
+        "mean": -1.8337890902560403,
+        "median": -1.8361214815824916,
+        "hdi_low": -3.5182828726436104,
+        "hdi_high": -0.41636236162537815
+      }
+    },
+    "meta_ads": {
+      "revenue": {
+        "mean": 154589601.10652378,
+        "median": 143513246.72497484,
+        "hdi_low": 2197346.902750871,
+        "hdi_high": 298008826.3871232
+      },
+      "pct_of_revenue": {
+        "mean": 9.223404442094314,
+        "median": 8.562546949263393,
+        "hdi_low": 0.1311020860302827,
+        "hdi_high": 17.78034171385355
+      }
+    },
+    "google_search": {
+      "revenue": {
+        "mean": 166528518.00967652,
+        "median": 148199377.3167629,
+        "hdi_low": 1883983.0173689914,
+        "hdi_high": 339818866.94963294
+      },
+      "pct_of_revenue": {
+        "mean": 9.935725700511007,
+        "median": 8.842139350092145,
+        "hdi_low": 0.112405603008559,
+        "hdi_high": 20.27488799049907
+      }
+    },
+    "youtube": {
+      "revenue": {
+        "mean": 87396194.33660531,
+        "median": 76250028.04434244,
+        "hdi_low": 324445.26996211417,
+        "hdi_high": 185274288.238757
+      },
+      "pct_of_revenue": {
+        "mean": 5.214389850911942,
+        "median": 4.549367113570519,
+        "hdi_low": 0.019357640635368503,
+        "hdi_high": 11.054169756021828
+      }
+    },
+    "influencers": {
+      "revenue": {
+        "mean": 15407734.916315258,
+        "median": 13227693.391875438,
+        "hdi_low": 3960.585700716986,
+        "hdi_high": 35237841.43252607
+      },
+      "pct_of_revenue": {
+        "mean": 0.919284153995767,
+        "median": 0.7892145727526356,
+        "hdi_low": 0.00023630362898806055,
+        "hdi_high": 2.102423842691837
+      }
+    },
+    "email": {
+      "revenue": {
+        "mean": 92147962.18883882,
+        "median": 62281937.864697546,
+        "hdi_low": 4633.930443497706,
+        "hdi_high": 267849172.79232067
+      },
+      "pct_of_revenue": {
+        "mean": 5.497898420714715,
+        "median": 3.7159776482484963,
+        "hdi_low": 0.0002764779411485857,
+        "hdi_high": 15.980901900650043
+      }
+    },
+    "tv": {
+      "revenue": {
+        "mean": 29881807.351754475,
+        "median": 29816828.027657915,
+        "hdi_low": 21062444.182346746,
+        "hdi_high": 38678561.647709444
+      },
+      "pct_of_revenue": {
+        "mean": 1.7828624480120203,
+        "median": 1.7789855340266905,
+        "hdi_low": 1.2566656478979834,
+        "hdi_high": 2.307710316617455
+      }
+    }
+  },
+  "channels": {
+    "meta_ads": {
+      "total_spend": 206927027.0,
+      "active_weeks": 156,
+      "current_weekly_spend": 1326455.3012820513,
+      "attributed_revenue": {
+        "mean": 154589601.10652375,
+        "median": 143513246.72497484,
+        "hdi_low": 2197346.902750871,
+        "hdi_high": 298008826.3871232
+      },
+      "contribution_pct": {
+        "mean": 9.223404442094314,
+        "median": 8.562546949263393,
+        "hdi_low": 0.1311020860302827,
+        "hdi_high": 17.78034171385355
+      },
+      "roi": {
+        "mean": 0.7470730302742125,
+        "median": 0.6935452019275126,
+        "hdi_low": 0.01061894588932006,
+        "hdi_high": 1.4401638621479989
+      },
+      "roas": {
+        "mean": 0.7470730302742125,
+        "median": 0.6935452019275126,
+        "hdi_low": 0.01061894588932006,
+        "hdi_high": 1.4401638621479989
+      },
+      "marginal_roi": {
+        "mean": 0.4604925452363766,
+        "median": 0.44079378587700424,
+        "hdi_low": 0.010523958020731807,
+        "hdi_high": 0.8551834977459908
+      },
+      "prob_marginal_roi_above_1": 0.01675,
+      "cost_per_incremental_revenue": {
+        "mean": 2.771987991680183,
+        "median": 1.4418670997766254,
+        "hdi_low": 0.32190176448099683,
+        "hdi_high": 6.104746404915259
+      },
+      "saturation_weekly_spend": {
+        "mean": 336701.24797340034,
+        "median": 0.0,
+        "hdi_low": 0.0,
+        "hdi_high": 1151155.6796203335
+      },
+      "prob_first_rupee_below_breakeven": 0.6005,
+      "adstock_decay": {
+        "mean": 0.4705337894742813,
+        "median": 0.5096983816951647,
+        "hdi_low": 0.07336665087393424,
+        "hdi_high": 0.7942097710738653
+      },
+      "weeks_to_90pct_effect": {
+        "mean": 3.3426402475669272,
+        "median": 3.35700433397599,
+        "hdi_low": 1.0,
+        "hdi_high": 5.7006354736023805
+      },
+      "last_click": {
+        "naive_roi": 3.6231842761883892,
+        "naive_over_mmm_ratio": {
+          "mean": 10.043423305238672,
+          "median": 5.224150204264024,
+          "hdi_low": 1.1663094115448458,
+          "hdi_high": 22.118621184406564
+        },
+        "naive_share_of_media_credit_pct": 44.73203099736606,
+        "mmm_share_of_media_credit_pct": {
+          "mean": 28.612650787160064,
+          "median": 27.614303476933163,
+          "hdi_low": 1.878676713016916,
+          "hdi_high": 54.400513988430475
+        }
+      }
+    },
+    "google_search": {
+      "total_spend": 81104157.0,
+      "active_weeks": 156,
+      "current_weekly_spend": 519898.4423076923,
+      "attributed_revenue": {
+        "mean": 166528518.00967652,
+        "median": 148199377.31676292,
+        "hdi_low": 1883983.0173689919,
+        "hdi_high": 339818866.9496331
+      },
+      "contribution_pct": {
+        "mean": 9.935725700511007,
+        "median": 8.842139350092147,
+        "hdi_low": 0.11240560300855902,
+        "hdi_high": 20.27488799049908
+      },
+      "roi": {
+        "mean": 2.053267356070004,
+        "median": 1.8272722730693438,
+        "hdi_low": 0.023229179453390925,
+        "hdi_high": 4.189906898972307
+      },
+      "roas": {
+        "mean": 2.053267356070004,
+        "median": 1.8272722730693438,
+        "hdi_low": 0.023229179453390925,
+        "hdi_high": 4.189906898972307
+      },
+      "marginal_roi": {
+        "mean": 1.2858912634820943,
+        "median": 1.2533089449488373,
+        "hdi_low": 0.09274840216640383,
+        "hdi_high": 2.3256654557910563
+      },
+      "prob_marginal_roi_above_1": 0.662,
+      "cost_per_incremental_revenue": {
+        "mean": 0.8370330578666804,
+        "median": 0.5472638176272765,
+        "hdi_low": 0.1282401533309697,
+        "hdi_high": 1.7294955211527543
+      },
+      "saturation_weekly_spend": {
+        "mean": 695646.2085735445,
+        "median": 640862.93547722,
+        "hdi_low": 0.0,
+        "hdi_high": 1521214.002772988
+      },
+      "prob_first_rupee_below_breakeven": 0.137,
+      "adstock_decay": {
+        "mean": 0.2658393165163875,
+        "median": 0.23845050833853296,
+        "hdi_low": 0.0015746517899344512,
+        "hdi_high": 0.5741749171641971
+      },
+      "weeks_to_90pct_effect": {
+        "mean": 1.9395652016705347,
+        "median": 1.606097642117832,
+        "hdi_low": 1.0,
+        "hdi_high": 3.9557881176726384
+      },
+      "last_click": {
+        "naive_roi": 3.7820421233369093,
+        "naive_over_mmm_ratio": {
+          "mean": 3.165694283477286,
+          "median": 2.069774810844528,
+          "hdi_low": 0.48500966180091143,
+          "hdi_high": 6.5410249131222375
+        },
+        "naive_share_of_media_credit_pct": 18.3012373007174,
+        "mmm_share_of_media_credit_pct": {
+          "mean": 30.284802327474207,
+          "median": 28.29504823663945,
+          "hdi_low": 3.195217702155377,
+          "hdi_high": 57.58582938607469
+        }
+      }
+    },
+    "youtube": {
+      "total_spend": 72304335.0,
+      "active_weeks": 156,
+      "current_weekly_spend": 463489.32692307694,
+      "attributed_revenue": {
+        "mean": 87396194.33660531,
+        "median": 76250028.04434246,
+        "hdi_low": 324445.2699621143,
+        "hdi_high": 185274288.2387571
+      },
+      "contribution_pct": {
+        "mean": 5.214389850911942,
+        "median": 4.54936711357052,
+        "hdi_low": 0.01935764063536851,
+        "hdi_high": 11.054169756021833
+      },
+      "roi": {
+        "mean": 1.208726894958723,
+        "median": 1.054570629054848,
+        "hdi_low": 0.004487217397990235,
+        "hdi_high": 2.5624229617595833
+      },
+      "roas": {
+        "mean": 1.208726894958723,
+        "median": 1.054570629054848,
+        "hdi_low": 0.004487217397990235,
+        "hdi_high": 2.5624229617595833
+      },
+      "marginal_roi": {
+        "mean": 0.8779127068649253,
+        "median": 0.8383432867991925,
+        "hdi_low": 0.005668221263092127,
+        "hdi_high": 1.6405076785132289
+      },
+      "prob_marginal_roi_above_1": 0.37075,
+      "cost_per_incremental_revenue": {
+        "mean": 1.9952074431483995,
+        "median": 0.9482532291892596,
+        "hdi_low": 0.16206429007821008,
+        "hdi_high": 3.995073748028189
+      },
+      "saturation_weekly_spend": {
+        "mean": 373722.228510815,
+        "median": 344401.816774233,
+        "hdi_low": 0.0,
+        "hdi_high": 1027887.684340936
+      },
+      "prob_first_rupee_below_breakeven": 0.41,
+      "adstock_decay": {
+        "mean": 0.5144381580734876,
+        "median": 0.5209964575914068,
+        "hdi_low": 0.19788679562565276,
+        "hdi_high": 0.840941877200243
+      },
+      "weeks_to_90pct_effect": {
+        "mean": 3.603294647072754,
+        "median": 3.45834837664571,
+        "hdi_low": 1.233439855015129,
+        "hdi_high": 6.231983377326637
+      },
+      "last_click": {
+        "naive_roi": 3.648920341388795,
+        "naive_over_mmm_ratio": {
+          "mean": 7.280353024594522,
+          "median": 3.4601004967763,
+          "hdi_low": 0.591359684679115,
+          "hdi_high": 14.577705864528433
+        },
+        "naive_share_of_media_credit_pct": 15.741267340273447,
+        "mmm_share_of_media_credit_pct": {
+          "mean": 16.41574527635337,
+          "median": 14.320578523672232,
+          "hdi_low": 0.05648057389548303,
+          "hdi_high": 35.29478467059291
+        }
+      }
+    },
+    "influencers": {
+      "total_spend": 69880441.0,
+      "active_weeks": 156,
+      "current_weekly_spend": 447951.5448717949,
+      "attributed_revenue": {
+        "mean": 15407734.916315258,
+        "median": 13227693.391875435,
+        "hdi_low": 3960.5857007169866,
+        "hdi_high": 35237841.43252607
+      },
+      "contribution_pct": {
+        "mean": 0.919284153995767,
+        "median": 0.7892145727526352,
+        "hdi_low": 0.00023630362898806055,
+        "hdi_high": 2.102423842691837
+      },
+      "roi": {
+        "mean": 0.22048708760030947,
+        "median": 0.18929035367529284,
+        "hdi_low": 5.667659854517785e-05,
+        "hdi_high": 0.504259001921955
+      },
+      "roas": {
+        "mean": 0.22048708760030947,
+        "median": 0.18929035367529284,
+        "hdi_low": 5.667659854517785e-05,
+        "hdi_high": 0.504259001921955
+      },
+      "marginal_roi": {
+        "mean": 0.20284494687198049,
+        "median": 0.1777001895552594,
+        "hdi_low": 5.0883903665367146e-05,
+        "hdi_high": 0.456818639279604
+      },
+      "prob_marginal_roi_above_1": 0.00025,
+      "cost_per_incremental_revenue": {
+        "mean": 33.13411603113172,
+        "median": 5.282889564797285,
+        "hdi_low": 0.814324776954641,
+        "hdi_high": 38.1923352733469
+      },
+      "saturation_weekly_spend": {
+        "mean": 1342.8168309114408,
+        "median": 0.0,
+        "hdi_low": 0.0,
+        "hdi_high": 0.0
+      },
+      "prob_first_rupee_below_breakeven": 0.995,
+      "adstock_decay": {
+        "mean": 0.2548623663525042,
+        "median": 0.2056438409033162,
+        "hdi_low": 2.3520956448320987e-05,
+        "hdi_high": 0.6258025886848408
+      },
+      "weeks_to_90pct_effect": {
+        "mean": 1.9481898344922206,
+        "median": 1.4558311173526746,
+        "hdi_low": 1.0,
+        "hdi_high": 4.502797224311661
+      },
+      "last_click": {
+        "naive_roi": 3.49218472255048,
+        "naive_over_mmm_ratio": {
+          "mean": 115.71045379913315,
+          "median": 18.44882622910643,
+          "hdi_low": 2.8437725452753244,
+          "hdi_high": 133.37468976010786
+        },
+        "naive_share_of_media_credit_pct": 14.560082012994284,
+        "mmm_share_of_media_credit_pct": {
+          "mean": 2.962139094107769,
+          "median": 2.47215081053016,
+          "hdi_low": 0.0007642879224856657,
+          "hdi_high": 7.09823581904897
+        }
+      }
+    },
+    "email": {
+      "total_spend": 7783523.0,
+      "active_weeks": 156,
+      "current_weekly_spend": 49894.3782051282,
+      "attributed_revenue": {
+        "mean": 92147962.18883882,
+        "median": 62281937.864697546,
+        "hdi_low": 4633.9304434977075,
+        "hdi_high": 267849172.79232058
+      },
+      "contribution_pct": {
+        "mean": 5.497898420714715,
+        "median": 3.7159776482484967,
+        "hdi_low": 0.00027647794114858573,
+        "hdi_high": 15.98090190065004
+      },
+      "roi": {
+        "mean": 11.838850118235511,
+        "median": 8.001767048764107,
+        "hdi_low": 0.0005953512880346994,
+        "hdi_high": 34.41233138160195
+      },
+      "roas": {
+        "mean": 11.838850118235511,
+        "median": 8.001767048764107,
+        "hdi_low": 0.0005953512880346994,
+        "hdi_high": 34.41233138160195
+      },
+      "marginal_roi": {
+        "mean": 4.711109687234725,
+        "median": 3.526311339687854,
+        "hdi_low": 0.00044963724265560814,
+        "hdi_high": 12.216805928001106
+      },
+      "prob_marginal_roi_above_1": 0.833,
+      "cost_per_incremental_revenue": {
+        "mean": 1.296023563886359,
+        "median": 0.1249724687091334,
+        "hdi_low": 0.010232435150872668,
+        "hdi_high": 1.4194289265213198
+      },
+      "saturation_weekly_spend": {
+        "mean": 113467.16156200545,
+        "median": 84457.34962605598,
+        "hdi_low": 0.0,
+        "hdi_high": 281996.7275078054
+      },
+      "prob_first_rupee_below_breakeven": 0.07,
+      "adstock_decay": {
+        "mean": 0.3502885151522384,
+        "median": 0.33374072590081316,
+        "hdi_low": 5.507055528360756e-05,
+        "hdi_high": 0.7161125667722988
+      },
+      "weeks_to_90pct_effect": {
+        "mean": 2.544127313954904,
+        "median": 2.096974758613916,
+        "hdi_low": 1.0,
+        "hdi_high": 5.4464224414628335
+      },
+      "last_click": {
+        "naive_roi": 3.7200048544632676,
+        "naive_over_mmm_ratio": {
+          "mean": 4.821213949156041,
+          "median": 0.4648981902722351,
+          "hdi_low": 0.0380647084342269,
+          "hdi_high": 5.280282497224895
+        },
+        "naive_share_of_media_credit_pct": 1.7275502781221896,
+        "mmm_share_of_media_credit_pct": {
+          "mean": 15.841891979572049,
+          "median": 11.895602914464996,
+          "hdi_low": 0.0012781346054795127,
+          "hdi_high": 42.40464634247012
+        }
+      }
+    },
+    "tv": {
+      "total_spend": 41823122.0,
+      "active_weeks": 18,
+      "current_weekly_spend": 2323506.777777778,
+      "attributed_revenue": {
+        "mean": 29881807.351754475,
+        "median": 29816828.02765792,
+        "hdi_low": 21062444.182346746,
+        "hdi_high": 38678561.64770943
+      },
+      "contribution_pct": {
+        "mean": 1.7828624480120203,
+        "median": 1.7789855340266905,
+        "hdi_low": 1.2566656478979834,
+        "hdi_high": 2.3077103166174537
+      },
+      "roi": {
+        "mean": 0.7144805534066652,
+        "median": 0.7129268835468074,
+        "hdi_low": 0.5036076499106582,
+        "hdi_high": 0.92481287379047
+      },
+      "roas": {
+        "mean": 0.7144805534066652,
+        "median": 0.7129268835468074,
+        "hdi_low": 0.5036076499106582,
+        "hdi_high": 0.92481287379047
+      },
+      "marginal_roi": {
+        "mean": 0.4965744181821165,
+        "median": 0.4975954444514401,
+        "hdi_low": 0.2336614935186133,
+        "hdi_high": 0.7550781018941849
+      },
+      "prob_marginal_roi_above_1": 0.0,
+      "cost_per_incremental_revenue": {
+        "mean": 1.4373197030312408,
+        "median": 1.4026683859419524,
+        "hdi_low": 1.0530292609239043,
+        "hdi_high": 1.918257444655935
+      },
+      "saturation_weekly_spend": {
+        "mean": 123120.15540722669,
+        "median": 0.0,
+        "hdi_low": 0.0,
+        "hdi_high": 633983.0293066646
+      },
+      "prob_first_rupee_below_breakeven": 0.75125,
+      "adstock_decay": {
+        "mean": 0.6216286592909173,
+        "median": 0.6295192391036064,
+        "hdi_low": 0.49529531169502855,
+        "hdi_high": 0.7532535646965727
+      },
+      "weeks_to_90pct_effect": {
+        "mean": 4.474874085932306,
+        "median": 4.542172565670445,
+        "hdi_low": 3.131517714701141,
+        "hdi_high": 5.692567005459743
+      },
+      "last_click": {
+        "naive_roi": 1.9788318466816743,
+        "naive_over_mmm_ratio": {
+          "mean": 2.8442140022212663,
+          "median": 2.775644872435517,
+          "hdi_low": 2.0837678370038883,
+          "hdi_high": 3.795908921619374
+        },
+        "naive_share_of_media_credit_pct": 4.937832070526618,
+        "mmm_share_of_media_credit_pct": {
+          "mean": 5.882770535332542,
+          "median": 5.583675404787842,
+          "hdi_low": 2.703251377545368,
+          "hdi_high": 9.54928470292484
+        }
+      }
+    }
+  },
+  "definitions": {
+    "estimate": "Every modelled number is a posterior distribution: mean, median and the 94% highest-density interval (the narrowest range holding 94% of plausible values).",
+    "roi": "Attributed revenue divided by spend. Revenue-based, not profit-based: no product margin is applied, so break-even on profit needs an ROI well above 1.",
+    "roas": "Identical to ROI here, because ROI is defined as revenue / spend.",
+    "marginal_roi": "Revenue earned per rupee of the NEXT 1 lakh, spread over the weeks the channel already runs. This, not average ROI, should drive budget moves: average ROI describes money already spent, marginal ROI describes the money you are about to move.",
+    "cost_per_incremental_revenue": "Rupees spent per rupee of revenue the channel caused (the inverse of ROI). Use the median; the mean is unstable when ROI can be near zero.",
+    "saturation_weekly_spend": "Steady weekly spend beyond which the next rupee returns less than 1 rupee of revenue. Zero means even the first rupee is below break-even.",
+    "weeks_to_90pct_effect": "Weeks, counting the week of spend, until 90% of the effect of that spend has been realised.",
+    "last_click": "A naive same-week attribution used as a stand-in for platform reporting: each week's revenue is split across channels in proportion to that week's spend, with no baseline and no carryover. No click data exists in this dataset."
+  }
+}

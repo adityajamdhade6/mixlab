@@ -27,7 +27,12 @@ from numpy.typing import NDArray
 
 from mixlab import config
 from mixlab.config import BrandConfig, ChannelConfig, EventConfig
-from mixlab.transforms import FloatArray, geometric_adstock, hill_saturation
+from mixlab.transforms import (
+    FloatArray,
+    geometric_adstock,
+    hill_saturation,
+    logistic_saturation,
+)
 
 
 @dataclass(frozen=True)
@@ -192,9 +197,18 @@ def channel_spend(
     return np.round(spend * flight_mask(dates, channel, cfg))
 
 
-def channel_contribution(spend: FloatArray, channel: ChannelConfig, l_max: int) -> FloatArray:
-    """Return the true weekly revenue in INR caused by a channel's spend."""
+def channel_contribution(
+    spend: FloatArray, channel: ChannelConfig, l_max: int, form: str = "hill"
+) -> FloatArray:
+    """Return the true weekly revenue in INR caused by a channel's spend.
+
+    ``form`` selects the true response curve: Hill (default), or a logistic curve that reaches
+    half its ceiling at the same spend.
+    """
     adstocked = geometric_adstock(spend, channel.adstock_decay, l_max, normalize=True)
+    if form == "logistic":
+        speed = np.log(3.0) / channel.half_saturation
+        return channel.beta * logistic_saturation(adstocked, speed)
     return channel.beta * hill_saturation(adstocked, channel.half_saturation, channel.hill_slope)
 
 
@@ -265,7 +279,9 @@ def generate(cfg: BrandConfig) -> SyntheticDataset:
     media: dict[str, FloatArray] = {}
     for channel in cfg.channels:
         spend[channel.name] = channel_spend(channel, cfg, dates, festive, demand, rng)
-        media[channel.name] = channel_contribution(spend[channel.name], channel, cfg.adstock_l_max)
+        media[channel.name] = channel_contribution(
+            spend[channel.name], channel, cfg.adstock_l_max, cfg.true_saturation
+        )
 
     contributions = organic.assign(**media)
     contributions["noise"] = rng.normal(0.0, cfg.revenue_noise * cfg.baseline_revenue, cfg.n_weeks)

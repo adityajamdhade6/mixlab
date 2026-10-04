@@ -1,0 +1,12 @@
+# ILLUSTRATIVE VALUES ONLY. These are placeholders to show the file format, not measured
+# industry benchmarks. Replace them with figures you trust (your own past tests, an agency's
+# benchmark report) before using them as priors.
+#
+# Each value is the prior MEDIAN ROI (revenue per rupee) for that channel. The model treats it
+# as a starting belief with a wide range around it; the data can move it.
+meta_ads: 1.0
+google_search: 1.5
+youtube: 0.8
+influencers: 0.8
+email: 3.0
+tv: 0.7

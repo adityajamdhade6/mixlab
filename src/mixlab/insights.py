@@ -84,7 +84,11 @@ class PosteriorDraws:
         target_scale: Peak weekly revenue used by the model for scaling.
         l_max: Adstock window in weeks.
         alpha: Adstock decay draws (S, C).
-        lam: Saturation speed draws (S, C).
+        lam: Logistic saturation speed draws (S, C); zeros when the model uses a Hill curve.
+        saturation: ``"logistic"`` or ``"hill"``.
+        min_spend: Floor the model applied to spend before fitting (Hill models: one rupee).
+        slope: Hill slope draws (S, C), Hill models only.
+        kappa: Hill half-saturation draws in scaled spend units (S, C), Hill models only.
         beta: Effect size draws in scaled units (S, C).
         organic: Non-media component draws, name -> (S, T).
         channel_contribution: Channel contribution draws (S, T, C).
@@ -103,6 +107,10 @@ class PosteriorDraws:
     beta: FloatArray
     organic: dict[str, FloatArray]
     channel_contribution: FloatArray
+    saturation: str = "logistic"
+    slope: FloatArray | None = None
+    kappa: FloatArray | None = None
+    min_spend: float = 0.0
 
 
 def control_group(control: str) -> str:
@@ -118,6 +126,8 @@ def extract_draws(model: MixLabModel, df: pd.DataFrame) -> PosteriorDraws:
     post = idata.posterior.stack(sample=("chain", "draw"))
     scale = model.target_scale
     n_weeks = post.sizes[config.DATE_COL]
+
+    logistic = "saturation_lam" in post
 
     def by_channel(name: str) -> FloatArray:
         return post[name].transpose("sample", "channel").to_numpy()
@@ -145,7 +155,13 @@ def extract_draws(model: MixLabModel, df: pd.DataFrame) -> PosteriorDraws:
         target_scale=scale,
         l_max=model.settings.adstock_l_max,
         alpha=by_channel("adstock_alpha"),
-        lam=by_channel("saturation_lam"),
+        lam=by_channel("saturation_lam")
+        if logistic
+        else np.zeros_like(by_channel("saturation_beta")),
+        saturation="logistic" if logistic else "hill",
+        min_spend=model.min_spend,
+        slope=None if logistic else by_channel("saturation_slope"),
+        kappa=None if logistic else by_channel("saturation_kappa"),
         beta=by_channel("saturation_beta"),
         organic={name: values * scale for name, values in organic.items()},
         channel_contribution=post["channel_contribution"]
@@ -158,21 +174,42 @@ def extract_draws(model: MixLabModel, df: pd.DataFrame) -> PosteriorDraws:
 # --- Channel response -----------------------------------------------------------------------
 
 
+def saturate(draws: PosteriorDraws, scaled: FloatArray, channel: int | None = None) -> FloatArray:
+    """Apply the fitted saturation curve to scaled spend, for every posterior draw.
+
+    Args:
+        draws: Posterior draws.
+        scaled: Spend divided by the channel's peak week. Shape (S, T, C) for all channels,
+            or (S, G) / (1, G) for one channel.
+        channel: Index of the channel when ``scaled`` is for a single channel.
+
+    """
+
+    def parameter(values: FloatArray) -> FloatArray:
+        return values[:, channel, None] if channel is not None else values[:, None, :]
+
+    if draws.saturation == "logistic":
+        return logistic_saturation(scaled, parameter(draws.lam))
+    slope, kappa = parameter(draws.slope), parameter(draws.kappa)
+    powered = np.power(np.maximum(scaled, 0.0), slope)
+    return powered / (np.power(kappa, slope) + powered)
+
+
 def simulate_contributions(draws: PosteriorDraws, spend: FloatArray) -> FloatArray:
     """Return channel revenue (S, T, C) in INR for any spend plan, for every posterior draw.
 
     Applies exactly what the fitted model does: scale spend by the channel's peak week,
     normalised geometric adstock over ``l_max`` weeks, logistic saturation, times effect size.
     """
-    scaled = np.asarray(spend, dtype=np.float64) / draws.channel_scale
+    floored = np.maximum(np.asarray(spend, dtype=np.float64), draws.min_spend)
+    scaled = floored / draws.channel_scale
     n_weeks = scaled.shape[0]
     weights = draws.alpha[:, None, :] ** np.arange(draws.l_max)[None, :, None]
     weights = weights / weights.sum(axis=1, keepdims=True)
     adstocked = np.zeros((draws.alpha.shape[0], n_weeks, scaled.shape[1]))
     for lag in range(min(draws.l_max, n_weeks)):
         adstocked[:, lag:, :] += weights[:, lag, None, :] * scaled[None, : n_weeks - lag, :]
-    saturated = logistic_saturation(adstocked, draws.lam[:, None, :])
-    return draws.beta[:, None, :] * saturated * draws.target_scale
+    return draws.beta[:, None, :] * saturate(draws, adstocked) * draws.target_scale
 
 
 def marginal_roi_draws(draws: PosteriorDraws) -> FloatArray:
@@ -204,8 +241,7 @@ def chance_next_rupee_profitable(marginal: FloatArray, margin: float) -> FloatAr
 def response_curve_draws(draws: PosteriorDraws, index: int, weekly_spend: FloatArray) -> FloatArray:
     """Return weekly incremental revenue (S, G) if the channel spent a steady amount each week."""
     scaled = np.asarray(weekly_spend, dtype=np.float64)[None, :] / draws.channel_scale[index]
-    saturated = logistic_saturation(scaled, draws.lam[:, index, None])
-    return draws.beta[:, index, None] * saturated * draws.target_scale
+    return draws.beta[:, index, None] * saturate(draws, scaled, index) * draws.target_scale
 
 
 def saturation_spend_draws(draws: PosteriorDraws) -> FloatArray:
@@ -215,12 +251,32 @@ def saturation_spend_draws(draws: PosteriorDraws) -> FloatArray:
     ``u^2 + (2 - 2Bk)u + 1 = 0`` for ``u = e^{-ks}``. If even the first rupee returns less
     than 1 (``Bk < 2``), the saturation point is zero.
     """
+    if draws.saturation != "logistic":
+        return _saturation_spend_numeric(draws)
     k = draws.lam / draws.channel_scale
     slope_at_zero_x2 = draws.beta * draws.target_scale * k / config.MARGINAL_ROI_BREAKEVEN
     reachable = slope_at_zero_x2 >= 2.0
     a = np.where(reachable, slope_at_zero_x2 - 1.0, 1.0)
     u = a - np.sqrt(np.maximum(a**2 - 1.0, 0.0))
     return np.where(reachable, -np.log(u) / k, 0.0)
+
+
+def _saturation_spend_numeric(draws: PosteriorDraws) -> FloatArray:
+    """Find the saturation point on a grid, for curves with no closed form (Hill).
+
+    For each draw and channel, returns the largest steady weekly spend at which the next rupee
+    still earns at least a rupee, or zero if it never does.
+    """
+    result = np.zeros_like(draws.beta)
+    for index, scale in enumerate(draws.channel_scale):
+        grid = np.linspace(
+            0.0, config.SATURATION_GRID_MAX_MULTIPLE * scale, config.SATURATION_GRID_POINTS
+        )
+        slope = np.gradient(response_curve_draws(draws, index, grid), grid, axis=1)
+        above = slope >= config.MARGINAL_ROI_BREAKEVEN
+        last = above.shape[1] - 1 - np.argmax(above[:, ::-1], axis=1)
+        result[:, index] = np.where(above.any(axis=1), grid[last], 0.0)
+    return result
 
 
 def carryover_weeks_draws(draws: PosteriorDraws) -> FloatArray:

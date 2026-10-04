@@ -47,6 +47,14 @@ explains results to a non-technical CMO.
 - Public dataset test: `uv run python scripts/public_dataset_test.py`
 - Refresh saved results without refitting: `uv run python scripts/build_demo.py --stage optimize` (or `backtest`)
 - Architecture: `docs/architecture.md`
+- Compare model variants: `uv run python scripts/compare_models.py` (LOO, holdout, recovery; about 30 minutes)
+- Meridian benchmark (own environment): `uv run --isolated --python 3.11 --with google-meridian --with pandas python scripts/benchmark_meridian.py`
+- Model decisions and their evidence: `docs/model_log.md`
+
+## Model defaults (v2)
+- `configs/default.yaml` and `configs/demo.yaml` select Hill saturation with an independent ROI prior. `ModelSettings()` with no file is still the v1 model (logistic, coefficient priors); tests rely on that.
+- Hill models floor spend at one rupee (`config.HILL_MIN_SPEND`); exact zeros give an undefined gradient and thousands of divergences.
+- After any model change: re-run `scripts/compare_models.py` and `scripts/evaluate_models.py`, keep the previous report in `reports/history/`, and do not merge if ground-truth recovery gets worse.
 
 ## Environment notes
 - PyTensor compiles with Numba, not C (`mixlab/__init__.py` sets `PYTENSOR_FLAGS`); the C backend fails to link on this macOS toolchain. Import `mixlab` before `pymc`.

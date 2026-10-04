@@ -4,6 +4,15 @@
 # Prior values are in scaled units: revenue is divided by its peak week and each channel's
 # spend by its own peak week, so 1.0 means "as large as the biggest week".
 
+# Model form chosen by scripts/compare_models.py (see docs/model_log.md): a Hill saturation
+# curve, with priors stated on each channel's ROI.
+saturation: hill
+roi_prior:
+  mode: independent   # each channel has its own prior; "pooled" shares a learned typical ROI
+  median: 1.0         # prior median ROI: one rupee of revenue per rupee spent
+  spread: 1.0         # wide: roughly 0.14 to 7 covers 95% of the prior
+  # benchmarks_file: benchmarks/illustrative.yaml   # optional per-channel medians
+
 adstock_l_max: 8                # weeks an ad can keep working after it runs
 yearly_seasonality_order: 2     # number of Fourier pairs for the yearly pattern
 trend_changepoints: 2           # 2 = one straight trend line; more allows bends
