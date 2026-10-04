@@ -12,6 +12,7 @@ PAGES = [
     st.Page("views/ask.py", title="Ask MixLab", icon=":material/forum:"),
     st.Page("views/health.py", title="Model health", icon=":material/verified:"),
     st.Page("views/upload.py", title="Upload data", icon=":material/upload_file:"),
+    st.Page("views/how_it_works.py", title="How it works", icon=":material/schema:"),
 ]
 
 st.navigation(PAGES).run()

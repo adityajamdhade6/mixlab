@@ -3,10 +3,15 @@
 import charts
 import pandas as pd
 import streamlit as st
-from common import crore, label, likely, load_runtime, setup, show
+from common import chance, crore, label, load_runtime, margin, range_text, setup, show
 
 from mixlab import config
-from mixlab.optimizer import OptimizationResult, last_quarter_spend, optimize_budget
+from mixlab.optimizer import (
+    OptimizationResult,
+    channel_caveats,
+    last_quarter_spend,
+    optimize_budget,
+)
 
 LAKH = config.INR_PER_LAKH
 OBJECTIVES = {
@@ -21,8 +26,17 @@ brand, results = setup(
 runtime = load_runtime(brand)
 weeks = runtime.allocator.n_weeks
 current = last_quarter_spend(runtime.draws, weeks)
+caveats = channel_caveats(runtime.draws)
 total = sum(current.values())
 state_key = f"optimizer_result_{brand}"
+
+if caveats:
+    names = ", ".join(label(c) for c in caveats)
+    st.info(
+        f"Confidence gate: {names} cannot be measured well (see Model health), so their "
+        f"default limits are ±{config.GATED_MAX_CHANGE:.0%} instead of "
+        f"±{config.DEFAULT_MAX_CHANGE:.0%}. You can widen them below."
+    )
 
 with st.form("optimizer"):
     left, right = st.columns(2)
@@ -31,7 +45,7 @@ with st.form("optimizer"):
         min_value=0.0,
         value=float(round(total / LAKH)),
         step=10.0,
-        help=f"Last quarter's spend was {total / LAKH:,.0f} lakh.",
+        help=f"Last quarter's spend was ₹{total / LAKH:,.0f} lakh.",
     )
     objective = right.radio(
         "Optimise for",
@@ -41,23 +55,29 @@ with st.form("optimizer"):
         "channels whose effect is well established.",
     )
     st.markdown("**Allowed spend per channel (₹ lakh)**")
-    st.caption(
-        f"Defaults allow each channel to move {config.DEFAULT_MAX_CHANGE:.0%} either way "
-        "from last quarter."
-    )
     limits: dict[str, tuple[float, float]] = {}
     columns = st.columns(3)
     for index, (channel, spend) in enumerate(current.items()):
         value = spend / LAKH
+        change = config.GATED_MAX_CHANGE if channel in caveats else config.DEFAULT_MAX_CHANGE
+        # Small channels need a finer step, or a ±10% range rounds away to nothing.
+        step = 0.1 if value < 20 else 1.0
+        low, high = (round(value * factor / step) * step for factor in (1 - change, 1 + change))
         limits[channel] = columns[index % 3].slider(
-            f"{label(channel)} · last quarter {value:,.0f}",
+            f"{label(channel)} (₹{value:,.0f} L)" + (" · gated" if channel in caveats else ""),
             min_value=0.0,
             max_value=float(max(round(3 * value), 10)),
-            value=(
-                float(round(value * (1 - config.DEFAULT_MAX_CHANGE))),
-                float(round(value * (1 + config.DEFAULT_MAX_CHANGE))),
+            value=(float(low), float(high)),
+            step=step,
+            format="%.1f" if step < 1 else "%.0f",
+            help=(
+                f"Last quarter ₹{value:,.1f} lakh. "
+                + (
+                    f"Held to ±{change:.0%} by default: {caveats[channel]}."
+                    if channel in caveats
+                    else ""
+                )
             ),
-            step=1.0,
         )
     submitted = st.form_submit_button("Run optimization", type="primary")
 
@@ -79,21 +99,48 @@ if submitted:
 result = st.session_state.get(state_key)
 if result is None:
     result = OptimizationResult.model_validate(results["optimizer"]["expected_revenue"])
-    st.info(
-        "Showing the saved recommendation for last quarter's budget. Change the inputs and "
-        "run the optimization to replace it."
+    st.caption(
+        "Showing the saved recommendation for last quarter's budget. Change the inputs and run "
+        "the optimization to replace it."
     )
+elif st.button("Back to the saved recommendation"):
+    st.session_state.pop(state_key, None)
+    st.rerun()
 
-uplift, uplift_pct = result.uplift, result.uplift_pct
-revenue = result.recommended.incremental_revenue
+uplift = result.uplift
 first, second, third = st.columns(3)
-first.metric("Expected uplift", f"{crore(uplift.mean, 2)}", f"{uplift_pct.mean:+.1f}% vs. current")
-first.caption(likely(crore(uplift.hdi_low, 2), crore(uplift.hdi_high, 2)))
-second.metric("Chance it beats the current plan", f"{result.prob_recommended_beats_current:.0%}")
-second.caption(f"Optimised for {result.objective}")
-third.metric("Revenue from marketing", crore(revenue.mean, 2))
-third.caption(likely(crore(revenue.hdi_low, 2), crore(revenue.hdi_high, 2)))
+first.metric(
+    "Expected uplift", crore(uplift.mean, 2), f"{result.uplift_pct.mean:+.1f}% vs. current"
+)
+first.caption(range_text(crore(uplift.hdi_low, 2), crore(uplift.hdi_high, 2)))
+second.metric(
+    "Realistic uplift",
+    crore(result.realistic_uplift, 2),
+    f"{result.realistic_uplift_pct:+.1f}% vs. current",
+)
+second.caption(
+    f"About {crore(result.realistic_uplift * margin(), 2)} of gross profit at a "
+    f"{margin():.0%} margin"
+)
+third.metric("Chance it beats current", chance(result.prob_recommended_beats_current))
+third.caption(f"Optimised for {result.objective}")
+st.caption(
+    f"Realistic uplift is the expected uplift x {config.UPLIFT_SHRINKAGE:.0%}: optimizers favour "
+    "the channels a model happens to overestimate, and on synthetic brands with known truth "
+    "that share of the expected uplift was actually delivered."
+)
 
+widest = max(
+    (abs(result.recommended.spend[c] / v - 1) for c, v in result.current.spend.items() if v),
+    default=0.0,
+)
+if widest > config.DEFAULT_MAX_CHANGE + 0.005:
+    st.warning(
+        f"This plan moves a channel by {widest:.0%}. The realistic-uplift haircut was measured "
+        f"with moves capped at {config.DEFAULT_MAX_CHANGE:.0%}; on synthetic brands, plans with "
+        "no cap delivered roughly none of their expected uplift. Treat the figures above as "
+        "optimistic."
+    )
 if not result.converged:
     st.warning("The solver stopped before fully converging, so this split may be slightly off.")
 if result.extrapolated_channels:
@@ -114,14 +161,17 @@ st.dataframe(
                 100 * (result.recommended.spend[c] / v - 1) if v else None
                 for c, v in result.current.spend.items()
             ],
+            "Caveat": [result.caveats.get(c, "").capitalize() for c in result.current.spend],
         }
     ),
     hide_index=True,
     width="stretch",
     column_config={
+        "Channel": st.column_config.TextColumn(pinned=True),
         "Current (₹ L)": st.column_config.NumberColumn(format="%.0f"),
         "Recommended (₹ L)": st.column_config.NumberColumn(format="%.0f"),
         "Change (%)": st.column_config.NumberColumn(format="%+.0f%%"),
+        "Caveat": st.column_config.TextColumn(width="large"),
     },
 )
 
@@ -129,5 +179,5 @@ st.subheader("Is the total budget the right size?")
 show(charts.budget_curve(results["optimizer"]))
 st.caption(
     "Each point is the best the model can do with that total budget. Where the curve gets "
-    "flatter than the dotted line, an extra rupee returns less than a rupee of revenue."
+    "flatter than the dotted line, an extra ₹1 returns less than ₹1 of revenue."
 )

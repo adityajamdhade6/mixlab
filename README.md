@@ -53,8 +53,8 @@ All on synthetic brands where the true answer is known (`reports/evaluation_summ
 | Question | Result |
 |---|---|
 | Does the model recover the true channel ROI? | True ROI inside the 94% range for **27 of 30** channel estimates across five seeds (90%); 5 of 6 in each demo brand |
-| Does it predict weeks it has not seen? | **1.3% to 1.5% MAPE** on a 13-week holdout, every week inside the 94% predictive range |
-| Is the optimizer's advice worth following? | With channel moves capped at 30%: model expects +7.4%, the truth delivers **+3.3%**. With no cap: model expects +16.4%, truth delivers **-0.1%** |
+| Does it predict weeks it has not seen? | **1.2% to 1.6% MAPE** on the most recent 12 weeks; 3% to 4% on two earlier 12-week windows of a rolling backtest |
+| Is the optimizer's advice worth following? | With channel moves capped at 30%: model expects +7.4%, the truth delivers **+3.3%**. With no cap: model expects +16.4%, truth delivers **-0.1%**. The app's default adds a confidence gate (hard-to-measure channels held to 10%) and reports a realistic uplift of 40% of the expected one |
 | What does one experiment buy? | A simulated 8-week lift test narrowed Google Search's ROI range by **85%** (0.02 to 4.19 became 1.33 to 1.94; truth 1.71) |
 | Does it work on someone else's data? | On pymc-marketing's public dataset both documented carryover rates were recovered (0.40 and 0.19 vs. 0.4 and 0.2) |
 
@@ -129,5 +129,6 @@ See [docs/model_card.md](docs/model_card.md) for assumptions and failure modes.
   the Claude API. Leave `ANTHROPIC_API_KEY` unset to keep everything offline.
 
 ## More
-[Case study](docs/case_study.md) · [Model card](docs/model_card.md) ·
+[Case study](docs/case_study.md) · [Architecture](docs/architecture.md) ·
+[Model card](docs/model_card.md) ·
 [Deployment](docs/DEPLOY.md) · [Public dataset test](reports/public_dataset_test.md)

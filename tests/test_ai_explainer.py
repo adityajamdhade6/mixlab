@@ -435,7 +435,40 @@ def test_template_brief_is_grounded_and_exports_to_pdf(context: DataContext) -> 
     from mixlab.ai_explainer import brief_to_pdf, template_brief
 
     brief = template_brief(context.facts, name=str.title)
-    assert brief.startswith("## Headline finding") and "likely between" in brief
+    assert brief.startswith("## Headline finding") and "94% range:" in brief
+    assert "0% chance" not in brief and "margin" in brief and "Realistic uplift" in brief
     assert check_numbers(brief, [context.facts]).passed
     pdf = brief_to_pdf(brief + "\n\n---\n₹ and “quotes” render", "MixLab brief")
     assert pdf.startswith(b"%PDF") and len(pdf) > 5000
+
+
+def test_chance_wording_avoids_false_certainty() -> None:
+    from mixlab.ai_explainer import chance_text
+
+    assert chance_text(0.0) == "almost no chance (<1%)"
+    assert chance_text(0.4) == "almost no chance (<1%)"
+    assert chance_text(100.0) == "an almost certain chance (>99%)"
+    assert chance_text(37.2) == "a 37% chance"
+
+
+def test_facts_carry_margin_profit_roi_caveats_and_realistic_uplift(
+    df: pd.DataFrame, fitted: MixLabModel, context: DataContext
+) -> None:
+    facts = context.facts
+    assert facts["about"]["gross_margin_pct"] == 40
+    roi = facts["totals_over_data_period"]["blended_media_roi"]["best_estimate"]
+    profit = facts["totals_over_data_period"]["blended_profit_roi"]["best_estimate"]
+    assert profit == pytest.approx(0.4 * roi, abs=0.01)
+    assert facts["totals_over_data_period"]["marketing_pays_for_itself_after_margin"] == (
+        profit >= 1
+    )
+    recommendation = facts["main_recommendation"]
+    assert "caveat_to_state_with_this_change" in recommendation["spend_by_channel_lakh"]["tv"]
+    assert (
+        "caveat_to_state_with_this_change"
+        not in recommendation["spend_by_channel_lakh"]["meta_ads"]
+    )
+    assert recommendation["realistic_uplift_vs_current_cr"] <= max(
+        recommendation["uplift_vs_current_cr"]["best_estimate"], 0
+    )
+    assert "caveat" in ai_explainer.BRIEF_TASK and "realistic uplift" in ai_explainer.BRIEF_TASK

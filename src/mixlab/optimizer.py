@@ -14,6 +14,7 @@ Run ``python -m mixlab.optimizer`` to write the summary JSON and figures.
 
 import argparse
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Literal
 
@@ -22,7 +23,7 @@ import pandas as pd
 import xarray as xr
 from matplotlib.figure import Figure
 from matplotlib.ticker import FuncFormatter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pymc_marketing.mmm.budget_optimizer import BudgetOptimizer
 from pymc_marketing.mmm.multidimensional import MultiDimensionalBudgetOptimizerWrapper
 from pymc_marketing.mmm.utility import average_response, value_at_risk
@@ -30,6 +31,7 @@ from pymc_marketing.mmm.utility import average_response, value_at_risk
 from mixlab import config
 from mixlab.config import BrandConfig
 from mixlab.data_gen import channel_contribution
+from mixlab.evaluate import measurement_flags
 from mixlab.insights import (
     Estimate,
     PosteriorDraws,
@@ -87,6 +89,9 @@ class OptimizationResult(BaseModel):
     uplift_pct: Estimate
     prob_recommended_beats_current: float
     extrapolated_channels: list[str]
+    caveats: dict[str, str] = Field(default_factory=dict)
+    realistic_uplift: float = 0.0
+    realistic_uplift_pct: float = 0.0
 
 
 # --- Plans and their revenue ----------------------------------------------------------------
@@ -131,7 +136,7 @@ def what_if(
     """
     unknown = set(spend) - set(draws.channels)
     if unknown:
-        raise ValueError(f"Unknown channel(s): {sorted(unknown)}")
+        raise ValueError(f"Unknown channels: {sorted(unknown)}")
     if any(value < 0 for value in spend.values()):
         raise ValueError("Spend cannot be negative.")
     by_channel = plan_revenue_draws(draws, spend, n_weeks)
@@ -159,7 +164,7 @@ def build_bounds(
     total_budget: float,
     minimum: Plan | None = None,
     maximum: Plan | None = None,
-    max_change: float | None = None,
+    max_change: float | dict[str, float] | None = None,
 ) -> Bounds:
     """Return (min, max) total spend per channel.
 
@@ -180,8 +185,9 @@ def build_bounds(
     bounds: Bounds = {}
     for channel, current in reference.items():
         low, high = 0.0, total_budget
-        if max_change is not None:
-            low, high = current * (1 - max_change), current * (1 + max_change)
+        change = max_change.get(channel) if isinstance(max_change, dict) else max_change
+        if change is not None:
+            low, high = current * (1 - change), current * (1 + change)
         if minimum and channel in minimum:
             low = minimum[channel]
             high = max(high, low)
@@ -301,8 +307,14 @@ def optimize_budget(
     max_change: float | None = None,
     objective: Objective = "mean",
     percentile: float = config.RISK_PERCENTILE,
+    gate: bool = False,
 ) -> OptimizationResult:
     """Find the best allocation of a budget and compare it with the current allocation.
+
+    With ``gate=True`` the confidence gate applies: channels the health checks cannot
+    measure well (see ``channel_caveats``) are held to ``config.GATED_MAX_CHANGE`` instead
+    of ``max_change`` and are not pushed above their historical peak weekly spend. Caveats
+    for those channels are attached to the result whether or not the gate is on.
 
     Args:
         allocator: Compiled allocator for the fitted model.
@@ -313,12 +325,26 @@ def optimize_budget(
         max_change: Maximum relative change per channel versus last quarter.
         objective: ``"mean"`` for expected revenue, ``"percentile"`` for a conservative plan.
         percentile: Percentile used by the conservative objective.
+        gate: Apply the confidence gate to channels with measurement caveats.
 
     """
     n_weeks = allocator.n_weeks
     current = last_quarter_spend(draws, n_weeks)
     budget = float(total_budget if total_budget is not None else sum(current.values()))
-    bounds = build_bounds(current, budget, minimum, maximum, max_change)
+    caveats = channel_caveats(draws)
+    limits: float | dict[str, float] | None = max_change
+    if gate and max_change is not None:
+        limits = {
+            channel: min(max_change, config.GATED_MAX_CHANGE) if channel in caveats else max_change
+            for channel in current
+        }
+        peak = dict(zip(draws.channels, draws.spend.max(axis=0) * n_weeks, strict=True))
+        gated_ceiling = {
+            channel: min(current[channel] * (1 + limits[channel]), float(peak[channel]))
+            for channel in caveats
+        }
+        maximum = {**gated_ceiling, **(maximum or {})}
+    bounds = build_bounds(current, budget, minimum, maximum, limits)
     plan, converged, message = allocator.allocate(budget, bounds, objective, percentile)
 
     current_draws = plan_revenue_draws(draws, current, n_weeks).sum(axis=1)
@@ -342,7 +368,49 @@ def optimize_budget(
         uplift_pct=summarize(100 * uplift / current_draws),
         prob_recommended_beats_current=float((uplift > 0).mean()),
         extrapolated_channels=extrapolated,
+        caveats=caveats,
+        realistic_uplift=config.UPLIFT_SHRINKAGE * float(uplift.mean()),
+        realistic_uplift_pct=config.UPLIFT_SHRINKAGE * float((100 * uplift / current_draws).mean()),
     )
+
+
+def channel_caveats(draws: PosteriorDraws) -> dict[str, str]:
+    """Return a one-line caveat for each channel the health checks cannot measure well."""
+    flags = measurement_flags(draws.spend, draws.channels)
+    return {channel: "; ".join(reasons) for channel, reasons in flags.items() if reasons}
+
+
+def change_lines(result: OptimizationResult, name: Callable[[str], str] = str) -> list[str]:
+    """Return one line per channel whose spend changes, with any caveat next to the change.
+
+    Example: ``"TV +10% (ran in bursts, so its effect is tangled with the season)"``.
+    """
+    lines = []
+    for channel, current in result.current.spend.items():
+        if not current:
+            continue
+        change = 100 * (result.recommended.spend[channel] / current - 1)
+        if abs(change) < 0.5:
+            continue
+        caveat = f" ({result.caveats[channel]})" if channel in result.caveats else ""
+        lines.append(f"{name(channel)} {change:+.0f}%{caveat}")
+    return lines
+
+
+def measured_shrinkage(summaries: list[dict[str, Any]]) -> float | None:
+    """Return true uplift as a share of expected uplift, averaged over synthetic brands.
+
+    This is the optimizer's-curse correction: an optimizer moves money to wherever the model's
+    estimate is highest, and the highest estimates are disproportionately overestimates, so
+    the delivered uplift is systematically below the expected one. Only brands with a ground
+    truth check and a positive expected uplift contribute. Returns ``None`` if there are none.
+    """
+    ratios = []
+    for summary in summaries:
+        check = summary["expected_revenue"].get("truth_check")
+        if check and check["model_expected_uplift"] > 0:
+            ratios.append(check["true_uplift"] / check["model_expected_uplift"])
+    return float(np.mean(ratios)) if ratios else None
 
 
 # --- Scenarios ------------------------------------------------------------------------------
@@ -669,9 +737,9 @@ def build_optimizer_summary(
     n_weeks = allocator.n_weeks
     current = last_quarter_spend(draws, n_weeks)
     runs = {
-        "expected_revenue": optimize_budget(allocator, draws, max_change=max_change),
+        "expected_revenue": optimize_budget(allocator, draws, max_change=max_change, gate=True),
         "conservative": optimize_budget(
-            allocator, draws, max_change=max_change, objective="percentile"
+            allocator, draws, max_change=max_change, objective="percentile", gate=True
         ),
         "unconstrained": optimize_budget(allocator, draws),
     }

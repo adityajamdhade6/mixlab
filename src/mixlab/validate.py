@@ -80,6 +80,16 @@ def channel_name(column: str) -> str:
     return column.removeprefix(config.SPEND_PREFIX)
 
 
+def count_noun(count: int, noun: str) -> str:
+    """Return a count with its noun correctly pluralised, e.g. "1 week" or "3 weeks"."""
+    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
+
+
+def verb(count: int, singular: str, plural: str) -> str:
+    """Return the verb form that agrees with ``count``."""
+    return singular if count == 1 else plural
+
+
 def _format_dates(dates: pd.Series | pd.DatetimeIndex) -> str:
     """Return the first few dates as text, noting how many more there are."""
     shown = [d.strftime("%Y-%m-%d") for d in list(dates)[: config.MAX_DATES_IN_MESSAGE]]
@@ -135,7 +145,8 @@ def check_dtypes(df: pd.DataFrame) -> list[Issue]:
             Issue(
                 check="dtypes",
                 severity=Severity.CRITICAL,
-                message=f"{unparseable} value(s) in '{config.DATE_COL}' are not valid dates.",
+                message=f"{count_noun(unparseable, 'value')} in '{config.DATE_COL}' "
+                f"{verb(unparseable, 'is', 'are')} not a valid date.",
                 column=config.DATE_COL,
             )
         )
@@ -162,7 +173,8 @@ def check_weekly_frequency(dates: pd.Series) -> list[Issue]:
             Issue(
                 check="weekly_frequency",
                 severity=Severity.CRITICAL,
-                message=f"{len(duplicated)} week(s) appear more than once: "
+                message=f"{count_noun(len(duplicated), 'week')} "
+                f"{verb(len(duplicated), 'appears', 'appear')} more than once: "
                 f"{_format_dates(duplicated)}. Each week must be a single row.",
                 column=config.DATE_COL,
                 details={"duplicate_weeks": [str(d.date()) for d in duplicated]},
@@ -179,7 +191,8 @@ def check_weekly_frequency(dates: pd.Series) -> list[Issue]:
             Issue(
                 check="weekly_frequency",
                 severity=Severity.CRITICAL,
-                message=f"{len(off_grid)} date(s) are not exactly {config.DAYS_PER_WEEK} days "
+                message=f"{count_noun(len(off_grid), 'date')} {verb(len(off_grid), 'is', 'are')} "
+                f"not exactly {config.DAYS_PER_WEEK} days "
                 f"apart from the first week: {_format_dates(off_grid)}.",
                 column=config.DATE_COL,
             )
@@ -189,7 +202,8 @@ def check_weekly_frequency(dates: pd.Series) -> list[Issue]:
             Issue(
                 check="weekly_frequency",
                 severity=Severity.CRITICAL,
-                message=f"{len(missing)} week(s) are missing: {_format_dates(missing)}. "
+                message=f"{count_noun(len(missing), 'week')} {verb(len(missing), 'is', 'are')} "
+                f"missing: {_format_dates(missing)}. "
                 "Carryover effects cannot be estimated across gaps.",
                 column=config.DATE_COL,
                 details={"missing_weeks": [str(d.date()) for d in missing]},
@@ -211,7 +225,7 @@ def check_missing_values(df: pd.DataFrame) -> list[Issue]:
                 Issue(
                     check="missing_values",
                     severity=Severity.CRITICAL if column in core else Severity.WARNING,
-                    message=f"'{column}' has {count} missing value(s).",
+                    message=f"'{column}' has {count_noun(int(count), 'missing value')}.",
                     column=str(column),
                     details={"count": int(count)},
                 )
@@ -227,7 +241,8 @@ def check_negative_values(df: pd.DataFrame) -> list[Issue]:
         Issue(
             check="negative_values",
             severity=Severity.CRITICAL,
-            message=f"'{column}' has {count} negative value(s). Spend and revenue cannot be "
+            message=f"'{column}' has {count_noun(int(count), 'negative value')}. Spend and "
+            "revenue cannot be "
             "below zero; check for refunds, credits or sign errors.",
             column=column,
             details={"count": int(count)},
@@ -297,7 +312,7 @@ def check_outliers(df: pd.DataFrame, dates: pd.Series) -> list[Issue]:
                 Issue(
                     check="outliers",
                     severity=Severity.INFO,
-                    message=f"'{column}' has {int(mask.sum())} unusual week(s): "
+                    message=f"'{column}' has {count_noun(int(mask.sum()), 'unusual week')}: "
                     f"{_format_dates(flagged)}. Check whether they are real (festive peaks, "
                     "launches) or errors. Nothing has been removed.",
                     column=column,

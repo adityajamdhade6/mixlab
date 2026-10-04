@@ -3,9 +3,10 @@
 import charts
 import pandas as pd
 import streamlit as st
-from common import label, lakh, likely, load_runtime, setup, show
+from common import label, lakh, load_marginal_roi, load_runtime, margin, range_text, setup, show
 
 from mixlab import config
+from mixlab.insights import chance_next_rupee_profitable
 
 brand, results = setup(
     "Channel performance",
@@ -14,6 +15,9 @@ brand, results = setup(
 insights = results["insights"]
 channels = insights["channels"]
 
+profitable = dict(
+    zip(channels, chance_next_rupee_profitable(load_marginal_roi(brand), margin()), strict=True)
+)
 table = pd.DataFrame(
     [
         {
@@ -25,10 +29,14 @@ table = pd.DataFrame(
             "ROI": m["roi"]["mean"],
             "ROI low": m["roi"]["hdi_low"],
             "ROI high": m["roi"]["hdi_high"],
+            "Profit ROI": m["roi"]["mean"] * margin(),
+            "Profit ROI low": m["roi"]["hdi_low"] * margin(),
+            "Profit ROI high": m["roi"]["hdi_high"] * margin(),
             "Marginal ROI": m["marginal_roi"]["mean"],
             "Marginal ROI low": m["marginal_roi"]["hdi_low"],
             "Marginal ROI high": m["marginal_roi"]["hdi_high"],
             "Chance next rupee pays back (%)": 100 * m["prob_marginal_roi_above_1"],
+            "Chance next rupee earns a profit (%)": 100 * profitable[name],
             "Weeks to 90% of effect": m["weeks_to_90pct_effect"]["mean"],
         }
         for name, m in channels.items()
@@ -54,9 +62,11 @@ display = pd.DataFrame(
         "Channel": table["Channel"],
         "Spend (₹ Cr)": table["Spend (₹ Cr)"],
         "Revenue (₹ Cr)": with_range("Revenue (₹ Cr)", 1),
-        "ROI": with_range("ROI", 2),
-        "Next rupee returns": with_range("Marginal ROI", 2),
-        "Chance next rupee pays back": table["Chance next rupee pays back (%)"],
+        "ROI (₹ per ₹1)": with_range("ROI", 2),
+        "Profit ROI (₹ per ₹1)": with_range("Profit ROI", 2),
+        "Next ₹1 returns (₹)": with_range("Marginal ROI", 2),
+        "Chance next ₹1 returns over ₹1": table["Chance next rupee pays back (%)"],
+        "Chance next ₹1 earns a profit": table["Chance next rupee earns a profit (%)"],
         "Weeks to 90% of effect": table["Weeks to 90% of effect"],
     }
 )
@@ -67,19 +77,32 @@ st.dataframe(
     column_config={
         "Channel": st.column_config.TextColumn(pinned=True),
         "Spend (₹ Cr)": st.column_config.NumberColumn(format="%.2f"),
-        "ROI": st.column_config.TextColumn(help="Revenue per rupee spent, with its likely range."),
-        "Next rupee returns": st.column_config.TextColumn(
+        "ROI (₹ per ₹1)": st.column_config.TextColumn(
+            help="Revenue per ₹1 spent, with its 94% range."
+        ),
+        "Profit ROI (₹ per ₹1)": st.column_config.TextColumn(
+            help="Gross profit per ₹1 spent at the margin set in the sidebar. Above 1.00 the "
+            "channel pays for itself."
+        ),
+        "Next ₹1 returns (₹)": st.column_config.TextColumn(
             help="Marginal ROI: revenue from the next rupee. This is what budget moves change."
         ),
-        "Chance next rupee pays back": st.column_config.ProgressColumn(
+        "Chance next ₹1 returns over ₹1": st.column_config.ProgressColumn(
             format="%.0f%%", min_value=0, max_value=100
         ),
-        "Weeks to 90% of effect": st.column_config.NumberColumn(format="%.1f"),
+        "Chance next ₹1 earns a profit": st.column_config.ProgressColumn(
+            format="%.0f%%",
+            min_value=0,
+            max_value=100,
+            help="Chance the next ₹1 brings in more than ₹1 of gross profit at the margin set "
+            "in the sidebar. This, not the revenue version, decides whether to add budget.",
+        ),
+        "Weeks to 90% of effect": st.column_config.NumberColumn(format="%.1f wk"),
     },
 )
 st.caption(
-    "Values show the best estimate with its 94% likely range in brackets. ROI is revenue per "
-    "rupee, before product margin."
+    "Values show the best estimate with its 94% range in brackets. ROI is revenue per ₹1 of "
+    f"spend; profit ROI applies the {margin():.0%} margin set in the sidebar."
 )
 st.download_button(
     "Download metrics as CSV",
@@ -98,8 +121,11 @@ with chart:
     show(charts.response_curve(load_runtime(brand).draws, channel, metrics))
 with facts:
     marginal = metrics["marginal_roi"]
-    st.metric("Next rupee returns", f"₹{marginal['mean']:.2f}")
-    st.caption(likely(f"₹{marginal['hdi_low']:.2f}", f"₹{marginal['hdi_high']:.2f}"))
+    st.metric("Next ₹1 returns", f"₹{marginal['mean']:.2f} revenue")
+    st.caption(
+        range_text(f"₹{marginal['hdi_low']:.2f}", f"₹{marginal['hdi_high']:.2f}")
+        + f" · ₹{marginal['mean'] * margin():.2f} of gross profit"
+    )
     st.metric("Current weekly spend", lakh(metrics["current_weekly_spend"], 1))
     saturation = metrics["saturation_weekly_spend"]["median"]
     if saturation > 0:

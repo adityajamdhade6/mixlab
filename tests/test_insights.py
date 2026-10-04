@@ -167,3 +167,13 @@ def test_real_model_decomposition_and_figures(
     assert abs(explained.sum() / weekly["observed_revenue"].sum() - 1) < 0.05
     paths = save_figures(real, build_summary(real), tmp_path)
     assert len(paths) == 5 and all(p.stat().st_size > 0 for p in paths)
+
+
+def test_chance_next_rupee_profitable_tightens_with_lower_margin(draws: PosteriorDraws) -> None:
+    from mixlab.insights import chance_next_rupee_profitable
+
+    marginal = marginal_roi_draws(draws)
+    full = chance_next_rupee_profitable(marginal, 1.0)
+    thin = chance_next_rupee_profitable(marginal, 0.2)
+    np.testing.assert_allclose(full, (marginal > 1).mean(axis=0))
+    assert (thin <= full).all() and thin.shape == (2,)
