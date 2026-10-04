@@ -1,0 +1,322 @@
+{
+  "brands": 20,
+  "haircut": 0.5904746892516657,
+  "rows": [
+    {
+      "brand": "random_000",
+      "naive": {
+        "promised_uplift_pct": 2.7110707649162804,
+        "expected_uplift_pct": 2.7110707649162804,
+        "true_uplift_pct": 5.460580242658109,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 0.7798389156276082,
+        "expected_uplift_pct": 1.320698295494989,
+        "true_uplift_pct": 2.540333268433326,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_001",
+      "naive": {
+        "promised_uplift_pct": 6.613296588548761,
+        "expected_uplift_pct": 6.613296588548761,
+        "true_uplift_pct": 5.852935744340071,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.655469686299662,
+        "expected_uplift_pct": 2.8036251450467944,
+        "true_uplift_pct": 1.5843260216507986,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_002",
+      "naive": {
+        "promised_uplift_pct": 10.767468704757077,
+        "expected_uplift_pct": 10.767468704757077,
+        "true_uplift_pct": 5.300615484009723,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 2.594539208524055,
+        "expected_uplift_pct": 4.3939888631166015,
+        "true_uplift_pct": 2.6052711227807714,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_003",
+      "naive": {
+        "promised_uplift_pct": 6.09758948586129,
+        "expected_uplift_pct": 6.09758948586129,
+        "true_uplift_pct": 4.027332126901773,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.3651676078143138,
+        "expected_uplift_pct": 2.311983278308593,
+        "true_uplift_pct": 2.1616605357129726,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_004",
+      "naive": {
+        "promised_uplift_pct": 7.7325314221716,
+        "expected_uplift_pct": 7.7325314221716,
+        "true_uplift_pct": -5.796472171797161,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.7012662438627923,
+        "expected_uplift_pct": 2.881184028427842,
+        "true_uplift_pct": -1.564783926929521,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_005",
+      "naive": {
+        "promised_uplift_pct": 5.432475290224036,
+        "expected_uplift_pct": 5.432475290224036,
+        "true_uplift_pct": 4.038648272184613,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 2.0175545622507585,
+        "expected_uplift_pct": 3.416834961728323,
+        "true_uplift_pct": 2.803665649738667,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_006",
+      "naive": {
+        "promised_uplift_pct": 9.645181754589338,
+        "expected_uplift_pct": 9.645181754589338,
+        "true_uplift_pct": 13.144246877559656,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.9294028394656002,
+        "expected_uplift_pct": 3.2675453742324105,
+        "true_uplift_pct": 1.1787553701440707,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_007",
+      "naive": {
+        "promised_uplift_pct": 1.6748987716742034,
+        "expected_uplift_pct": 1.6748987716742034,
+        "true_uplift_pct": -0.9169077068974907,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 0.7986091491009477,
+        "expected_uplift_pct": 1.3524866749378537,
+        "true_uplift_pct": -0.10085447234491415,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_008",
+      "naive": {
+        "promised_uplift_pct": 2.7083804319070315,
+        "expected_uplift_pct": 2.7083804319070315,
+        "true_uplift_pct": 4.407306687274852,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 0.9858620284463792,
+        "expected_uplift_pct": 1.6696092929839297,
+        "true_uplift_pct": 2.716551942796586,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_009",
+      "naive": {
+        "promised_uplift_pct": 4.798238582648747,
+        "expected_uplift_pct": 4.798238582648747,
+        "true_uplift_pct": 3.127611065305176,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 0.892127118078535,
+        "expected_uplift_pct": 1.5108642831230692,
+        "true_uplift_pct": 1.6827915452513604,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_010",
+      "naive": {
+        "promised_uplift_pct": 13.035114689809966,
+        "expected_uplift_pct": 13.035114689809966,
+        "true_uplift_pct": 0.35266045819986047,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 3.246303609686547,
+        "expected_uplift_pct": 5.497786219762831,
+        "true_uplift_pct": 2.584661119520352,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_011",
+      "naive": {
+        "promised_uplift_pct": 8.241784645600422,
+        "expected_uplift_pct": 8.241784645600422,
+        "true_uplift_pct": 8.066432245817971,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.5144715118624368,
+        "expected_uplift_pct": 2.5648373070517088,
+        "true_uplift_pct": 2.7714380018460703,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_012",
+      "naive": {
+        "promised_uplift_pct": 5.511131397530772,
+        "expected_uplift_pct": 5.511131397530772,
+        "true_uplift_pct": 7.15897589311613,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 0.9334520492364635,
+        "expected_uplift_pct": 1.580850231564486,
+        "true_uplift_pct": 2.4686480111347486,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_013",
+      "naive": {
+        "promised_uplift_pct": 0.8180762800135437,
+        "expected_uplift_pct": 0.8180762800135437,
+        "true_uplift_pct": 0.42182261157131634,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 0.2383356251395628,
+        "expected_uplift_pct": 0.40363393974027223,
+        "true_uplift_pct": 0.7488669530827978,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_014",
+      "naive": {
+        "promised_uplift_pct": 2.6235979283811712,
+        "expected_uplift_pct": 2.6235979283811712,
+        "true_uplift_pct": 1.5747610389535858,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.067806068501043,
+        "expected_uplift_pct": 1.808385842675696,
+        "true_uplift_pct": 0.6979195383557699,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_015",
+      "naive": {
+        "promised_uplift_pct": 16.506949619304045,
+        "expected_uplift_pct": 16.506949619304045,
+        "true_uplift_pct": -28.834681165176345,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.0240195779508383,
+        "expected_uplift_pct": 1.7342311136970543,
+        "true_uplift_pct": 0.5971895297153073,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_016",
+      "naive": {
+        "promised_uplift_pct": 7.82189869938713,
+        "expected_uplift_pct": 7.82189869938713,
+        "true_uplift_pct": 15.599655204155887,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.42793781558463,
+        "expected_uplift_pct": 2.418287932704309,
+        "true_uplift_pct": 3.123789729858966,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_017",
+      "naive": {
+        "promised_uplift_pct": 9.128564144642649,
+        "expected_uplift_pct": 9.128564144642649,
+        "true_uplift_pct": -3.7336226134184414,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.5271182819953142,
+        "expected_uplift_pct": 2.5862552786652,
+        "true_uplift_pct": 2.310249193140744,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_018",
+      "naive": {
+        "promised_uplift_pct": 5.138787761570265,
+        "expected_uplift_pct": 5.138787761570265,
+        "true_uplift_pct": 2.9699772653051233,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 1.0548726125119048,
+        "expected_uplift_pct": 1.786482353458352,
+        "true_uplift_pct": 1.3698937231107065,
+        "corner_solution": true
+      }
+    },
+    {
+      "brand": "random_019",
+      "naive": {
+        "promised_uplift_pct": 5.828341924216871,
+        "expected_uplift_pct": 5.828341924216871,
+        "true_uplift_pct": 8.840043583745258,
+        "corner_solution": false
+      },
+      "robust": {
+        "promised_uplift_pct": 0.8804799939731827,
+        "expected_uplift_pct": 1.4911392647313186,
+        "true_uplift_pct": 1.8043138801255065,
+        "corner_solution": true
+      }
+    }
+  ],
+  "naive": {
+    "mean_promised_uplift_pct": 6.641768944387759,
+    "mean_true_uplift_pct": 2.5530960571904835,
+    "promised_over_true": 2.6014567394289876,
+    "share_worse_than_current": 0.2,
+    "worst_true_uplift_pct": -28.834681165176345,
+    "mean_absolute_gap_pct_points": 6.1271532387935235
+  },
+  "robust": {
+    "mean_promised_uplift_pct": 1.3817317252956287,
+    "mean_true_uplift_pct": 1.7042343368562545,
+    "promised_over_true": 0.8107639280666438,
+    "share_worse_than_current": 0.1,
+    "worst_true_uplift_pct": -1.564783926929521,
+    "mean_absolute_gap_pct_points": 0.9670690110361825
+  }
+}

@@ -177,6 +177,13 @@ def load_marginal_roi(brand: str) -> Any:
     return marginal_roi_draws(load_runtime(brand).draws)
 
 
+@st.cache_data(show_spinner=False)
+def load_benchmark() -> dict[str, Any] | None:
+    """Return the saved naive-versus-robust optimizer benchmark, if it has been run."""
+    path = config.REPORTS_DIR / config.OPTIMIZER_BENCHMARK_FILENAME
+    return json.loads(path.read_text()) if path.exists() else None
+
+
 def ai_context(brand: str, with_model: bool = False) -> DataContext:
     """Return what the AI layer needs; the model is only loaded for Q&A tools."""
     draws = load_runtime(brand).draws if with_model else None

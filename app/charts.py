@@ -448,3 +448,24 @@ def actual_vs_predicted(weeks: list[dict[str, Any]]) -> go.Figure:
     figure.update_layout(hovermode="x unified")
     figure.update_yaxes(title="Weekly revenue (₹ lakh)")
     return themed(figure, "Weeks the model never saw: actual vs. predicted", height=380)
+
+
+def weekly_schedule(schedule: pd.DataFrame) -> go.Figure:
+    """Return the week-by-week spend plan as stacked bars, one colour per channel."""
+    channels = [c for c in schedule.columns if c != "week"]
+    colors = channel_colors(channels)
+    figure = go.Figure()
+    for channel in channels:
+        figure.add_trace(
+            go.Bar(
+                x=schedule["week"],
+                y=schedule[channel] / LAKH,
+                name=label(channel),
+                marker={"color": colors[channel]},
+                hovertemplate="Week %{x}: ₹%{y:,.1f} L<extra>" + label(channel) + "</extra>",
+            )
+        )
+    figure.update_layout(barmode="stack", bargap=0.25)
+    figure.update_xaxes(title="Week of the plan", dtick=1)
+    figure.update_yaxes(title="Spend (₹ lakh)")
+    return themed(figure, "Week-by-week spend under the recommended plan", height=380)

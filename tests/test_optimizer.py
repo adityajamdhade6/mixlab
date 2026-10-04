@@ -217,7 +217,9 @@ def test_confidence_gate_holds_flagged_channels_to_ten_percent_with_caveats(
     peak = dict(zip(draws.channels, draws.spend.max(axis=0) * WEEKS, strict=True))
     for channel in current:
         change = gated.recommended.spend[channel] / current[channel] - 1
-        limit = config.GATED_MAX_CHANGE if channel in caveats else 0.3
+        limit = gated.limits[channel]["max_change"]
+        assert limit == config.GATED_MAX_CHANGE if channel in caveats else limit <= 0.3
+        assert gated.limits[channel]["reason"]
         assert abs(change) <= limit + 1e-6
         low, high = gated.bounds[channel]
         assert low == pytest.approx(current[channel] * (1 - limit))
@@ -301,3 +303,185 @@ def test_unconstrained_recommendation_is_never_rated_below_the_current_plan(
         else:
             level = config.RISK_PERCENTILE
             assert np.percentile(recommended, level) >= np.percentile(current, level) - TOLERANCE
+
+
+# --- Phase 3: robust optimizer ---------------------------------------------------------------
+
+
+def test_objectives_score_as_documented() -> None:
+    from mixlab.optimizer import objective_value
+
+    revenue = np.array([80.0, 100.0, 120.0])
+    assert objective_value(revenue, 50.0, "mean") == 100.0
+    assert objective_value(revenue, 50.0, "profit", margin=0.4) == pytest.approx(-10.0)
+    assert objective_value(revenue, 50.0, "risk_adjusted", risk_lambda=1.0) == pytest.approx(
+        100.0 - revenue.std()
+    )
+    assert objective_value(revenue, 50.0, "percentile", percentile=0.0) == 80.0
+
+
+def test_thin_keeps_an_even_subset_of_draws(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import thin
+
+    small = thin(draws, 10)
+    assert small.alpha.shape[0] <= 20 < draws.alpha.shape[0]
+    assert small.channel_contribution.shape[1:] == draws.channel_contribution.shape[1:]
+    assert thin(draws, 10_000) is draws
+
+
+def test_solver_matches_or_beats_the_library_optimizer(
+    allocator: BudgetAllocator, draws: PosteriorDraws, current: dict[str, float]
+) -> None:
+    from mixlab.optimizer import solve_allocation
+
+    budget = sum(current.values())
+    bounds = {channel: (0.7 * v, 1.3 * v) for channel, v in current.items()}
+    ours, converged, _ = solve_allocation(draws, budget, bounds, WEEKS, starts=[current])
+    theirs, _, _ = allocator.allocate(budget, bounds)
+
+    def revenue(plan: dict[str, float]) -> float:
+        return float(plan_revenue_draws(draws, plan, WEEKS).sum(axis=1).mean())
+
+    assert converged and sum(ours.values()) == pytest.approx(budget, rel=1e-6)
+    assert revenue(ours) >= revenue(theirs) * (1 - 1e-3)
+
+
+def test_risk_averse_objectives_never_take_more_risk_than_the_mean_plan(
+    draws: PosteriorDraws,
+) -> None:
+    mean_plan = optimize_budget(WEEKS, draws, max_change=0.3)
+    for objective in ("risk_adjusted", "percentile", "profit"):
+        result = optimize_budget(WEEKS, draws, max_change=0.3, objective=objective)
+        assert result.recommended.total_spend == pytest.approx(
+            mean_plan.current.total_spend, rel=1e-6
+        )
+        assert (
+            result.objective
+            == {
+                "risk_adjusted": "risk-adjusted revenue",
+                "percentile": "10th percentile revenue",
+                "profit": "expected profit",
+            }[objective]
+        )
+
+
+def test_limits_tighten_with_uncertainty_and_explain_themselves(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import channel_limits
+
+    limits = channel_limits(draws, WEEKS)
+    assert (
+        limits["tv"]["max_change"] == config.GATED_MAX_CHANGE and "bursts" in limits["tv"]["reason"]
+    )
+    assert limits["email"]["max_change"] == config.GATED_MAX_CHANGE
+    for info in limits.values():
+        assert info["max_change"] in (
+            config.GATED_MAX_CHANGE,
+            config.UNCERTAIN_MAX_CHANGE,
+            config.DEFAULT_MAX_CHANGE,
+        )
+        assert info["reason"] and info["ceiling"] > 0
+    uncertain = [i for i in limits.values() if i["max_change"] == config.UNCERTAIN_MAX_CHANGE]
+    assert all("uncertain" in info["reason"] for info in uncertain)
+
+
+def test_corner_solutions_are_flagged_and_explained() -> None:
+    from mixlab.optimizer import corner_check
+
+    bounds = {"a": (70.0, 130.0), "b": (70.0, 130.0), "c": (70.0, 130.0), "d": (70.0, 130.0)}
+    flagged, note = corner_check({"a": 130.0, "b": 70.0, "c": 130.0, "d": 100.0}, bounds)
+    assert flagged and "3 of 4 channels are at a limit" in note
+    assert corner_check({"a": 100.0, "b": 95.0, "c": 110.0, "d": 100.0}, bounds) == (False, "")
+
+
+def test_revenue_target_goal_finds_a_cheaper_plan_that_still_hits_it(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import optimize_goal
+
+    current = last_quarter_spend(draws, WEEKS)
+    now = float(plan_revenue_draws(draws, current, WEEKS).sum(axis=1).mean())
+    result = optimize_goal(draws, WEEKS, revenue_target=0.9 * now, max_change=0.5)
+    assert result.recommended.total_spend < result.current.total_spend
+    assert result.recommended.incremental_revenue.mean >= 0.9 * now * 0.98
+    with pytest.raises(ValueError, match="below the target"):
+        optimize_goal(draws, WEEKS, revenue_target=50 * now, max_change=0.1)
+    with pytest.raises(ValueError, match="exactly one"):
+        optimize_goal(draws, WEEKS)
+
+
+def test_roi_target_goal_keeps_roi_at_or_above_the_target(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import optimize_goal
+
+    current = last_quarter_spend(draws, WEEKS)
+    roi_now = float(plan_revenue_draws(draws, current, WEEKS).sum(axis=1).mean()) / sum(
+        current.values()
+    )
+    result = optimize_goal(draws, WEEKS, roi_target=roi_now, max_change=0.5)
+    assert result.recommended.roi.mean >= roi_now * 0.97
+    assert "ROI of at least" in result.objective
+
+
+def test_weekly_plan_keeps_totals_and_respects_the_burst_minimum(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import weekly_plan
+
+    plan = last_quarter_spend(draws, WEEKS)
+    floor = plan["tv"] / 5  # at most five weeks on air
+    schedule = weekly_plan(draws, plan, WEEKS, {"tv": floor})
+    assert len(schedule) == WEEKS and schedule["week"].tolist() == list(range(1, WEEKS + 1))
+    for channel, total in plan.items():
+        assert schedule[channel].sum() == pytest.approx(total)
+    on_air = schedule.loc[schedule["tv"] > 0, "tv"]
+    assert config.MIN_BURST_WEEKS <= len(on_air) <= 5 and (on_air >= floor - 1).all()
+
+
+def test_rollout_steps_reach_the_recommendation_with_checkpoints(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import rollout_plan
+
+    result = optimize_budget(WEEKS, draws, max_change=0.3, gate=True)
+    steps = rollout_plan(draws, result)
+    assert [s["step"] for s in steps] == [1, 2, 3]
+    assert steps[-1]["spend"] == pytest.approx(result.recommended.spend)
+    assert steps[0]["weeks"] == "1 to 4" and steps[-1]["share_of_change"] == 1.0
+    for step in steps:
+        assert step["confirm"] and step["stop"] and step["weekly_noise"] > 0
+        assert set(step["expected_weekly_revenue_change"]) == {
+            "mean",
+            "median",
+            "hdi_low",
+            "hdi_high",
+        }
+
+
+def test_optimism_bootstrap_returns_a_haircut_between_zero_and_one(
+    df: pd.DataFrame, fitted: MixLabModel, draws: PosteriorDraws, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from mixlab.optimizer import estimate_optimism
+
+    monkeypatch.setattr(config, "OPTIMISM_DRAWS", 30)
+    result = estimate_optimism(df, fitted.settings, draws, WEEKS, n_boot=2)
+    assert 0.0 <= result["shrinkage"] <= 1.0
+    assert 0.0 <= result["shrinkage_low"] <= result["shrinkage_high"] <= 1.0
+    assert len(result["replicates"]) == 2
+    assert all({"expected", "delivered"} == set(pair) for pair in result["replicates"])
+
+
+def test_summary_carries_rollout_weekly_plan_and_limits(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import build_optimizer_summary
+
+    summary = build_optimizer_summary(
+        WEEKS, draws, BRAND, curve_points=3, optimism={"shrinkage": 0.5}
+    )
+    main = summary["expected_revenue"]
+    assert main["shrinkage"] == 0.5
+    assert main["realistic_uplift"] == pytest.approx(0.5 * main["uplift"]["mean"])
+    assert set(main["limits"]) == set(draws.channels)
+    assert len(summary["rollout"]) == config.ROLLOUT_STEPS
+    assert len(summary["weekly_plan"]) == WEEKS and "tv" in summary["burst_minimum"]
+
+
+def test_goal_result_reports_the_chance_of_meeting_it(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import optimize_goal
+
+    current = last_quarter_spend(draws, WEEKS)
+    now = float(plan_revenue_draws(draws, current, WEEKS).sum(axis=1).mean())
+    result = optimize_goal(draws, WEEKS, revenue_target=0.9 * now, max_change=0.5)
+    assert result.goal_probability is not None and 0.0 <= result.goal_probability <= 1.0
+    assert optimize_budget(WEEKS, draws, max_change=0.3).goal_probability is None

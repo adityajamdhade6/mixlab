@@ -87,6 +87,7 @@ class PosteriorDraws:
         lam: Logistic saturation speed draws (S, C); zeros when the model uses a Hill curve.
         saturation: ``"logistic"`` or ``"hill"``.
         min_spend: Floor the model applied to spend before fitting (Hill models: one rupee).
+        noise_sigma: Weekly revenue noise (standard deviation, INR) per draw (S).
         slope: Hill slope draws (S, C), Hill models only.
         kappa: Hill half-saturation draws in scaled spend units (S, C), Hill models only.
         beta: Effect size draws in scaled units (S, C).
@@ -111,6 +112,7 @@ class PosteriorDraws:
     slope: FloatArray | None = None
     kappa: FloatArray | None = None
     min_spend: float = 0.0
+    noise_sigma: FloatArray | None = None
 
 
 def control_group(control: str) -> str:
@@ -160,6 +162,7 @@ def extract_draws(model: MixLabModel, df: pd.DataFrame) -> PosteriorDraws:
         else np.zeros_like(by_channel("saturation_beta")),
         saturation="logistic" if logistic else "hill",
         min_spend=model.min_spend,
+        noise_sigma=post["y_sigma"].to_numpy() * scale,
         slope=None if logistic else by_channel("saturation_slope"),
         kappa=None if logistic else by_channel("saturation_kappa"),
         beta=by_channel("saturation_beta"),

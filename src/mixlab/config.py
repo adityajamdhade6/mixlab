@@ -651,3 +651,19 @@ SATURATION_GRID_MAX_MULTIPLE: float = 5.0
 # The Hill curve's gradient is undefined at exactly zero spend, which the sampler reports as
 # divergences, so zero-spend weeks are modelled as one rupee.
 HILL_MIN_SPEND: float = 1.0
+
+# --- Phase 3: robust optimizer --------------------------------------------------------------
+# Draws used inside the solver (the full posterior is used to report results).
+OPTIMIZER_DRAWS: int = 500
+RISK_LAMBDA: float = 1.0
+# Uncertainty-aware limits: how far a channel may move by default, tightened by evidence.
+UNCERTAIN_MAX_CHANGE: float = 0.15
+UNCERTAIN_RELATIVE_WIDTH: float = 2.0
+CORNER_SHARE: float = 0.5
+ROLLOUT_STEPS: int = 3
+ROLLOUT_WEEKS_PER_STEP: int = 4
+OPTIMISM_BOOTSTRAPS: int = 6
+OPTIMISM_DRAWS: int = 300
+MIN_BURST_WEEKS: int = 3
+OPTIMIZER_BENCHMARK_FILENAME: str = "optimizer_benchmark.json"
+OPTIMISM_RESAMPLES: int = 500

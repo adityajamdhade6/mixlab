@@ -176,3 +176,50 @@ one is better.
   `optimize_budget` now retries from the current plan and, failing that, recommends no change.
 - **Calibration.** The test planner now picks Meta first. A simulated 8-week lift test narrows
   Meta's ROI range by 79% (0.08 to 1.99 becomes 0.88 to 1.29; truth 1.18).
+
+## 9. The robust optimizer (Phase 3)
+
+**What changed.** Plans are scored across posterior draws with the project's own response
+maths and searched with SciPy from several starting points. Limits per channel come from the
+evidence (±10% burst or tiny channels, ±15% where the ROI range is wide, ±30% otherwise, never
+above the channel's peak week). Objectives: expected revenue, expected profit, risk-adjusted,
+10th percentile. Goals: a revenue target or a target ROI. Output includes a rollout plan, a
+week-by-week schedule and a corner-solution warning.
+
+**The optimizer's-curse correction uses no ground truth.** For each of six replicates a
+posterior draw is treated as the real world; revenue is simulated from it, the model is refit
+on that history, the plan is re-optimized, and the chosen plan is scored under the world that
+generated the data. Delivered over expected uplift, pooled, is the haircut.
+
+| Brand | Expected uplift | Haircut (80% range) | Realistic uplift | True uplift |
+|---|---|---|---|---|
+| performance_heavy | +1.94% | 0.59 (0.24 to 0.94) | +1.15% | +1.60% |
+| tv_heavy | +1.15% | 0.88 (0.40 to 1.00) | +1.01% | +0.92% |
+| influencer_led | +3.00% | 0.92 (0.76 to 1.00) | +2.78% | +2.09% |
+
+The corrected figure is within about 0.7 percentage points of the truth on all three brands,
+on the right side of the expected figure for two and too cautious for one. Six replicates make
+the haircut itself uncertain, which the range shows.
+
+**Twenty random brands, naive against robust** (`reports/optimizer_benchmark.json`). Naive is
+the v1 behaviour: maximise expected revenue with no limits and no haircut. Robust uses the
+limits, the risk-adjusted objective and one haircut (0.59, estimated on the main
+demo brand and applied unchanged to all twenty).
+
+| | Promised uplift | True uplift | Promised / true | Brands made worse | Worst case | Mean gap |
+|---|---|---|---|---|---|---|
+| Naive | +6.6% | +2.6% | 2.6x | 20% | -28.8% | 6.1 pts |
+| Robust | +1.4% | +1.7% | 0.8x | 10% | -1.6% | 1.0 pts |
+
+**Reading it.** The robust optimizer keeps its promises (it under-promises slightly) and its
+worst outcome is a 1.6% loss against the naive optimizer's 28.8%. It pays for that with less
+uplift on average: the naive optimizer's large moves are right more often than not and deliver
+more when they are. Which one to use is a judgment about how much a bad quarter costs, not a
+statistical question.
+
+**Limits of this result.**
+- The model is additive, so the weekly schedule cannot say which calendar weeks suit media.
+- No rollout step is large enough to see in topline revenue within four weeks; the checkpoints
+  say so rather than pretending otherwise.
+- All three demo recommendations are corner solutions: the limits decide them.
+- Customer acquisition cost goals are not supported; the data has revenue, not customers.

@@ -275,7 +275,8 @@ def recommendation_facts(result: dict[str, Any]) -> dict[str, Any]:
         "realistic_uplift_vs_current_pct": pct(result.get("realistic_uplift_pct", 0.0)),
         "why_realistic_is_lower": "Optimizers move money to the channels the model happens to "
         f"overestimate. On synthetic brands with known truth, about "
-        f"{round(100 * config.UPLIFT_SHRINKAGE)}% of the expected uplift was delivered, so the "
+        f"{round(100 * result.get('shrinkage', config.UPLIFT_SHRINKAGE))}% of the expected "
+        "uplift was delivered, so the "
         "expected uplift is scaled down by that share.",
         "chance_it_beats_current_plan_pct": pct(100 * result["prob_recommended_beats_current"]),
         "channels_pushed_beyond_any_historical_weekly_spend": result["extrapolated_channels"],

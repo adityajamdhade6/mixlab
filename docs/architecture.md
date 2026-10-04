@@ -51,16 +51,32 @@ See [model_card.md](model_card.md) for assumptions and [model_log.md](model_log.
 the model has this form.
 
 ## Optimizer
-- Uses PyMC-Marketing's `BudgetOptimizer` (budget is per week there; converted here).
-- A plan is a total per channel over 13 weeks, spread evenly, with carryover counted.
-- Objectives: expected revenue, or a low percentile for a cautious plan.
-- **Bounds:** ±30% per channel by default. **Confidence gate:** channels that ran in bursts
-  or are under 2% of spend (`evaluate.measurement_flags`) are held to ±10% and never pushed
-  above their historical peak; their caveat travels with the recommendation.
-- **Realistic uplift:** expected uplift x `config.UPLIFT_SHRINKAGE` (0.65: true / expected
-  uplift across the three synthetic brands with the v2 model; it was 0.38 with v1).
-- Scenario simulator (`what_if`, `compare_scenarios`) and budget-level curve with the point
-  where an extra rupee returns under a rupee.
+`optimizer.py` scores every candidate plan across posterior draws with the project's own
+response maths (`insights.simulate_contributions`, tested equal to the fitted model) and
+searches with SciPy (`solve_allocation`, several starting points because a Hill surface is not
+concave). PyMC-Marketing's `BudgetOptimizer` is kept only as a cross-check in the tests.
+
+- **Plan:** a total per channel over 13 weeks, with carryover after the window counted.
+- **Objectives:** expected revenue, expected profit (margin x revenue - spend), risk-adjusted
+  (mean - lambda x standard deviation), or the 10th percentile.
+- **Uncertainty-aware limits** (`channel_limits`): ±10% for channels that ran in bursts or are
+  under 2% of spend, ±15% where the ROI range is wide relative to the estimate, ±30%
+  otherwise; never above a channel's highest week on record. Each limit carries its reason.
+- **Corner check** (`corner_check`): flags plans where most channels sit on a limit.
+- **Never worse:** a plan the model rates below the current one is not recommended.
+- **Realistic uplift:** expected uplift x a haircut estimated per brand by
+  `estimate_optimism`: treat a posterior draw as the real world, simulate revenue, refit,
+  re-optimize, and score the chosen plan under that world. No ground truth is used.
+- **Business goals** (`optimize_goal`): lowest spend for a revenue target, or the largest
+  plan that keeps a target ROI. CAC is not supported (the data has no customer counts).
+- **Timing** (`weekly_plan`): each channel's total is spread evenly or put into one burst,
+  whichever earns more; burst channels keep a minimum weekly spend. The model is additive, so
+  it cannot say which calendar weeks are better.
+- **Rollout** (`rollout_plan`): stepped changes with a checkpoint each, including whether the
+  step is large enough to see in revenue at all.
+- Scenario simulator (`what_if`, `compare_scenarios`) and the budget-level curve.
+- `scripts/optimizer_benchmark.py` compares a naive and the robust optimizer on 20 random
+  brands against the truth (`reports/optimizer_benchmark.json`).
 
 ## AI layer
 - **Facts:** `build_facts` produces one pre-rounded JSON document (crore, lakh, percentages,
@@ -79,7 +95,7 @@ the model has this form.
 |---|---|---|
 | Overview | Profit verdict at the chosen margin, KPIs, expected vs. realistic uplift, brief, decomposition | No |
 | Channel performance | ROI and profit ROI with ranges, response curves, model vs. naive attribution | Yes (curves) |
-| Budget optimizer | Budget, objective, per-channel limits with the confidence gate, allocation, caveats | Yes |
+| Budget optimizer | Budget, four objectives, per-channel limits with reasons, allocation, corner warning, rollout plan, weekly schedule, goal search | Yes |
 | Scenario planner | Per-channel sliders, live revenue and profit change, saved scenarios | Yes |
 | Ask MixLab | Chat over the Q&A tools; says upfront when no API key is set | On first question |
 | Model health | Out-of-sample accuracy and rolling backtest, trust notes, ground-truth recovery, diagnostics, data checks | No |
