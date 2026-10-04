@@ -20,7 +20,9 @@ def refresh_stale_modules() -> None:
     """
     stamp = max(path.stat().st_mtime for folder in CODE_DIRS for path in folder.glob("*.py"))
     previous = getattr(sys, "_mixlab_code_stamp", None)
-    if previous is not None and previous != stamp:
+    # ``previous is None`` covers a process that was already running before this check existed;
+    # on a genuine cold start nothing is loaded yet, so purging is a no-op.
+    if previous != stamp:
         for name in list(sys.modules):
             if name.split(".")[0] in STALE_PREFIXES:
                 del sys.modules[name]
