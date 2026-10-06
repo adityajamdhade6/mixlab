@@ -127,6 +127,21 @@ geo_data (regional panel) ──► geo_model.GeoMixLabModel ──► extract_g
 - **Optimizer link.** `channel_limits(..., measured=...)`: an experiment answers the "too small"
   and "ran in bursts" caveats, so a tested channel's limit is set by its calibrated range.
 
+## Monitoring (Phase 6)
+`monitoring.py`, run end to end by `scripts/simulate_weeks.py` (`make pacing`).
+- **Forecast.** `future_frame` builds future inputs from a weekly schedule plus the known
+  calendar (festivals from the brand's events, no promotions, the yearly price step);
+  `MixLabModel.predict` carries over the last weeks of history.
+- **Pacing.** Actual spend per channel against plan (±15% tolerance), actual revenue against
+  the forecast range, forecast accuracy so far.
+- **Drift.** Recent error over twice the backtest holdout error, or 2 of the last 4 weeks
+  outside the range; the action says to look for an outside cause before refitting.
+- **Refresh.** A full refit on the longer history. PyMC-Marketing cannot warm-start nutpie
+  from a previous posterior, so "refresh" is an honest refit. `explain_changes` gives each
+  channel's ROI move and a reason read from the new weeks (record spend, a changed share,
+  or a move inside the old range).
+- **Versions.** `versions.json` per brand: data range, ROI, recommendation, metrics.
+
 ## AI layer
 - **Facts:** `build_facts` produces one pre-rounded JSON document (crore, lakh, percentages,
   profit ROI at the chosen margin, caveats, realistic uplift, validation results).
@@ -146,6 +161,7 @@ geo_data (regional panel) ──► geo_model.GeoMixLabModel ──► extract_g
 | Channel performance | ROI and profit ROI with ranges, response curves, model vs. naive attribution | Yes (curves) |
 | Budget optimizer | Budget, four objectives, per-channel limits with reasons, allocation, corner warning, rollout plan, weekly schedule, goal search | Yes |
 | Scenario planner | Per-channel sliders, live revenue and profit change, saved scenarios | Yes |
+| Pacing and forecast | 13-week forecast under current and recommended plans, actual weeks, pacing by channel, drift warning, refreshed ROI with reasons, version history | No |
 | Ask MixLab | Chat over the Q&A tools; says upfront when no API key is set | On first question |
 | Regions | Geo demo: India map (where to invest, or ROI by channel), one region in detail, ROI by region, national vs. geo ranges, regional optimizer | Small draws file on re-run |
 | Test and learn | Value of information, test plans, simulated results with placebo checks, ROI before/after calibration, recommendation before/after | No |

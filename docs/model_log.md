@@ -346,3 +346,24 @@ the most its record weekly spend allows) and the expected uplift from ₹37.4 L 
 ROI with a 10% error, which a real geo test on a small channel will not reach. The library's
 lift likelihood ignores carryover, so a lift measured within a window understates the full
 effect slightly.
+
+## 12. Forecasting, pacing and drift (Phase 6)
+
+`scripts/simulate_weeks.py` plays out 8 weeks of a new quarter for the performance-heavy brand,
+generated from the true process: spend follows the recommended plan except Meta (+25%) and TV
+(-30%), and an unmodelled competitor launch cuts baseline revenue by 10% in the last 3 weeks.
+
+- **Pacing:** Meta flagged over-pacing (1.25x plan), TV under-pacing (0.70x); the rest on plan.
+- **Forecast accuracy against the plan:** 2.9% average error, 7 of 8 weeks inside the 94% range.
+- **Drift, first version:** judged against the plan forecast, the alarm fired, but for the
+  wrong reason. An unplanned promotion week (+₹9.5 L) dominated the error, and the competitor
+  shock (about -₹6 L a week, roughly 5% of revenue) sat inside normal weekly noise.
+- **Drift, as built:** judged against an as-run forecast (the model re-predicts each week with
+  the spend and promotions that actually ran), the last three weeks show the shock (-₹5.0 L,
+  -₹2.2 L, -₹10.4 L). A sustained-bias test catches it: revenue 3.4% below what actual spend
+  explains, 2.3 standard errors, with the action "look for an outside cause before refitting".
+- **Refresh:** refit on 164 weeks in 2.3 minutes, 0 divergences. No channel's ROI moved 20% or
+  more; Google Search +15%, Meta -15% and YouTube -14% stay inside their old ranges.
+- **Versions:** v1 and v2 (refresh) recorded in `artifacts/performance_heavy/versions.json`.
+
+PyMC-Marketing cannot warm-start nutpie from a previous posterior, so a refresh is a full refit.

@@ -799,3 +799,84 @@ def calibration_ranges(rows: list[dict[str, Any]], tested: list[str]) -> go.Figu
     figure.update_yaxes(tickvals=list(range(len(rows))), ticktext=names, autorange="reversed")
     figure.update_xaxes(title="Revenue per rupee spent", rangemode="tozero")
     return themed(figure, "ROI before and after the tests", height=130 + 60 * len(rows))
+
+
+# --- Pacing and forecast --------------------------------------------------------------------
+
+
+def forecast_vs_actual(story: dict[str, Any]) -> go.Figure:
+    """Forecast bands for the current and recommended plans, with actual weeks on top."""
+    figure = go.Figure()
+    for name, color in (("current", COLOR_CURRENT), ("recommended", config.COLOR_SPEND)):
+        rows = pd.DataFrame(story["forecasts"][name])
+        dates = pd.to_datetime(rows[config.DATE_COL])
+        figure.add_trace(
+            go.Scatter(
+                x=list(dates) + list(dates[::-1]),
+                y=list(rows["upper"] / LAKH) + list(rows["lower"][::-1] / LAKH),
+                fill="toself",
+                fillcolor=rgba(color, 0.18),
+                line={"width": 0},
+                hoverinfo="skip",
+                showlegend=False,
+            )
+        )
+        figure.add_trace(
+            go.Scatter(
+                x=dates,
+                y=rows["mean"] / LAKH,
+                mode="lines",
+                name=f"Forecast, {name} plan (94% range)",
+                line={"color": color, "width": 2},
+                hovertemplate="%{y:,.0f} L<extra>" + name + "</extra>",
+            )
+        )
+    actual = pd.DataFrame(story["actual"])
+    outside = set(story["pacing"]["outside_weeks"])
+    figure.add_trace(
+        go.Scatter(
+            x=pd.to_datetime(actual[config.DATE_COL]),
+            y=actual[config.TARGET_COL] / LAKH,
+            mode="markers",
+            name="Actual revenue",
+            marker={
+                "size": 11,
+                "color": [
+                    config.COLOR_DIVERGING[0] if d in outside else config.COLOR_TEXT
+                    for d in actual[config.DATE_COL]
+                ],
+            },
+            hovertemplate="%{y:,.0f} L<extra>Actual</extra>",
+        )
+    )
+    figure.update_yaxes(title="Weekly revenue (₹ lakh)")
+    return themed(figure, "Forecast vs. actual (red: outside the forecast range)", height=420)
+
+
+def pacing_bars(channels: dict[str, dict[str, Any]]) -> go.Figure:
+    """Actual spend as a share of plan, per channel, with the tolerance band."""
+    names = [label(c) for c in channels]
+    pace = [100 * (v["pace"] - 1) for v in channels.values()]
+    colors = {
+        "over-pacing": config.COLOR_DIVERGING[0],
+        "under-pacing": "#eda100",
+        "on plan": config.COLOR_SPEND,
+    }
+    figure = go.Figure(
+        go.Bar(
+            x=pace,
+            y=names,
+            orientation="h",
+            marker={
+                "color": [colors.get(v["status"], COLOR_CURRENT) for v in channels.values()],
+                "cornerradius": 4,
+            },
+            text=[f"{p:+.0f}%" for p in pace],
+            textposition="outside",
+            hovertemplate="%{x:+.0f}% vs plan<extra></extra>",
+        )
+    )
+    band = 100 * config.PACING_TOLERANCE
+    figure.add_vrect(x0=-band, x1=band, fillcolor=rgba(config.COLOR_TEXT_MUTED, 0.1), line_width=0)
+    figure.update_xaxes(title="Actual spend vs. plan so far (%)", zeroline=True)
+    return themed(figure, "Pacing by channel (grey: on plan)", height=110 + 44 * len(names))

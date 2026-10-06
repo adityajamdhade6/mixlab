@@ -212,6 +212,20 @@ def load_geo() -> dict[str, Any]:
 
 
 @st.cache_data(show_spinner=False)
+def load_monitoring(brand: str) -> dict[str, Any] | None:
+    """Load a brand's simulated quarter (forecast, pacing, drift, refresh), if run."""
+    path = brand_dir(brand) / config.MONITORING_FILENAME
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+@st.cache_data(show_spinner=False)
+def load_versions(brand: str) -> list[dict[str, Any]]:
+    """Load a brand's model version history (empty if none)."""
+    path = brand_dir(brand) / config.VERSIONS_FILENAME
+    return json.loads(path.read_text()) if path.exists() else []
+
+
+@st.cache_data(show_spinner=False)
 def load_experiment_loop() -> dict[str, Any] | None:
     """Load the saved test-and-learn story, if it has been run."""
     path = geo_dir() / config.EXPERIMENT_LOOP_FILENAME

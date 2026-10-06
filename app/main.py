@@ -39,6 +39,7 @@ PAGES = [
     st.Page("views/channels.py", title="Channel performance", icon=":material/bar_chart:"),
     st.Page("views/optimizer.py", title="Budget optimizer", icon=":material/tune:"),
     st.Page("views/scenarios.py", title="Scenario planner", icon=":material/compare_arrows:"),
+    st.Page("views/pacing.py", title="Pacing and forecast", icon=":material/timeline:"),
     st.Page("views/ask.py", title="Ask MixLab", icon=":material/forum:"),
     st.Page("views/regions.py", title="Regions", icon=":material/map:"),
     st.Page("views/test_and_learn.py", title="Test and learn", icon=":material/science:"),

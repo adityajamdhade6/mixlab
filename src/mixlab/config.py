@@ -849,3 +849,26 @@ CALIBRATED_MODEL_SUBDIR: str = "calibrated_model"
 # eight controls of the demo, so the threshold sits just above it.
 PLACEBO_ALPHA: float = 0.15
 Z_95: float = 1.96
+
+# --- Phase 6: forecasting, pacing and drift monitoring --------------------------------------
+FORECAST_WEEKS: int = 13
+# A channel is over- or under-pacing when its actual spend is this far from plan.
+PACING_TOLERANCE: float = 0.15
+# Drift: recent error this many times the backtest error, or this many of the last
+# ``DRIFT_WINDOW`` weeks outside the forecast range.
+DRIFT_ERROR_RATIO: float = 2.0
+DRIFT_WINDOW: int = 4
+DRIFT_OUTSIDE_WEEKS: int = 2
+# A refreshed ROI estimate counts as a big change when its mean moves by this share.
+ROI_CHANGE_FLAG: float = 0.20
+MONITORING_FILENAME: str = "monitoring.json"
+VERSIONS_FILENAME: str = "versions.json"
+REFRESH_MODEL_SUBDIR: str = "refreshed_model"
+# Simulated new weeks: how actual spend slips from the plan, and an unmodelled competitor
+# launch that cuts organic revenue in the last weeks.
+SIM_NEW_WEEKS: int = 8
+SIM_PACING_SLIP: dict[str, float] = {"meta_ads": 0.25, "tv": -0.30}
+SIM_SHOCK_SHARE: float = -0.10
+SIM_SHOCK_WEEKS: int = 3
+# Half-width of a 94% normal interval in standard deviations (the ranges shown are 94%).
+Z_94: float = 1.88

@@ -5,10 +5,11 @@
 #   make app       open the dashboard
 #   make geo       build the regional (geo-level) demo for the Regions page (about 30 minutes)
 #   make experiments  run the test-and-learn loop on the regional demo (about 5 minutes)
+#   make pacing    simulate 8 new weeks: pacing, drift, refresh, versions (about 5 minutes)
 
 BRANDS_DIR := artifacts
 
-.PHONY: data validate train geo experiments app test lint format evaluate calibrate template deploy-assets clean
+.PHONY: data validate train geo experiments pacing app test lint format evaluate calibrate template deploy-assets clean
 
 data:
 	uv run python scripts/build_demo.py --stage data
@@ -24,6 +25,9 @@ geo:
 
 experiments:
 	uv run python scripts/experiment_loop.py
+
+pacing:
+	uv run python scripts/simulate_weeks.py
 
 app:
 	uv run streamlit run app/main.py

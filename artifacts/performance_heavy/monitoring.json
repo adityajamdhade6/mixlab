@@ -1,0 +1,956 @@
+{
+  "plans": {
+    "current": {
+      "meta_ads": 25422689.0,
+      "google_search": 7937029.0,
+      "youtube": 9836608.0,
+      "influencers": 11094201.0,
+      "email": 863537.0,
+      "tv": 10183658.0
+    },
+    "recommended": {
+      "meta_ads": 23358045.400066108,
+      "google_search": 9127583.35,
+      "youtube": 11312099.199999988,
+      "influencers": 9430070.850000009,
+      "email": 907899.3999338952,
+      "tv": 11202023.799999995
+    }
+  },
+  "forecasts": {
+    "current": [
+      {
+        "date": "2025-12-29",
+        "mean": 12351443.09322087,
+        "lower": 11546526.627085974,
+        "upper": 13140243.758894073
+      },
+      {
+        "date": "2026-01-05",
+        "mean": 12028833.039828787,
+        "lower": 11334356.574211035,
+        "upper": 12739776.69129725
+      },
+      {
+        "date": "2026-01-12",
+        "mean": 12239900.495578399,
+        "lower": 11555562.084544789,
+        "upper": 12975174.495970823
+      },
+      {
+        "date": "2026-01-19",
+        "mean": 12341352.857538158,
+        "lower": 11640668.323122727,
+        "upper": 13036206.005467061
+      },
+      {
+        "date": "2026-01-26",
+        "mean": 12441737.376828343,
+        "lower": 11739271.204725947,
+        "upper": 13143776.27972258
+      },
+      {
+        "date": "2026-02-02",
+        "mean": 12496404.199595612,
+        "lower": 11806332.653972952,
+        "upper": 13230693.085323391
+      },
+      {
+        "date": "2026-02-09",
+        "mean": 12454952.080083257,
+        "lower": 11746879.872084081,
+        "upper": 13130849.160689484
+      },
+      {
+        "date": "2026-02-16",
+        "mean": 12498036.967337117,
+        "lower": 11789219.01184484,
+        "upper": 13219027.468876453
+      },
+      {
+        "date": "2026-02-23",
+        "mean": 12461809.999910267,
+        "lower": 11753762.667958492,
+        "upper": 13189734.0716188
+      },
+      {
+        "date": "2026-03-02",
+        "mean": 12474689.217696033,
+        "lower": 11798827.884412726,
+        "upper": 13150740.010102445
+      },
+      {
+        "date": "2026-03-09",
+        "mean": 12430186.746649815,
+        "lower": 11698682.429884538,
+        "upper": 13138364.004323792
+      },
+      {
+        "date": "2026-03-16",
+        "mean": 12413406.692212988,
+        "lower": 11722270.207147816,
+        "upper": 13115386.882688915
+      },
+      {
+        "date": "2026-03-23",
+        "mean": 12406083.84380714,
+        "lower": 11719346.951998807,
+        "upper": 13098366.41095387
+      }
+    ],
+    "recommended": [
+      {
+        "date": "2025-12-29",
+        "mean": 12410001.621902423,
+        "lower": 11612193.537144095,
+        "upper": 13186984.975089813
+      },
+      {
+        "date": "2026-01-05",
+        "mean": 12105435.908939485,
+        "lower": 11411385.812311588,
+        "upper": 12797972.10759391
+      },
+      {
+        "date": "2026-01-12",
+        "mean": 12323669.098426517,
+        "lower": 11630935.409368392,
+        "upper": 13085285.50345663
+      },
+      {
+        "date": "2026-01-19",
+        "mean": 12428519.006699236,
+        "lower": 11698096.574233584,
+        "upper": 13153610.11973573
+      },
+      {
+        "date": "2026-01-26",
+        "mean": 12530729.304757414,
+        "lower": 11848727.144867834,
+        "upper": 13256994.176817501
+      },
+      {
+        "date": "2026-02-02",
+        "mean": 12586322.701186286,
+        "lower": 11882883.448448211,
+        "upper": 13321510.587685125
+      },
+      {
+        "date": "2026-02-09",
+        "mean": 12545588.55231202,
+        "lower": 11806595.385572104,
+        "upper": 13240732.992076859
+      },
+      {
+        "date": "2026-02-16",
+        "mean": 12589166.349477459,
+        "lower": 11896986.017257392,
+        "upper": 13288573.587766431
+      },
+      {
+        "date": "2026-02-23",
+        "mean": 12552939.382050604,
+        "lower": 11845438.548735265,
+        "upper": 13281223.555122728
+      },
+      {
+        "date": "2026-03-02",
+        "mean": 12565818.5998364,
+        "lower": 11854140.526589982,
+        "upper": 13261140.550370803
+      },
+      {
+        "date": "2026-03-09",
+        "mean": 12521316.128790123,
+        "lower": 11782703.27298809,
+        "upper": 13223923.185237452
+      },
+      {
+        "date": "2026-03-16",
+        "mean": 12504536.07435328,
+        "lower": 11802820.84039925,
+        "upper": 13194404.270642549
+      },
+      {
+        "date": "2026-03-23",
+        "mean": 12497213.225947488,
+        "lower": 11802355.64413921,
+        "upper": 13180011.247187177
+      }
+    ]
+  },
+  "schedule": [
+    {
+      "date": "2025-12-29",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-01-05",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-01-12",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-01-19",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-01-26",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-02-02",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-02-09",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-02-16",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-02-23",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-03-02",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-03-09",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-03-16",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    },
+    {
+      "date": "2026-03-23",
+      "spend_meta_ads": 1796772.7230820083,
+      "spend_google_search": 702121.7961538461,
+      "spend_youtube": 870161.476923076,
+      "spend_influencers": 725390.065384616,
+      "spend_email": 69838.4153795304,
+      "spend_tv": 861694.1384615381
+    }
+  ],
+  "actual": [
+    {
+      "date": "2025-12-29",
+      "revenue": 13007995.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 0,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 1,
+      "price_index": 1.0746,
+      "season_sin_1": -0.03869579017652689,
+      "season_cos_1": 0.9992510374388481,
+      "season_sin_2": -0.07733361695682096,
+      "season_cos_2": 0.9970052716452285
+    },
+    {
+      "date": "2026-01-05",
+      "revenue": 11755470.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 0,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 0,
+      "price_index": 1.1348,
+      "season_sin_1": 0.08590610426133272,
+      "season_cos_1": 0.9963032375991965,
+      "season_sin_2": 0.17117705961019986,
+      "season_cos_2": 0.985240282501282
+    },
+    {
+      "date": "2026-01-12",
+      "revenue": 12125738.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 0,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 0,
+      "price_index": 1.1131,
+      "season_sin_1": 0.20496611396949532,
+      "season_cos_1": 0.9787690698649216,
+      "season_sin_2": 0.4012289854475009,
+      "season_cos_2": 0.9159777842484877
+    },
+    {
+      "date": "2026-01-19",
+      "revenue": 12487343.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 0,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 0,
+      "price_index": 1.1327,
+      "season_sin_1": 0.321057654185271,
+      "season_cos_1": 0.9470596510722283,
+      "season_sin_2": 0.6081214998935418,
+      "season_cos_2": 0.7938439653781019
+    },
+    {
+      "date": "2026-01-26",
+      "revenue": 13477067.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 1,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 0,
+      "price_index": 1.123,
+      "season_sin_1": 0.4324994021339788,
+      "season_cos_1": 0.901634220265486,
+      "season_sin_2": 0.7799125224167177,
+      "season_cos_2": 0.6258885343075018
+    },
+    {
+      "date": "2026-02-02",
+      "revenue": 12094985.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 0,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 0,
+      "price_index": 1.1366,
+      "season_sin_1": 0.5376773767406141,
+      "season_cos_1": 0.8431506618282,
+      "season_sin_2": 0.9066860720977985,
+      "season_cos_2": 0.4218060770826634
+    },
+    {
+      "date": "2026-02-09",
+      "revenue": 12406496.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 0,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 0,
+      "price_index": 1.1324,
+      "season_sin_1": 0.6350683134867438,
+      "season_cos_1": 0.7724559775191742,
+      "season_sin_2": 0.981124629771712,
+      "season_cos_2": 0.19337647441020586
+    },
+    {
+      "date": "2026-02-16",
+      "revenue": 12452603.0,
+      "spend_meta_ads": 2245966.0,
+      "spend_google_search": 702122.0,
+      "spend_youtube": 870161.0,
+      "spend_influencers": 725390.0,
+      "spend_email": 69838.0,
+      "spend_tv": 603186.0,
+      "promo_flag": 1,
+      "holiday_diwali": 0,
+      "holiday_sale_season": 0,
+      "holiday_new_year": 0,
+      "price_index": 1.1431,
+      "season_sin_1": 0.7232617254437388,
+      "season_cos_1": 0.6905740195722294,
+      "season_sin_2": 0.9989315138848577,
+      "season_cos_2": -0.046215046983708354
+    }
+  ],
+  "truth": [
+    {
+      "date": "2025-12-29",
+      "baseline": 6000000.0,
+      "trend": 2152607.8028747435,
+      "seasonality": -83569.81858755065,
+      "holiday": 600000.0,
+      "promo": 0.0,
+      "price": -268560.0,
+      "meta_ads": 1880914.2419361665,
+      "google_search": 993719.0993467909,
+      "youtube": 584109.3652824586,
+      "influencers": 476979.5875629713,
+      "email": 200931.7628707611,
+      "tv": 147509.46122412253,
+      "shock": 0.0,
+      "noise": 323353.33049611165
+    },
+    {
+      "date": "2026-01-05",
+      "baseline": 6000000.0,
+      "trend": 2166406.570841889,
+      "seasonality": -10302.081486272624,
+      "holiday": 0.0,
+      "promo": 0.0,
+      "price": -485280.0000000001,
+      "meta_ads": 1918430.7505530466,
+      "google_search": 999928.447524001,
+      "youtube": 592957.8483717034,
+      "influencers": 487377.0262819812,
+      "email": 203371.918263384,
+      "tv": 248542.26762742622,
+      "shock": 0.0,
+      "noise": -365962.6737799404
+    },
+    {
+      "date": "2026-01-12",
+      "baseline": 6000000.0,
+      "trend": 2180205.338809035,
+      "seasonality": 51906.70367986499,
+      "holiday": 0.0,
+      "promo": 0.0,
+      "price": -407159.99999999994,
+      "meta_ads": 1930848.4662162447,
+      "google_search": 1000846.737064402,
+      "youtube": 598056.498393546,
+      "influencers": 491750.0883614245,
+      "email": 203850.39408036254,
+      "tv": 324664.39221634885,
+      "shock": 0.0,
+      "noise": -249230.62012675885
+    },
+    {
+      "date": "2026-01-19",
+      "baseline": 6000000.0,
+      "trend": 2194004.1067761807,
+      "seasonality": 104152.93300464611,
+      "holiday": 0.0,
+      "promo": 0.0,
+      "price": -477720.0000000001,
+      "meta_ads": 1935112.108704008,
+      "google_search": 1000984.1896987618,
+      "youtube": 600950.555107767,
+      "influencers": 493661.04368990683,
+      "email": 203945.7147539341,
+      "tv": 388470.2609695999,
+      "shock": 0.0,
+      "noise": 43781.65889047039
+    },
+    {
+      "date": "2026-01-26",
+      "baseline": 6000000.0,
+      "trend": 2207802.8747433266,
+      "seasonality": 145557.01076987217,
+      "holiday": 0.0,
+      "promo": 900000.0,
+      "price": -442800.0,
+      "meta_ads": 1936594.854986126,
+      "google_search": 1001004.8010629014,
+      "youtube": 602782.0566737609,
+      "influencers": 494508.83924150583,
+      "email": 203964.7639857438,
+      "tv": 432762.623567286,
+      "shock": 0.0,
+      "noise": -5111.1944399618615
+    },
+    {
+      "date": "2026-02-02",
+      "baseline": 6000000.0,
+      "trend": 2221601.6427104725,
+      "seasonality": 175935.11931446832,
+      "holiday": 0.0,
+      "promo": 0.0,
+      "price": -491760.0000000002,
+      "meta_ads": 1937112.7924723087,
+      "google_search": 1001007.8926175269,
+      "youtube": 603866.4824321854,
+      "influencers": 494889.6304445021,
+      "email": 203968.57323064812,
+      "tv": 463442.35084638715,
+      "shock": -600000.0,
+      "noise": 84920.2520811923
+    },
+    {
+      "date": "2026-02-09",
+      "baseline": 6000000.0,
+      "trend": 2235400.410677618,
+      "seasonality": 195777.87921706843,
+      "holiday": 0.0,
+      "promo": 0.0,
+      "price": -476640.0000000003,
+      "meta_ads": 1937293.7162713846,
+      "google_search": 1001008.3563562133,
+      "youtube": 604551.3429186202,
+      "influencers": 495061.06538623606,
+      "email": 203969.3350829866,
+      "tv": 484719.39846036024,
+      "shock": -600000.0,
+      "noise": 325354.4709338179
+    },
+    {
+      "date": "2026-02-16",
+      "baseline": 6000000.0,
+      "trend": 2249199.178644764,
+      "seasonality": 206189.52967152634,
+      "holiday": 0.0,
+      "promo": 900000.0,
+      "price": -515160.0,
+      "meta_ads": 1937357.1738356303,
+      "google_search": 1001008.4259155047,
+      "youtube": 604960.7854644039,
+      "influencers": 495139.2725605495,
+      "email": 203969.48751666784,
+      "tv": 499504.33297528373,
+      "shock": -600000.0,
+      "noise": -529565.6184805286
+    }
+  ],
+  "pacing": {
+    "channels": {
+      "meta_ads": {
+        "planned": 14374181.784656066,
+        "actual": 17967728.0,
+        "pace": 1.250000053511214,
+        "status": "over-pacing"
+      },
+      "google_search": {
+        "planned": 5616974.369230769,
+        "actual": 5616976.0,
+        "pace": 1.000000290328765,
+        "status": "on plan"
+      },
+      "youtube": {
+        "planned": 6961291.815384608,
+        "actual": 6961288.0,
+        "pace": 0.9999994519142842,
+        "status": "on plan"
+      },
+      "influencers": {
+        "planned": 5803120.523076928,
+        "actual": 5803120.0,
+        "pace": 0.9999999098628184,
+        "status": "on plan"
+      },
+      "email": {
+        "planned": 558707.3230362432,
+        "actual": 558704.0,
+        "pace": 0.9999940522772726,
+        "status": "on plan"
+      },
+      "tv": {
+        "planned": 6893553.107692305,
+        "actual": 4825488.0,
+        "pace": 0.7000001196212423,
+        "status": "under-pacing"
+      }
+    },
+    "weeks": [
+      {
+        "date": "2025-12-29",
+        "actual": 13007995.0,
+        "forecast": 12410001.621902423,
+        "lower": 11612193.537144095,
+        "upper": 13186984.975089813,
+        "outside": false
+      },
+      {
+        "date": "2026-01-05",
+        "actual": 11755470.0,
+        "forecast": 12105435.908939485,
+        "lower": 11411385.812311588,
+        "upper": 12797972.10759391,
+        "outside": false
+      },
+      {
+        "date": "2026-01-12",
+        "actual": 12125738.0,
+        "forecast": 12323669.098426517,
+        "lower": 11630935.409368392,
+        "upper": 13085285.50345663,
+        "outside": false
+      },
+      {
+        "date": "2026-01-19",
+        "actual": 12487343.0,
+        "forecast": 12428519.006699236,
+        "lower": 11698096.574233584,
+        "upper": 13153610.11973573,
+        "outside": false
+      },
+      {
+        "date": "2026-01-26",
+        "actual": 13477067.0,
+        "forecast": 12530729.304757414,
+        "lower": 11848727.144867834,
+        "upper": 13256994.176817501,
+        "outside": true
+      },
+      {
+        "date": "2026-02-02",
+        "actual": 12094985.0,
+        "forecast": 12586322.701186286,
+        "lower": 11882883.448448211,
+        "upper": 13321510.587685125,
+        "outside": false
+      },
+      {
+        "date": "2026-02-09",
+        "actual": 12406496.0,
+        "forecast": 12545588.55231202,
+        "lower": 11806595.385572104,
+        "upper": 13240732.992076859,
+        "outside": false
+      },
+      {
+        "date": "2026-02-16",
+        "actual": 12452603.0,
+        "forecast": 12589166.349477459,
+        "lower": 11896986.017257392,
+        "upper": 13288573.587766431,
+        "outside": false
+      }
+    ],
+    "accuracy": {
+      "mape_pct": 2.8724393833978645,
+      "r2": 0.18289958319466892,
+      "coverage_pct": 87.5
+    },
+    "outside_weeks": [
+      "2026-01-26"
+    ],
+    "below_range": 0,
+    "above_range": 1
+  },
+  "drift": {
+    "drifting": true,
+    "recent_mape_pct": 3.639847166918103,
+    "backtest_mape_pct": 1.4415405526800262,
+    "weeks_outside": 1,
+    "bias_pct": -3.4304282782227755,
+    "bias_z": -2.2980512276302427,
+    "reasons": [
+      "the last 4 weeks missed by 3.6% on average, over 2x the model's normal 1.4%",
+      "revenue has run 3.4% below the forecast on average over 4 weeks (2.3 standard errors), more than chance explains"
+    ],
+    "action": "Revenue is running below what actual spend explains. Check for something the model does not know about (a competitor, stock-outs, a site problem) before refitting; if it persists, refit so the baseline catches up."
+  },
+  "changes": [
+    {
+      "channel": "google_search",
+      "before": {
+        "mean": 2.0224156932434503,
+        "median": 1.7139705061075812,
+        "hdi_low": 0.09973362155673343,
+        "hdi_high": 4.461386080795415
+      },
+      "after": {
+        "mean": 2.333594995085459,
+        "median": 1.9433554370771424,
+        "hdi_low": 0.1327974707574002,
+        "hdi_high": 5.34814506951641
+      },
+      "change_pct": 15.38651538759348,
+      "big_change": false,
+      "reason": "A rise that stays inside the old 94% range: the new weeks refine the estimate rather than overturn it."
+    },
+    {
+      "channel": "meta_ads",
+      "before": {
+        "mean": 1.053899011755017,
+        "median": 0.9843041617776278,
+        "hdi_low": 0.07749478342349118,
+        "hdi_high": 1.99344891517695
+      },
+      "after": {
+        "mean": 0.9001812395246448,
+        "median": 0.8013731681410065,
+        "hdi_low": 0.05111021681004019,
+        "hdi_high": 1.9019578449170034
+      },
+      "change_pct": -14.585626375566296,
+      "big_change": false,
+      "reason": "A fall that stays inside the old 94% range: the new weeks refine the estimate rather than overturn it."
+    },
+    {
+      "channel": "youtube",
+      "before": {
+        "mean": 1.4564236435834053,
+        "median": 1.200630622471621,
+        "hdi_low": 0.03569655010142171,
+        "hdi_high": 3.2922596148486343
+      },
+      "after": {
+        "mean": 1.253843354475578,
+        "median": 0.9835860205896894,
+        "hdi_low": 0.013696843485130622,
+        "hdi_high": 3.037132778006766
+      },
+      "change_pct": -13.90943425014688,
+      "big_change": false,
+      "reason": "A fall that stays inside the old 94% range: the new weeks refine the estimate rather than overturn it."
+    },
+    {
+      "channel": "tv",
+      "before": {
+        "mean": 0.7551267934183773,
+        "median": 0.7532872425240984,
+        "hdi_low": 0.5412371799068568,
+        "hdi_high": 0.9927447331650004
+      },
+      "after": {
+        "mean": 0.6866463703903722,
+        "median": 0.6837887093462909,
+        "hdi_low": 0.5003025614479051,
+        "hdi_high": 0.8901066907213807
+      },
+      "change_pct": -9.06873171828556,
+      "big_change": false,
+      "reason": "Little change: the new weeks agree with what the model already knew."
+    },
+    {
+      "channel": "influencers",
+      "before": {
+        "mean": 0.4692456381341297,
+        "median": 0.3681779224463191,
+        "hdi_low": 0.003298723501904366,
+        "hdi_high": 1.157502074569541
+      },
+      "after": {
+        "mean": 0.49306450975311084,
+        "median": 0.39639498141760904,
+        "hdi_low": 0.012883463149134827,
+        "hdi_high": 1.1876246886234998
+      },
+      "change_pct": 5.075992120820261,
+      "big_change": false,
+      "reason": "Little change: the new weeks agree with what the model already knew."
+    },
+    {
+      "channel": "email",
+      "before": {
+        "mean": 1.5160273141995388,
+        "median": 0.918168974134922,
+        "hdi_low": 0.017680336000234734,
+        "hdi_high": 4.349483335135378
+      },
+      "after": {
+        "mean": 1.46876437810204,
+        "median": 0.8691242328998463,
+        "hdi_low": 0.023973096985496527,
+        "hdi_high": 4.522792249084019
+      },
+      "change_pct": -3.1175517521894736,
+      "big_change": false,
+      "reason": "Little change: the new weeks agree with what the model already knew."
+    }
+  ],
+  "simulation": {
+    "slip": {
+      "meta_ads": 0.25,
+      "tv": -0.3
+    },
+    "shock_share": -0.1,
+    "shock_weeks": 3
+  },
+  "as_run": {
+    "channels": {
+      "meta_ads": {
+        "planned": 14374181.784656066,
+        "actual": 17967728.0,
+        "pace": 1.250000053511214,
+        "status": "over-pacing"
+      },
+      "google_search": {
+        "planned": 5616974.369230769,
+        "actual": 5616976.0,
+        "pace": 1.000000290328765,
+        "status": "on plan"
+      },
+      "youtube": {
+        "planned": 6961291.815384608,
+        "actual": 6961288.0,
+        "pace": 0.9999994519142842,
+        "status": "on plan"
+      },
+      "influencers": {
+        "planned": 5803120.523076928,
+        "actual": 5803120.0,
+        "pace": 0.9999999098628184,
+        "status": "on plan"
+      },
+      "email": {
+        "planned": 558707.3230362432,
+        "actual": 558704.0,
+        "pace": 0.9999940522772726,
+        "status": "on plan"
+      },
+      "tv": {
+        "planned": 6893553.107692305,
+        "actual": 4825488.0,
+        "pace": 0.7000001196212423,
+        "status": "under-pacing"
+      }
+    },
+    "weeks": [
+      {
+        "date": "2025-12-29",
+        "actual": 13007995.0,
+        "forecast": 12551330.726119628,
+        "lower": 11760170.131857121,
+        "upper": 13353950.527873263,
+        "outside": false
+      },
+      {
+        "date": "2026-01-05",
+        "actual": 11755470.0,
+        "forecast": 12163788.47073949,
+        "lower": 11449728.418777775,
+        "upper": 12922001.246895248,
+        "outside": false
+      },
+      {
+        "date": "2026-01-12",
+        "actual": 12125738.0,
+        "forecast": 12495243.733435737,
+        "lower": 11831586.416533317,
+        "upper": 13216116.211629437,
+        "outside": false
+      },
+      {
+        "date": "2026-01-19",
+        "actual": 12487343.0,
+        "forecast": 12498513.081623862,
+        "lower": 11844384.958542937,
+        "upper": 13171643.269650342,
+        "outside": false
+      },
+      {
+        "date": "2026-01-26",
+        "actual": 13477067.0,
+        "forecast": 13521441.07248725,
+        "lower": 12767281.456066942,
+        "upper": 14264284.635950992,
+        "outside": false
+      },
+      {
+        "date": "2026-02-02",
+        "actual": 12094985.0,
+        "forecast": 12594455.630460927,
+        "lower": 11844538.380708877,
+        "upper": 13338108.926176451,
+        "outside": false
+      },
+      {
+        "date": "2026-02-09",
+        "actual": 12406496.0,
+        "forecast": 12624535.574553326,
+        "lower": 11919733.00388014,
+        "upper": 13361245.455789886,
+        "outside": false
+      },
+      {
+        "date": "2026-02-16",
+        "actual": 12452603.0,
+        "forecast": 13491536.311321016,
+        "lower": 12732713.322870456,
+        "upper": 14192778.211426701,
+        "outside": true
+      }
+    ],
+    "accuracy": {
+      "mape_pct": 3.085025158464954,
+      "r2": 0.09019239171666638,
+      "coverage_pct": 87.5
+    },
+    "outside_weeks": [
+      "2026-02-16"
+    ],
+    "below_range": 1,
+    "above_range": 0
+  }
+}

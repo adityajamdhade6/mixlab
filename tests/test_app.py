@@ -25,6 +25,7 @@ VIEWS = [
     "channels",
     "optimizer",
     "scenarios",
+    "pacing",
     "ask",
     "regions",
     "test_and_learn",
@@ -76,6 +77,10 @@ def demo_root(
     root = tmp_path_factory.mktemp("artifacts")
     build_brand("performance_heavy", TINY, root, estimate_curse=False)
     write_geo_demo(root, geo_dataset, geo_fitted, df, fitted)
+    for name in (config.MONITORING_FILENAME, config.VERSIONS_FILENAME):
+        saved = config.ARTIFACTS_DIR / "performance_heavy" / name
+        if saved.exists():  # the real simulated quarter is small; reuse it for the page test
+            (root / "performance_heavy" / name).write_text(saved.read_text())
     patch = pytest.MonkeyPatch()
     patch.setattr(config, "ARTIFACTS_DIR", root)
     patch.setattr(config, "AI_CACHE_DIR", root / "ai_cache")
@@ -332,3 +337,19 @@ def test_test_and_learn_page_explains_when_not_run(
     st.cache_data.clear()
     app = run_view("test_and_learn")
     assert "has not been run" in app.error[0].value
+
+
+def test_pacing_page_shows_drift_pacing_refresh_and_versions(demo_root: Path) -> None:
+    if not (demo_root / "performance_heavy" / config.MONITORING_FILENAME).exists():
+        pytest.skip("monitoring.json has not been built")
+    app = run_view("pacing")
+    labels = [m.label for m in app.metric]
+    assert labels == [
+        "Weeks into the quarter",
+        "Forecast error so far",
+        "Channels off plan",
+        "Model drift",
+    ]
+    assert [h.value for h in app.subheader][-1] == "Model versions"
+    assert any("ROI" in block.value and "→" in block.value for block in app.markdown)
+    assert len(app.dataframe) == 2
