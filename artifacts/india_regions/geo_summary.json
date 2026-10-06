@@ -80,6 +80,7 @@
         "hdi_low": 0.4140343454730974,
         "hdi_high": 0.6694527957545051
       },
+      "prob_next_rupee_beats_national": 0.765,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -211,6 +212,7 @@
         "hdi_low": 0.4050679043869384,
         "hdi_high": 0.5725631550087955
       },
+      "prob_next_rupee_beats_national": 0.31425,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -342,6 +344,7 @@
         "hdi_low": 0.46687065206926204,
         "hdi_high": 0.7033813044331546
       },
+      "prob_next_rupee_beats_national": 0.98225,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -473,6 +476,7 @@
         "hdi_low": 0.3061613207363927,
         "hdi_high": 0.45994022965910564
       },
+      "prob_next_rupee_beats_national": 0.00025,
       "status": "over-invested",
       "channels": {
         "meta_ads": {
@@ -604,6 +608,7 @@
         "hdi_low": 0.45989433411509917,
         "hdi_high": 0.6538754604371508
       },
+      "prob_next_rupee_beats_national": 0.94325,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -735,6 +740,7 @@
         "hdi_low": 0.39498740908485513,
         "hdi_high": 0.5492496041642324
       },
+      "prob_next_rupee_beats_national": 0.16675,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -866,6 +872,7 @@
         "hdi_low": 0.4091057476620021,
         "hdi_high": 0.5851689769182709
       },
+      "prob_next_rupee_beats_national": 0.422,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -997,6 +1004,7 @@
         "hdi_low": 0.3917393309001317,
         "hdi_high": 0.5426040935029489
       },
+      "prob_next_rupee_beats_national": 0.12225,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -1128,6 +1136,7 @@
         "hdi_low": 0.35953724770958745,
         "hdi_high": 0.5252856135544216
       },
+      "prob_next_rupee_beats_national": 0.04075,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -1259,6 +1268,7 @@
         "hdi_low": 0.3790238594818268,
         "hdi_high": 0.5726282137663167
       },
+      "prob_next_rupee_beats_national": 0.27425,
       "status": "about right",
       "channels": {
         "meta_ads": {
@@ -1379,340 +1389,340 @@
       "hdi_high": 70750620.0324476
     },
     "recommended_revenue": {
-      "mean": 59889248.743064985,
-      "median": 59423764.94379319,
-      "hdi_low": 46375945.09851258,
-      "hdi_high": 73727470.3077581
+      "mean": 59151026.50549963,
+      "median": 58684733.955232635,
+      "hdi_low": 45638230.20319329,
+      "hdi_high": 72882149.11180398
     },
     "uplift": {
-      "mean": 2665129.8746355544,
-      "median": 2654586.400895171,
-      "hdi_low": 1721577.6849568114,
-      "hdi_high": 3734727.1778650284
+      "mean": 1926907.6370702058,
+      "median": 1915348.1292227171,
+      "hdi_low": 1027712.6522457004,
+      "hdi_high": 2845168.581162818
     },
     "uplift_pct": {
-      "mean": 4.734550755553764,
-      "median": 4.665317949110287,
-      "hdi_low": 2.6899411188697946,
-      "hdi_high": 6.8570775889357485
+      "mean": 3.4194622253436737,
+      "median": 3.358566806156751,
+      "hdi_low": 1.6400740875636954,
+      "hdi_high": 5.181803214478207
     },
     "prob_beats_current": 1.0,
     "regions": {
       "delhi_ncr": {
         "current_spend": 9575408.0,
-        "recommended_spend": 8926109.256677203,
-        "change_pct": -6.780898979164096,
+        "recommended_spend": 8965747.295038288,
+        "change_pct": -6.366942327279546,
         "channels": {
           "meta_ads": {
             "current": 3747582.0,
-            "recommended": 3072049.216347253
+            "recommended": 3327955.4110205504
           },
           "google_search": {
             "current": 1098756.0,
-            "recommended": 1428382.7999999824
+            "recommended": 1428382.7999999973
           },
           "youtube": {
             "current": 910935.0,
-            "recommended": 873200.8535018594
+            "recommended": 934259.3840177491
           },
           "influencers": {
             "current": 2330377.0,
-            "recommended": 1631263.900000013
+            "recommended": 1631263.9000000078
           },
           "email": {
             "current": 147040.0,
-            "recommended": 178279.08682811435
+            "recommended": 169095.99999999322
           },
           "tv": {
             "current": 1340718.0,
-            "recommended": 1742933.3999999815
+            "recommended": 1474789.7999999905
           }
         }
       },
       "gujarat": {
         "current_spend": 6501553.0,
-        "recommended_spend": 6658601.715594292,
-        "change_pct": 2.4155569537661403,
+        "recommended_spend": 6829662.413057318,
+        "change_pct": 5.046631367264376,
         "channels": {
           "meta_ads": {
             "current": 2946299.0,
-            "recommended": 3260557.1474990956
+            "recommended": 3486963.026319528
           },
           "google_search": {
             "current": 807144.0,
-            "recommended": 1029953.8565373666
+            "recommended": 1049287.1999999862
           },
           "youtube": {
             "current": 568197.0,
-            "recommended": 505729.3404691282
+            "recommended": 542135.4867378353
           },
           "influencers": {
             "current": 1616569.0,
-            "recommended": 1131598.3000000075
+            "recommended": 1131598.3000000047
           },
           "email": {
             "current": 48567.0,
-            "recommended": 61552.97108873715
+            "recommended": 53423.69999999286
           },
           "tv": {
             "current": 514777.0,
-            "recommended": 669210.0999999568
+            "recommended": 566254.6999999708
           }
         }
       },
       "karnataka": {
         "current_spend": 6495062.0,
-        "recommended_spend": 7240167.7750993855,
-        "change_pct": 11.471880870411798,
+        "recommended_spend": 7108580.5005292315,
+        "change_pct": 9.445922156389441,
         "channels": {
           "meta_ads": {
             "current": 2388773.0,
-            "recommended": 2477101.4829440536
+            "recommended": 2652954.8005292504
           },
           "google_search": {
             "current": 737869.0,
-            "recommended": 959229.6999999938
+            "recommended": 959229.6999999923
           },
           "youtube": {
             "current": 862644.0,
-            "recommended": 1121437.1999999955
+            "recommended": 1121437.1999999885
           },
           "influencers": {
             "current": 953487.0,
-            "recommended": 667440.900000005
+            "recommended": 667440.9000000039
           },
           "email": {
             "current": 70530.0,
-            "recommended": 88671.7921553408
+            "recommended": 77582.99999999793
           },
           "tv": {
             "current": 1481759.0,
-            "recommended": 1926286.699999997
+            "recommended": 1629934.899999998
           }
         }
       },
       "kerala": {
         "current_spend": 4629915.0,
-        "recommended_spend": 3985331.0195279615,
-        "change_pct": -13.922155816511506,
+        "recommended_spend": 3861187.541964974,
+        "change_pct": -16.60348965445426,
         "channels": {
           "meta_ads": {
             "current": 2138742.0,
-            "recommended": 1497119.4000000027
+            "recommended": 1497119.4000000008
           },
           "google_search": {
             "current": 327535.0,
-            "recommended": 425795.4999999959
+            "recommended": 425795.4999999968
           },
           "youtube": {
             "current": 399417.0,
-            "recommended": 366058.30703359406
+            "recommended": 394272.34196497867
           },
           "influencers": {
             "current": 991607.0,
-            "recommended": 694124.9000000099
+            "recommended": 694124.9000000061
           },
           "email": {
             "current": 53110.0,
-            "recommended": 66877.71249436801
+            "recommended": 58420.99999999726
           },
           "tv": {
             "current": 719504.0,
-            "recommended": 935355.1999999902
+            "recommended": 791454.3999999943
           }
         }
       },
       "maharashtra": {
         "current_spend": 11945732.0,
-        "recommended_spend": 13133984.248584416,
-        "change_pct": 9.947086110624404,
+        "recommended_spend": 13258681.845231146,
+        "change_pct": 10.990953465481601,
         "channels": {
           "meta_ads": {
             "current": 4914225.0,
-            "recommended": 5214860.801188987
+            "recommended": 5568038.279896091
           },
           "google_search": {
             "current": 1664805.0,
-            "recommended": 2164246.4999999953
+            "recommended": 2164246.499999997
           },
           "youtube": {
             "current": 1272500.0,
-            "recommended": 1291480.1933911508
+            "recommended": 1379632.8653350645
           },
           "influencers": {
             "current": 1427432.0,
-            "recommended": 999202.4000000017
+            "recommended": 1213317.200000002
           },
           "email": {
             "current": 70319.0,
-            "recommended": 88808.0540042898
+            "recommended": 77350.89999999895
           },
           "tv": {
             "current": 2596451.0,
-            "recommended": 3375386.299999992
+            "recommended": 2856096.0999999936
           }
         }
       },
       "punjab": {
         "current_spend": 3637876.0,
-        "recommended_spend": 3377122.284616501,
-        "change_pct": -7.167746107440132,
+        "recommended_spend": 3373579.9246287383,
+        "change_pct": -7.265120509089962,
         "channels": {
           "meta_ads": {
             "current": 1474969.0,
-            "recommended": 1174049.843234438
+            "recommended": 1264079.4665390542
           },
           "google_search": {
             "current": 309401.0,
-            "recommended": 402221.2999999909
+            "recommended": 402221.2999999913
           },
           "youtube": {
             "current": 785564.0,
-            "recommended": 621566.3196074897
+            "recommended": 668538.1580897009
           },
           "influencers": {
             "current": 339988.0,
-            "recommended": 237991.60000000312
+            "recommended": 237991.60000000172
           },
           "email": {
             "current": 54783.0,
-            "recommended": 66170.92177459739
+            "recommended": 60261.29999999504
           },
           "tv": {
             "current": 673171.0,
-            "recommended": 875122.2999999815
+            "recommended": 740488.099999995
           }
         }
       },
       "tamil_nadu": {
         "current_spend": 7341645.0,
-        "recommended_spend": 7660748.316772982,
-        "change_pct": 4.346482522281869,
+        "recommended_spend": 7548035.012272218,
+        "change_pct": 2.81122299256118,
         "channels": {
           "meta_ads": {
             "current": 2386813.0,
-            "recommended": 2271231.468753827
+            "recommended": 2436272.9522570483
           },
           "google_search": {
             "current": 701830.0,
-            "recommended": 912378.9999999953
+            "recommended": 912378.9999999936
           },
           "youtube": {
             "current": 1601638.0,
-            "recommended": 1473655.709002409
+            "recommended": 1575650.6600151786
           },
           "influencers": {
             "current": 731920.0,
-            "recommended": 512344.0000000022
+            "recommended": 512344.0000000019
           },
           "email": {
             "current": 48876.0,
-            "recommended": 59399.73901675231
+            "recommended": 53763.59999999741
           },
           "tv": {
             "current": 1870568.0,
-            "recommended": 2431738.3999999957
+            "recommended": 2057624.7999999984
           }
         }
       },
       "telangana": {
         "current_spend": 5584135.0,
-        "recommended_spend": 5425831.854650268,
-        "change_pct": -2.8348731782045333,
+        "recommended_spend": 5428408.93721239,
+        "change_pct": -2.7887231019237513,
         "channels": {
           "meta_ads": {
             "current": 2403519.0,
-            "recommended": 2184441.002537699
+            "recommended": 2349492.4784543044
           },
           "google_search": {
             "current": 512110.0,
-            "recommended": 665742.9999999948
+            "recommended": 665742.9999999946
           },
           "youtube": {
             "current": 664032.0,
-            "recommended": 562356.1951185325
+            "recommended": 601784.4587580956
           },
           "influencers": {
             "current": 983831.0,
-            "recommended": 688681.7000000018
+            "recommended": 688681.7000000014
           },
           "email": {
             "current": 54266.0,
-            "recommended": 68319.85699404245
+            "recommended": 59692.59999999674
           },
           "tv": {
             "current": 966377.0,
-            "recommended": 1256290.0999999968
+            "recommended": 1063014.6999999965
           }
         }
       },
       "uttar_pradesh": {
         "current_spend": 6637561.0,
-        "recommended_spend": 5973968.084398822,
-        "change_pct": -9.997541500577967,
+        "recommended_spend": 5917315.00908827,
+        "change_pct": -10.851063981358966,
         "channels": {
           "meta_ads": {
             "current": 1667673.0,
-            "recommended": 1276070.4237122696
+            "recommended": 1378451.950244234
           },
           "google_search": {
             "current": 914381.0,
-            "recommended": 1188695.2999999956
+            "recommended": 1188695.2999999924
           },
           "youtube": {
             "current": 1329428.0,
-            "recommended": 930599.6000000039
+            "recommended": 988897.6588440544
           },
           "influencers": {
             "current": 1593542.0,
-            "recommended": 1115479.4000000062
+            "recommended": 1115479.4000000067
           },
           "email": {
             "current": 88738.0,
-            "recommended": 106184.66068655429
+            "recommended": 97611.79999999524
           },
           "tv": {
             "current": 1043799.0,
-            "recommended": 1356938.699999992
+            "recommended": 1148178.8999999869
           }
         }
       },
       "west_bengal": {
         "current_spend": 4708998.0,
-        "recommended_spend": 4676020.442406047,
-        "change_pct": -0.7003094414980149,
+        "recommended_spend": 4766686.520977197,
+        "change_pct": 1.2250699825567368,
         "channels": {
           "meta_ads": {
             "current": 1237210.0,
-            "recommended": 1187447.6725993971
+            "recommended": 1277898.880010755
           },
           "google_search": {
             "current": 819232.0,
-            "recommended": 1021350.095326769
+            "recommended": 1065001.599999992
           },
           "youtube": {
             "current": 1184544.0,
-            "recommended": 1084747.2744798933
+            "recommended": 1159599.6409664662
           },
           "influencers": {
             "current": 876567.0,
-            "recommended": 613596.9000000033
+            "recommended": 613596.9000000022
           },
           "email": {
             "current": 82457.0,
-            "recommended": 107194.099999997
+            "recommended": 90702.69999999834
           },
           "tv": {
             "current": 508988.0,
-            "recommended": 661684.3999999875
+            "recommended": 559886.7999999827
           }
         }
       }
     },
     "truth_check": {
-      "true_uplift": 2293774.8170845658,
+      "true_uplift": 1599922.8128536642,
       "true_current_revenue": 67821055.04115593,
-      "true_uplift_pct": 3.3820983995200775,
+      "true_uplift_pct": 2.359035570712931,
       "national_plan_true_uplift": 1733065.1077325344,
       "national_plan_true_uplift_pct": 2.555349672282238
     }

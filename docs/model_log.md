@@ -255,11 +255,23 @@ national model (`configs/demo.yaml`) fitted on the same panel summed to national
 - Email barely improves (ratio 0.84): it is about 1.6% of spend in every region, so no region
   measures it well and pooling has little to pool. It still needs a lift test (Phase 5).
 
-**Regional optimizer.** At the same budget, moving money between regions as well as channels
-gives a true uplift of **+3.4%**, inside the model's 94% range of +2.7% to +6.9% (expected
-+4.7%, so 1.4x over-promised, against 2x for the v1 national optimizer). The best national
-plan, spread across regions in today's proportions (all a national model can recommend),
-delivers +2.6% in truth.
+**Regional optimizer.** At the same budget, moving money between regions as well as channels:
+
+| Limits | Model expects (94% range) | True uplift | Over-promise |
+|---|---|---|---|
+| Flat ±30% per region-channel pair | +4.7% (+2.7% to +6.9%) | +3.4% | 1.4x |
+| Evidence-based (`channel_limits` per region, the default) | +3.4% (+1.6% to +5.2%) | +2.4% | 1.4x |
+| National plan (flat ±30%) spread across regions as today | | +2.6% | |
+
+- The truth is inside the model's range in both regional runs, and the over-promise (1.4x) is
+  well below the v1 national optimizer's 2x.
+- With flat limits, regional reallocation beats the national plan in truth (+3.4% against
+  +2.6%). With evidence-based limits it gives up about 1 point to stay away from poorly
+  measured region-channel pairs and ends slightly below it. The comparison is not like for like:
+  the national plan keeps the flat ±30%. The cautious default is kept, for the same reason as
+  in Phase 3: a smaller, reliable gain over a larger one that can go badly wrong.
+- Only Kerala is confidently over-invested; no region is confidently under-invested. Regions
+  differ, but mostly not by enough, with enough certainty, to flag.
 
 **Senior-practitioner review: the top three, and what was done.**
 1. *Regional limits ignored the evidence.* Every region-channel pair could move ±30%. Fixed:
