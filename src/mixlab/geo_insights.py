@@ -19,6 +19,7 @@ from mixlab.geo_data import regional_brands
 from mixlab.insights import PosteriorDraws, hdi, marginal_roi_draws, summarize
 from mixlab.optimizer import (
     build_bounds,
+    channel_limits,
     last_quarter_spend,
     plan_revenue_draws,
     solve_allocation,
@@ -52,12 +53,19 @@ def blended_marginal_roi(marginal: FloatArray, draws: PosteriorDraws) -> FloatAr
     return (marginal * share).sum(axis=1)
 
 
-def investment_status(region_marginal: float, national_marginal: float) -> str:
-    """Classify a region by how its next rupee compares with the national next rupee."""
-    ratio = config.GEO_INVESTMENT_RATIO
-    if region_marginal > ratio * national_marginal:
+def investment_status(
+    region_marginal: float, national_marginal: float, prob_better: float = 0.5
+) -> str:
+    """Classify a region by how its next rupee compares with the national next rupee.
+
+    A region is flagged only when the gap is large (``config.GEO_INVESTMENT_RATIO``) AND the
+    model is confident about its direction: ``prob_better`` is the share of posterior draws in
+    which the region's next rupee beats the national one (``config.GEO_STATUS_CONFIDENCE``).
+    """
+    ratio, confidence = config.GEO_INVESTMENT_RATIO, config.GEO_STATUS_CONFIDENCE
+    if region_marginal > ratio * national_marginal and prob_better >= confidence:
         return "under-invested"
-    if region_marginal < national_marginal / ratio:
+    if region_marginal < national_marginal / ratio and prob_better <= 1 - confidence:
         return "over-invested"
     return "about right"
 
@@ -108,7 +116,12 @@ def regional_metrics(
             "media_revenue": summarize(media).model_dump(),
             "blended_roi": summarize(media / spend.sum()).model_dump(),
             "blended_marginal_roi": summarize(blended).model_dump(),
-            "status": investment_status(float(np.median(blended)), national_median),
+            "prob_next_rupee_beats_national": float((blended > national_marginal).mean()),
+            "status": investment_status(
+                float(np.median(blended)),
+                national_median,
+                float((blended > national_marginal).mean()),
+            ),
             "channels": channels,
         }
     return {"national_marginal_roi": summarize(national_marginal).model_dump(), "regions": regions}
@@ -214,17 +227,20 @@ def geo_plan_revenue(by_geo: dict[str, PosteriorDraws], plan: GeoPlan, n_weeks: 
 def geo_bounds(
     current: GeoPlan, by_geo: dict[str, PosteriorDraws], max_change: float, n_weeks: int
 ) -> dict[tuple[str, str], tuple[float, float]]:
-    """Return (low, high) per (region, channel): ``max_change`` either side of today.
+    """Return (low, high) per (region, channel), tightened by the evidence as nationally.
 
-    The upper bound never exceeds the cell's highest weekly spend on record times the window,
-    so the plan stays where the regional curve was observed. Cells with no spend stay at zero.
+    Each cell may move at most ``max_change`` either side of today, less where
+    ``optimizer.channel_limits`` finds the regional curve poorly measured (bursts, a tiny share,
+    or a wide ROI range). The upper bound never exceeds the cell's highest weekly spend on record
+    times the window. Cells with no spend stay at zero.
     """
     bounds: dict[tuple[str, str], tuple[float, float]] = {}
     for geo, plan in current.items():
-        peak = by_geo[geo].spend.max(axis=0) * n_weeks
-        for index, (channel, spend) in enumerate(plan.items()):
-            high = min(spend * (1 + max_change), max(float(peak[index]), spend))
-            bounds[(geo, channel)] = (spend * (1 - max_change), high)
+        limits = channel_limits(by_geo[geo], n_weeks, max_change)
+        for channel, spend in plan.items():
+            change = limits[channel]["max_change"]
+            high = min(spend * (1 + change), max(limits[channel]["ceiling"], spend))
+            bounds[(geo, channel)] = (spend * (1 - change), high)
     return bounds
 
 

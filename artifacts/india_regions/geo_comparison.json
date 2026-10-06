@@ -1,0 +1,165 @@
+{
+  "diagnostics": {
+    "geo": {
+      "chains": 4,
+      "draws_per_chain": 1000,
+      "n_parameters": 120,
+      "max_r_hat": 1.01,
+      "max_r_hat_parameter": "intercept_contribution[delhi_ncr]",
+      "min_ess_bulk": 602.0,
+      "min_ess_bulk_parameter": "intercept_contribution[maharashtra]",
+      "min_ess_tail": 957.0,
+      "min_ess_tail_parameter": "saturation_beta_raw_sigma[spend_meta_ads]",
+      "divergences": 1,
+      "converged": true
+    },
+    "national": {
+      "chains": 4,
+      "draws_per_chain": 1000,
+      "n_parameters": 45,
+      "max_r_hat": 1.01,
+      "max_r_hat_parameter": "intercept_contribution",
+      "min_ess_bulk": 514.0,
+      "min_ess_bulk_parameter": "saturation_beta[spend_google_search]",
+      "min_ess_tail": 426.0,
+      "min_ess_tail_parameter": "saturation_beta[spend_google_search]",
+      "divergences": 0,
+      "converged": true
+    }
+  },
+  "channels": {
+    "meta_ads": {
+      "true_roi": 1.335677322746713,
+      "national": {
+        "estimate": 0.8534166070366298,
+        "low": 0.0937190424128007,
+        "high": 1.6765152852061052,
+        "width": 1.5827962427933044,
+        "truth_inside_range": true,
+        "error": -0.4822607157100831
+      },
+      "geo": {
+        "estimate": 0.8375900527519232,
+        "low": 0.39794605742811623,
+        "high": 1.3563079371682971,
+        "width": 0.9583618797401809,
+        "truth_inside_range": true,
+        "error": -0.4980872699947897
+      },
+      "width_ratio": 0.6054865773808463
+    },
+    "google_search": {
+      "true_roi": 1.5699223007870098,
+      "national": {
+        "estimate": 3.428575848481694,
+        "low": 0.25039900503162005,
+        "high": 6.8181923058659475,
+        "width": 6.567793300834327,
+        "truth_inside_range": true,
+        "error": 1.8586535476946844
+      },
+      "geo": {
+        "estimate": 1.823045396140769,
+        "low": 0.6006361156373079,
+        "high": 3.1621651086126072,
+        "width": 2.5615289929752993,
+        "truth_inside_range": true,
+        "error": 0.2531230953537593
+      },
+      "width_ratio": 0.3900136431896997
+    },
+    "youtube": {
+      "true_roi": 0.8597939868942153,
+      "national": {
+        "estimate": 0.8139669343396203,
+        "low": 0.027375487697412923,
+        "high": 1.9162127887696172,
+        "width": 1.8888373010722044,
+        "truth_inside_range": true,
+        "error": -0.04582705255459496
+      },
+      "geo": {
+        "estimate": 0.9202820882085464,
+        "low": 0.29721263718420504,
+        "high": 1.6684778276260712,
+        "width": 1.3712651904418662,
+        "truth_inside_range": true,
+        "error": 0.06048810131433113
+      },
+      "width_ratio": 0.725983751836891
+    },
+    "influencers": {
+      "true_roi": 0.8103610818732288,
+      "national": {
+        "estimate": 0.8734106426696373,
+        "low": 0.06667331911434864,
+        "high": 1.9433216134994995,
+        "width": 1.8766482943851508,
+        "truth_inside_range": true,
+        "error": 0.06304956079640855
+      },
+      "geo": {
+        "estimate": 0.4841284629624912,
+        "low": 0.1392536367352051,
+        "high": 0.8784016214088809,
+        "width": 0.7391479846736758,
+        "truth_inside_range": true,
+        "error": -0.32623261891073757
+      },
+      "width_ratio": 0.3938660146843573
+    },
+    "email": {
+      "true_roi": 3.906630246760532,
+      "national": {
+        "estimate": 1.7273088180523404,
+        "low": 0.03108392715513314,
+        "high": 4.996954938051134,
+        "width": 4.965871010896001,
+        "truth_inside_range": true,
+        "error": -2.1793214287081915
+      },
+      "geo": {
+        "estimate": 1.469196654947406,
+        "low": 0.020343971094172176,
+        "high": 4.167274084328125,
+        "width": 4.146930113233953,
+        "truth_inside_range": true,
+        "error": -2.437433591813126
+      },
+      "width_ratio": 0.8350861518824901
+    },
+    "tv": {
+      "true_roi": 0.7024747326266506,
+      "national": {
+        "estimate": 0.6793626844892715,
+        "low": 0.5277602162879631,
+        "high": 0.8284407507964955,
+        "width": 0.3006805345085324,
+        "truth_inside_range": true,
+        "error": -0.023112048137379104
+      },
+      "geo": {
+        "estimate": 0.7395514348319085,
+        "low": 0.6918815166685437,
+        "high": 0.7891842579068489,
+        "width": 0.09730274123830518,
+        "truth_inside_range": true,
+        "error": 0.03707670220525794
+      },
+      "width_ratio": 0.3236083818905943
+    }
+  },
+  "national_recovered": 6,
+  "geo_recovered": 6,
+  "n_channels": 6,
+  "median_width_ratio": 0.4996762960326018,
+  "national_mean_abs_error": 0.7753707256002236,
+  "geo_mean_abs_error": 0.6020735632653336,
+  "regional_recovered": 51,
+  "regional_cells": 60,
+  "headline": [
+    "National model: true ROI inside the 94% range for 6 of 6 channels. Geo model: 6 of 6.",
+    "Geo ROI ranges are 50% narrower than the national model's (median width ratio 0.50).",
+    "Regional ranges contain the truth for 51 of 60 region-channel pairs."
+  ]
+}

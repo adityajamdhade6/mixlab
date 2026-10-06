@@ -47,9 +47,13 @@ def test_national_roi_is_spend_weighted_regional_roi(by_geo: dict[str, Posterior
 
 def test_investment_status_thresholds() -> None:
     ratio = config.GEO_INVESTMENT_RATIO
-    assert investment_status(1.0 * ratio + 0.01, 1.0) == "under-invested"
-    assert investment_status(1.0 / ratio - 0.01, 1.0) == "over-invested"
-    assert investment_status(1.0, 1.0) == "about right"
+    sure = config.GEO_STATUS_CONFIDENCE
+    assert investment_status(1.0 * ratio + 0.01, 1.0, sure) == "under-invested"
+    assert investment_status(1.0 / ratio - 0.01, 1.0, 1 - sure) == "over-invested"
+    assert investment_status(1.0, 1.0, 0.5) == "about right"
+    # A large gap the model is unsure about is not flagged.
+    assert investment_status(2.0, 1.0, 0.6) == "about right"
+    assert investment_status(0.5, 1.0, 0.4) == "about right"
 
 
 def test_regional_metrics_carry_ranges_status_and_truth(
@@ -167,3 +171,21 @@ def test_build_outputs_with_and_without_truth(
     assert "No ground truth" in blind["headline"][0]
     table = roi_hdi_table(by_geo)
     assert all(low <= high for row in table.values() for low, high in row.values())
+
+
+def test_poorly_measured_cells_get_tighter_limits(by_geo: dict[str, PosteriorDraws]) -> None:
+    from mixlab.optimizer import channel_limits
+
+    current = current_geo_plan(by_geo, WEEKS)
+    bounds = geo_bounds(current, by_geo, config.DEFAULT_MAX_CHANGE, WEEKS)
+    for geo, draws in by_geo.items():
+        limits = channel_limits(draws, WEEKS, config.DEFAULT_MAX_CHANGE)
+        for channel, spend in current[geo].items():
+            low, _ = bounds[(geo, channel)]
+            assert low == pytest.approx(spend * (1 - limits[channel]["max_change"]))
+    changes = {
+        limit["max_change"]
+        for draws in by_geo.values()
+        for limit in channel_limits(draws, WEEKS, config.DEFAULT_MAX_CHANGE).values()
+    }
+    assert min(changes) < config.DEFAULT_MAX_CHANGE  # the tiny test fit is uncertain somewhere

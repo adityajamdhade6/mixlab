@@ -695,6 +695,8 @@ REGIONAL_FESTIVAL_RAMP_WEEKS: float = 1.5
 # A region is "under-invested" when its marginal ROI beats the national figure by this ratio,
 # and "over-invested" when it falls below the national figure by the same ratio.
 GEO_INVESTMENT_RATIO: float = 1.2
+# ... and only when at least this share of posterior draws agrees on the direction.
+GEO_STATUS_CONFIDENCE: float = 0.8
 GEO_MAP_LAT_RANGE: tuple[float, float] = (6.0, 36.0)
 GEO_MAP_LON_RANGE: tuple[float, float] = (67.0, 98.0)
 GEO_DRAWS_FILENAME: str = "geo_draws.npz"

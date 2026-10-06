@@ -223,3 +223,58 @@ statistical question.
   say so rather than pretending otherwise.
 - All three demo recommendations are corner solutions: the limits decide them.
 - Customer acquisition cost goals are not supported; the data has revenue, not customers.
+
+## 10. The geo-level model (Phase 4)
+
+**What changed.** A hierarchical model over a regional panel (`geo_model.GeoMixLabModel`,
+`configs/geo.yaml`). The performance-heavy brand is split across ten Indian regions with their
+own size, demand, media prices, spend mix, festivals and true channel effects (drawn around the
+national ones, LogNormal sigma 0.3). Each region has its own baseline and channel ROI; ROI is
+partially pooled, `log ROI[g, c] = log ROI_national[c] + tau[c] * z[g, c]`. Carryover, curve
+shape, seasonality, trend and control effects are shared. The comparison baseline is the v2
+national model (`configs/demo.yaml`) fitted on the same panel summed to national weeks.
+
+**Sampling.** Geo model: 4 x (1,000 + 1,000), target_accept 0.95, 14 minutes, worst r-hat
+1.010, smallest ESS 602, 1 divergence. National model: 3.5 minutes, 0 divergences.
+
+**National ROI: national model against geo model** (`artifacts/india_regions/geo_comparison.json`)
+
+| Channel | True ROI | National model (94% range) | Geo model (94% range) | Width ratio |
+|---|---|---|---|---|
+| meta_ads | 1.34 | 0.85 (0.09 to 1.68) | 0.84 (0.40 to 1.36) | 0.61 |
+| google_search | 1.57 | 3.43 (0.25 to 6.82) | 1.82 (0.60 to 3.16) | 0.39 |
+| youtube | 0.86 | 0.81 (0.03 to 1.92) | 0.92 (0.30 to 1.67) | 0.73 |
+| influencers | 0.81 | 0.87 (0.07 to 1.94) | 0.48 (0.14 to 0.88) | 0.39 |
+| email | 3.91 | 1.73 (0.03 to 5.00) | 1.47 (0.02 to 4.17) | 0.84 |
+| tv | 0.70 | 0.68 (0.53 to 0.83) | 0.74 (0.69 to 0.79) | 0.32 |
+
+- Both models recover 6 of 6. The geo ranges are **50% narrower** (median width ratio 0.50) and
+  the mean absolute error falls from 0.78 to 0.60. Recovery did not get worse, so it merges.
+- Why: ten regions whose spend moved differently give the model far more independent variation
+  than one national series where channels rise and fall together.
+- Email barely improves (ratio 0.84): it is about 1.6% of spend in every region, so no region
+  measures it well and pooling has little to pool. It still needs a lift test (Phase 5).
+
+**Regional optimizer.** At the same budget, moving money between regions as well as channels
+gives a true uplift of **+3.4%**, inside the model's 94% range of +2.7% to +6.9% (expected
++4.7%, so 1.4x over-promised, against 2x for the v1 national optimizer). The best national
+plan, spread across regions in today's proportions (all a national model can recommend),
+delivers +2.6% in truth.
+
+**Senior-practitioner review: the top three, and what was done.**
+1. *Regional limits ignored the evidence.* Every region-channel pair could move ±30%. Fixed:
+   `geo_bounds` now applies `optimizer.channel_limits` per region (±10% for bursts and tiny
+   shares, ±15% for wide ROI ranges), as the national optimizer does.
+2. *"Under/over-invested" compared medians only.* Fixed: a region is flagged only when the gap
+   is over 1.2x AND at least 80% of posterior draws agree on its direction
+   (`GEO_STATUS_CONFIDENCE`).
+3. *Regional coverage is below nominal and rests on one seed.* Regional ranges contain the
+   truth for 51 of 60 pairs (85%, against 94% nominal). The likely cause is the shared curve
+   shape: regional media prices move the true half-saturation point, which a shared kappa
+   cannot follow. Not fixed here: freeing kappa per region and repeating over seeds is a
+   refit study (about 20 minutes per seed) that belongs with the Phase 7 benchmark. Treat
+   regional ranges as slightly overconfident.
+
+**Not built.** Reach and frequency inputs (optional). In real data national TV usually cannot
+be bought or measured by region, which this synthetic panel does not reproduce, so TV's very
+tight geo range is optimistic.
