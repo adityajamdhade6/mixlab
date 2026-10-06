@@ -1,9 +1,11 @@
 """Headless tests of the Streamlit app: every page renders and the key interactions work."""
 
+import json
 import sys
 from collections.abc import Iterator
 from pathlib import Path
 
+import pandas as pd
 import pytest
 import streamlit as st
 from conftest import TINY
@@ -11,6 +13,11 @@ from streamlit.testing.v1 import AppTest
 
 from mixlab import ai_explainer, config
 from mixlab.ai_explainer import Explanation, NumberCheck
+from mixlab.geo_data import GeoDataset
+from mixlab.geo_insights import build_geo_outputs, save_geo_draws
+from mixlab.geo_model import GeoMixLabModel, extract_geo_draws
+from mixlab.insights import extract_draws
+from mixlab.model import MixLabModel
 
 APP_DIR = config.PROJECT_ROOT / "app"
 VIEWS = [
@@ -19,6 +26,7 @@ VIEWS = [
     "optimizer",
     "scenarios",
     "ask",
+    "regions",
     "health",
     "upload",
     "how_it_works",
@@ -26,15 +34,44 @@ VIEWS = [
 TIMEOUT = 180
 
 
+def write_geo_demo(
+    root: Path,
+    geo_dataset: GeoDataset,
+    geo_fitted: GeoMixLabModel,
+    df: pd.DataFrame,
+    fitted: MixLabModel,
+) -> None:
+    """Save the tiny geo fit's regional results where the Regions page looks for them."""
+    folder = root / config.GEO_DEMO_BRAND
+    folder.mkdir(parents=True, exist_ok=True)
+    by_geo = extract_geo_draws(geo_fitted, geo_dataset.data)
+    truth = geo_dataset.ground_truth
+    summary, comparison = build_geo_outputs(by_geo, extract_draws(fitted, df), truth)
+    for name, payload in (
+        (config.GEO_SUMMARY_FILENAME, summary),
+        (config.GEO_COMPARISON_FILENAME, comparison),
+        (config.GEO_GROUND_TRUTH_FILENAME, truth),
+    ):
+        (folder / name).write_text(json.dumps(payload))
+    save_geo_draws(by_geo, folder / config.GEO_DRAWS_FILENAME)
+
+
 @pytest.fixture(scope="module")
-def demo_root(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Path]:
-    """Build one tiny demo brand in a temp folder and point the app at it."""
+def demo_root(
+    tmp_path_factory: pytest.TempPathFactory,
+    geo_dataset: GeoDataset,
+    geo_fitted: GeoMixLabModel,
+    df: pd.DataFrame,
+    fitted: MixLabModel,
+) -> Iterator[Path]:
+    """Build one tiny demo brand and the regional demo in a temp folder; point the app at it."""
     sys.path.insert(0, str(config.PROJECT_ROOT / "scripts"))
     sys.path.insert(0, str(APP_DIR))
     from build_demo import build_brand
 
     root = tmp_path_factory.mktemp("artifacts")
     build_brand("performance_heavy", TINY, root, estimate_curse=False)
+    write_geo_demo(root, geo_dataset, geo_fitted, df, fitted)
     patch = pytest.MonkeyPatch()
     patch.setattr(config, "ARTIFACTS_DIR", root)
     patch.setattr(config, "AI_CACHE_DIR", root / "ai_cache")
@@ -239,3 +276,36 @@ def test_small_channel_keeps_a_usable_gated_range(demo_root: Path) -> None:
     email = next(slider for slider in app.slider if slider.label.startswith("Email"))
     low, high = email.value
     assert high > low and email.step == 0.1
+
+
+def test_regions_page_shows_map_comparison_and_optimizer(demo_root: Path) -> None:
+    app = run_view("regions")
+    labels = [m.label for m in app.metric]
+    assert labels[:3] == ["Regions", "ROI ranges vs. national model", "True ROI recovered"]
+    assert "True extra revenue" in labels
+    assert any("narrower" in block.value for block in app.markdown)
+    assert any("94% range:" in caption.value for caption in app.caption)
+    assert len(app.get("plotly_chart")) == 4
+    app.radio[0].set_value("TV").run()
+    assert not app.exception
+    app.selectbox(key="region").set_value("karnataka").run()
+    assert any("**Karnataka**" in block.value for block in app.markdown)
+
+
+def test_regions_page_reruns_the_optimizer_with_a_new_limit(demo_root: Path) -> None:
+    app = run_view("regions")
+    app.slider[0].set_value(15).run()
+    assert any("saved plan" in info.value for info in app.info)
+    app.button[0].click().run()
+    assert not app.exception
+    assert not app.info  # the re-run result for 15% is now shown
+
+
+def test_regions_page_explains_when_the_geo_demo_is_missing(
+    demo_root: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(config, "ARTIFACTS_DIR", tmp_path)
+    st.cache_data.clear()
+    app = run_view("regions")
+    assert "has not been built" in app.error[0].value
+    assert "build_geo_demo.py" in app.code[0].value

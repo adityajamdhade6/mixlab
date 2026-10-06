@@ -78,6 +78,36 @@ concave). PyMC-Marketing's `BudgetOptimizer` is kept only as a cross-check in th
 - `scripts/optimizer_benchmark.py` compares a naive and the robust optimizer on 20 random
   brands against the truth (`reports/optimizer_benchmark.json`).
 
+## Geo-level model (Phase 4)
+```
+geo_data (regional panel) ──► geo_model.GeoMixLabModel ──► extract_geo_draws ──► geo_insights ──► Regions page
+        │                                                   (one PosteriorDraws per region)
+        └─► aggregate_national ──► model.MixLabModel (comparison baseline)
+```
+- **Data** (`geo_data`). The national brand split across ten Indian regions
+  (`config.INDIA_REGIONS`): each has its own size, baseline demand, media price, spend-mix
+  tilt, regional festivals (Onam, Durga Puja, Pongal, ...) and true channel effects drawn
+  around the national ones (LogNormal, `GEO_EFFECT_SIGMA`). Long format: one row per
+  (week, region), with a `geo` column. `aggregate_national` sums it into national weeks.
+- **Model** (`geo_model`). PyMC-Marketing's multidimensional MMM with `dims=("geo",)`;
+  revenue and spend scaled per region. Per region: baseline and channel ROI. Shared:
+  carryover, curve shape, seasonality, trend, control effects, noise. Channel ROI is
+  hierarchical, `log ROI[g, c] = log ROI_national[c] + tau[c] * z[g, c]` with
+  `tau ~ HalfNormal(0.3)`, so regions are pulled toward the national figure unless their data
+  disagrees. `model_for(df)` picks the geo model for a multi-region panel and the national
+  model otherwise. Settings: `configs/geo.yaml`.
+- **Insights** (`geo_insights`). Draws are aligned across regions, so national figures are
+  regional figures summed draw by draw. ROI and next-rupee return by region, an
+  under/over-invested flag (next rupee vs. the national figure, `GEO_INVESTMENT_RATIO`), and
+  the national-versus-geo comparison against ground truth.
+- **Regional optimizer** (`regional_optimizer`). One variable per (region, channel), ±30% of
+  today and never above the cell's highest week. With ground truth it also scores a national
+  plan spread across regions as today, which is all a national model can recommend.
+- **Artefacts** (`scripts/build_geo_demo.py`, `make geo`): `artifacts/india_regions/` holds
+  the panel, the truth, both fitted models (gitignored) and a small `geo_draws.npz` of
+  response parameters so the app can re-run the regional optimizer without the model.
+- Not built: reach and frequency inputs (the optional Phase 4 item).
+
 ## AI layer
 - **Facts:** `build_facts` produces one pre-rounded JSON document (crore, lakh, percentages,
   profit ROI at the chosen margin, caveats, realistic uplift, validation results).
@@ -98,6 +128,7 @@ concave). PyMC-Marketing's `BudgetOptimizer` is kept only as a cross-check in th
 | Budget optimizer | Budget, four objectives, per-channel limits with reasons, allocation, corner warning, rollout plan, weekly schedule, goal search | Yes |
 | Scenario planner | Per-channel sliders, live revenue and profit change, saved scenarios | Yes |
 | Ask MixLab | Chat over the Q&A tools; says upfront when no API key is set | On first question |
+| Regions | Geo demo: India map (where to invest, or ROI by channel), one region in detail, ROI by region, national vs. geo ranges, regional optimizer | Small draws file on re-run |
 | Model health | Out-of-sample accuracy and rolling backtest, trust notes, ground-truth recovery, diagnostics, data checks | No |
 | Upload data | Validator on an uploaded CSV | No |
 | How it works | Pipeline steps and MMM in five lines | No |

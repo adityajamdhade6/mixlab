@@ -14,12 +14,14 @@ from streamlit.errors import StreamlitSecretNotFoundError
 import mixlab  # noqa: F401  (sets the PyTensor backend before PyMC is imported)
 from mixlab import config
 from mixlab.ai_explainer import DataContext, build_facts
+from mixlab.geo_insights import load_geo_draws
 from mixlab.insights import PosteriorDraws, extract_draws, marginal_roi_draws
 from mixlab.model import MixLabModel
 from mixlab.optimizer import BudgetAllocator
 from mixlab.validate import validate
 
 BUILD_COMMAND = "uv run python scripts/build_demo.py"
+GEO_BUILD_COMMAND = "uv run python scripts/build_geo_demo.py"
 CHANNEL_LABELS = {"tv": "TV", "meta_ads": "Meta Ads", "youtube": "YouTube"}
 COMPONENT_LABELS = {"other_controls": "Other controls"}
 
@@ -182,6 +184,37 @@ def load_benchmark() -> dict[str, Any] | None:
     """Return the saved naive-versus-robust optimizer benchmark, if it has been run."""
     path = config.REPORTS_DIR / config.OPTIMIZER_BENCHMARK_FILENAME
     return json.loads(path.read_text()) if path.exists() else None
+
+
+def geo_dir() -> Path:
+    """Return the folder holding the geo demo's saved results."""
+    return config.ARTIFACTS_DIR / config.GEO_DEMO_BRAND
+
+
+def has_geo() -> bool:
+    """Return whether the geo demo has been built."""
+    return (geo_dir() / config.GEO_SUMMARY_FILENAME).exists()
+
+
+@st.cache_data(show_spinner="Loading regional results…")
+def load_geo() -> dict[str, Any]:
+    """Load the geo demo's summary, comparison and ground truth (no model needed)."""
+
+    def read(name: str) -> Any:
+        path = geo_dir() / name
+        return json.loads(path.read_text()) if path.exists() else None
+
+    return {
+        "summary": read(config.GEO_SUMMARY_FILENAME),
+        "comparison": read(config.GEO_COMPARISON_FILENAME),
+        "truth": read(config.GEO_GROUND_TRUTH_FILENAME),
+    }
+
+
+@st.cache_resource(show_spinner="Loading regional response curves…")
+def load_geo_runtime() -> dict[str, PosteriorDraws]:
+    """Load the geo model's response parameters per region, for re-running the optimizer."""
+    return load_geo_draws(geo_dir() / config.GEO_DRAWS_FILENAME)
 
 
 def ai_context(brand: str, with_model: bool = False) -> DataContext:

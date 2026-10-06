@@ -469,3 +469,234 @@ def weekly_schedule(schedule: pd.DataFrame) -> go.Figure:
     figure.update_xaxes(title="Week of the plan", dtick=1)
     figure.update_yaxes(title="Spend (₹ lakh)")
     return themed(figure, "Week-by-week spend under the recommended plan", height=380)
+
+
+# --- Regions (geo model) --------------------------------------------------------------------
+
+STATUS_COLORS = {
+    "under-invested": "#1baf7a",
+    "about right": "#a5a39b",
+    "over-invested": "#e34948",
+}
+
+
+def india_map(summary: dict[str, Any], channel: str | None = None) -> go.Figure:
+    """Bubble map of India: one bubble per region, sized by spend.
+
+    Coloured by investment status, or by the ROI of ``channel`` when one is chosen.
+    """
+    regions = summary["regions"]
+    names = list(regions)
+    rows = [regions[g] for g in names]
+    spend = np.array([r["media_spend"] for r in rows])
+    size = 14 + 36 * np.sqrt(spend / spend.max())
+    if channel is None:
+        colors = [STATUS_COLORS[r["status"]] for r in rows]
+        marker = {"size": size, "color": colors, "line": {"width": 1, "color": "white"}}
+        values = [r["status"] for r in rows]
+        hover = "<b>%{text}</b><br>%{customdata[0]}<br>next ₹1 returns ₹%{customdata[1]:.2f}"
+        detail = [[r["status"], r["blended_marginal_roi"]["median"]] for r in rows]
+    else:
+        roi = [r["channels"][channel]["roi"] for r in rows]
+        values = [e["mean"] for e in roi]
+        marker = {
+            "size": size,
+            "color": values,
+            "colorscale": [
+                [0, config.COLOR_DIVERGING[0]],
+                [0.5, "#f0efec"],
+                [1, config.COLOR_SPEND],
+            ],
+            "cmid": 1.0,
+            "colorbar": {"title": "ROI", "thickness": 12, "len": 0.6},
+            "line": {"width": 1, "color": "white"},
+        }
+        hover = (
+            "<b>%{text}</b><br>ROI %{customdata[0]:.2f}<br>likely %{customdata[1]:.2f} to "
+            "%{customdata[2]:.2f}"
+        )
+        detail = [[e["mean"], e["hdi_low"], e["hdi_high"]] for e in roi]
+    figure = go.Figure(
+        go.Scattergeo(
+            lat=[r["lat"] for r in rows],
+            lon=[r["lon"] for r in rows],
+            text=[r["label"] for r in rows],
+            mode="markers+text",
+            textposition="top center",
+            textfont={"size": 11, "color": config.COLOR_TEXT},
+            marker=marker,
+            customdata=detail,
+            hovertemplate=hover + "<extra></extra>",
+            showlegend=False,
+        )
+    )
+    if channel is None:
+        for status, color in STATUS_COLORS.items():
+            figure.add_trace(
+                go.Scattergeo(
+                    lat=[None],
+                    lon=[None],
+                    mode="markers",
+                    marker={"size": 11, "color": color},
+                    name=status.capitalize(),
+                )
+            )
+    figure.update_geos(
+        projection_type="mercator",
+        lataxis_range=list(config.GEO_MAP_LAT_RANGE),
+        lonaxis_range=list(config.GEO_MAP_LON_RANGE),
+        showcountries=True,
+        countrycolor=config.COLOR_TEXT_MUTED,
+        showland=True,
+        landcolor="#f0efec",
+        showocean=True,
+        oceancolor=config.COLOR_SURFACE,
+        showlakes=False,
+        bgcolor=config.COLOR_SURFACE,
+        showframe=False,
+    )
+    title = (
+        "Where the next rupee works hardest"
+        if channel is None
+        else f"{label(channel)}: ROI by region"
+    )
+    return themed(figure, title, height=560)
+
+
+def regional_roi(summary: dict[str, Any], channel: str) -> go.Figure:
+    """ROI with its 94% range per region for one channel, with the truth when known."""
+    regions = summary["regions"]
+    order = sorted(regions, key=lambda g: regions[g]["channels"][channel]["roi"]["mean"])
+    cells = [regions[g]["channels"][channel] for g in order]
+    names = [regions[g]["label"] for g in order]
+    mean = [c["roi"]["mean"] for c in cells]
+    figure = go.Figure()
+    figure.add_trace(
+        go.Scatter(
+            x=mean,
+            y=names,
+            mode="markers",
+            name="Geo model estimate (94% range)",
+            marker={"color": config.COLOR_SPEND, "size": 11},
+            error_x={
+                "type": "data",
+                "symmetric": False,
+                "thickness": 2,
+                "width": 0,
+                "color": rgba(config.COLOR_SPEND, 0.5),
+                "array": [c["roi"]["hdi_high"] - m for c, m in zip(cells, mean, strict=True)],
+                "arrayminus": [m - c["roi"]["hdi_low"] for c, m in zip(cells, mean, strict=True)],
+            },
+            customdata=[[c["roi"]["hdi_low"], c["roi"]["hdi_high"]] for c in cells],
+            hovertemplate="ROI %{x:.2f}<br>likely %{customdata[0]:.2f} to "
+            "%{customdata[1]:.2f}<extra></extra>",
+        )
+    )
+    if all("true_roi" in c for c in cells):
+        figure.add_trace(
+            go.Scatter(
+                x=[c["true_roi"] for c in cells],
+                y=names,
+                mode="markers",
+                name="True ROI",
+                marker={
+                    "color": config.COLOR_TEXT,
+                    "size": 14,
+                    "symbol": "line-ns",
+                    "line": {"width": 3, "color": config.COLOR_TEXT},
+                },
+                hovertemplate="True ROI %{x:.2f}<extra></extra>",
+            )
+        )
+    national = summary["national_roi"][channel]["mean"]
+    figure.add_vline(
+        x=national,
+        line={"color": config.COLOR_TEXT_MUTED, "width": 1, "dash": "dot"},
+        annotation_text=f"National {national:.2f}",
+        annotation_position="top",
+    )
+    figure.update_xaxes(title="Revenue per rupee spent", rangemode="tozero")
+    return themed(figure, f"{label(channel)}: ROI by region", height=110 + 40 * len(names))
+
+
+def geo_vs_national(comparison: dict[str, Any]) -> go.Figure:
+    """National ROI per channel from the national model and from the geo model, with truth."""
+    channels = list(comparison["channels"])
+    names = [label(c) for c in channels]
+    figure = go.Figure()
+    for key, name, color, offset in (
+        ("national", "National model", COLOR_CURRENT, -0.15),
+        ("geo", "Geo model", config.COLOR_SPEND, 0.15),
+    ):
+        rows = [comparison["channels"][c][key] for c in channels]
+        figure.add_trace(
+            go.Scatter(
+                x=[r["estimate"] for r in rows],
+                y=[i + offset for i in range(len(channels))],
+                mode="markers",
+                name=f"{name} (94% range)",
+                marker={"color": color, "size": 11},
+                error_x={
+                    "type": "data",
+                    "symmetric": False,
+                    "thickness": 3,
+                    "width": 0,
+                    "color": color,
+                    "array": [r["high"] - r["estimate"] for r in rows],
+                    "arrayminus": [r["estimate"] - r["low"] for r in rows],
+                },
+                customdata=[[r["low"], r["high"]] for r in rows],
+                hovertemplate=name + " %{x:.2f}<br>likely %{customdata[0]:.2f} to "
+                "%{customdata[1]:.2f}<extra></extra>",
+            )
+        )
+    figure.add_trace(
+        go.Scatter(
+            x=[comparison["channels"][c]["true_roi"] for c in channels],
+            y=list(range(len(channels))),
+            mode="markers",
+            name="True ROI",
+            marker={
+                "color": config.COLOR_TEXT,
+                "size": 22,
+                "symbol": "line-ns",
+                "line": {"width": 3, "color": config.COLOR_TEXT},
+            },
+            hovertemplate="True ROI %{x:.2f}<extra></extra>",
+        )
+    )
+    figure.update_yaxes(tickvals=list(range(len(channels))), ticktext=names, autorange="reversed")
+    figure.update_xaxes(title="Revenue per rupee spent", rangemode="tozero")
+    return themed(
+        figure, "National ROI: national model vs. geo model", height=130 + 60 * len(channels)
+    )
+
+
+def regional_shift(optimizer: dict[str, Any], summary: dict[str, Any]) -> go.Figure:
+    """Bars of the recommended spend change per region, as a share of today's spend."""
+    regions = optimizer["regions"]
+    order = sorted(regions, key=lambda g: regions[g]["change_pct"])
+    change = [regions[g]["change_pct"] for g in order]
+    figure = go.Figure(
+        go.Bar(
+            x=change,
+            y=[summary["regions"][g]["label"] for g in order],
+            orientation="h",
+            marker={
+                "color": [
+                    config.COLOR_SPEND if v >= 0 else config.COLOR_DIVERGING[0] for v in change
+                ],
+                "cornerradius": 4,
+            },
+            text=[f"{v:+.0f}%" for v in change],
+            textposition="outside",
+            customdata=[
+                [regions[g]["current_spend"] / LAKH, regions[g]["recommended_spend"] / LAKH]
+                for g in order
+            ],
+            hovertemplate="%{customdata[0]:,.0f} L → %{customdata[1]:,.0f} L<extra></extra>",
+        )
+    )
+    figure.add_vline(x=0, line={"color": config.COLOR_TEXT_MUTED, "width": 1})
+    figure.update_xaxes(title=f"Change in spend over {optimizer['n_weeks']} weeks (%)")
+    return themed(figure, "Where the regional optimizer moves money", height=110 + 40 * len(order))

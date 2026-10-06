@@ -145,13 +145,16 @@ def register_roi_transform(scale: np.ndarray) -> str:
     """Register the "log ROI -> beta" transform for these channels and return its name.
 
     The transform is ``beta = exp(log_roi) * scale``. PyMC-Marketing looks transforms up by
-    name when a saved model is reloaded, so the name encodes the scale values.
+    name when a saved model is reloaded, so the name encodes the scale values. A 2-D scale is
+    one row per region (``geo`` x ``channel``), as used by the geo model.
     """
-    digest = hashlib.sha256(np.asarray(scale, dtype=float).tobytes()).hexdigest()[:12]
+    values = np.asarray(scale, dtype=float)
+    digest = hashlib.sha256(values.tobytes()).hexdigest()[:12]
     name = f"{config.ROI_TRANSFORM_PREFIX}{digest}"
+    dims = ("channel",) if values.ndim == 1 else (config.GEO_COL, "channel")
 
     def to_beta(log_roi: Any) -> Any:
-        return ptx.math.exp(log_roi) * ptx.as_xtensor(np.asarray(scale), dims=("channel",))
+        return ptx.math.exp(log_roi) * ptx.as_xtensor(values, dims=dims)
 
     register_tensor_transform(name, to_beta)
     return name

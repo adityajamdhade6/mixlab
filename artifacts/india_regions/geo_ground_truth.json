@@ -1,0 +1,612 @@
+{
+  "brand": "india_regions",
+  "national_brand": "performance_heavy",
+  "seed": 42,
+  "n_weeks": 156,
+  "start_date": "2023-01-02",
+  "currency": "INR",
+  "geo_effect_sigma": 0.3,
+  "totals": {
+    "revenue": 1743167158.0,
+    "media_contribution": 603937131.1754191,
+    "media_pct_of_revenue": 34.64596773773196
+  },
+  "channels": {
+    "meta_ads": {
+      "total_spend": 202626465.0,
+      "total_contribution": 270643574.2888305,
+      "true_roi": 1.335677322746713,
+      "contribution_pct_of_revenue": 15.52596795130938
+    },
+    "google_search": {
+      "total_spend": 82512802.0,
+      "total_contribution": 129538687.96022299,
+      "true_roi": 1.5699223007870098,
+      "contribution_pct_of_revenue": 7.431225821673207
+    },
+    "youtube": {
+      "total_spend": 73335642.0,
+      "total_contribution": 63053544.016626865,
+      "true_roi": 0.8597939868942153,
+      "contribution_pct_of_revenue": 3.617182880439907
+    },
+    "influencers": {
+      "total_spend": 82035200.0,
+      "total_contribution": 66478133.4236867,
+      "true_roi": 0.8103610818732288,
+      "contribution_pct_of_revenue": 3.813640769824938
+    },
+    "email": {
+      "total_spend": 6736637.0,
+      "total_contribution": 26317549.865646128,
+      "true_roi": 3.906630246760532,
+      "contribution_pct_of_revenue": 1.5097548014753344
+    },
+    "tv": {
+      "total_spend": 68195537.0,
+      "total_contribution": 47905641.62040586,
+      "true_roi": 0.7024747326266506,
+      "contribution_pct_of_revenue": 2.748195513009193
+    }
+  },
+  "regions": {
+    "maharashtra": {
+      "label": "Maharashtra",
+      "lat": 19.4,
+      "lon": 75.7,
+      "size": 0.17,
+      "demand": 1.1,
+      "media_price": 1.3,
+      "festivals": [
+        "ganesh_chaturthi"
+      ],
+      "revenue": 307289378.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 39941099.0,
+          "total_contribution": 46888401.756116316,
+          "true_roi": 1.173938697984157,
+          "contribution_pct_of_revenue": 15.25871218240297,
+          "effect_multiplier": 1.0957237720140651
+        },
+        "google_search": {
+          "total_spend": 17954931.0,
+          "total_contribution": 19020010.03349407,
+          "true_roi": 1.0593195837674938,
+          "contribution_pct_of_revenue": 6.18960868653718,
+          "effect_multiplier": 0.7319850184181449
+        },
+        "youtube": {
+          "total_spend": 10325100.0,
+          "total_contribution": 10813604.633650366,
+          "true_roi": 1.047312339217089,
+          "contribution_pct_of_revenue": 3.5190297510545148,
+          "effect_multiplier": 1.2524922404922665
+        },
+        "influencers": {
+          "total_spend": 8882014.0,
+          "total_contribution": 11886522.127010915,
+          "true_roi": 1.3382687898275003,
+          "contribution_pct_of_revenue": 3.868185162915366,
+          "effect_multiplier": 1.3260033457060183
+        },
+        "email": {
+          "total_spend": 672176.0,
+          "total_contribution": 1582525.368636507,
+          "true_roi": 2.3543318545090974,
+          "contribution_pct_of_revenue": 0.5149951420177326,
+          "effect_multiplier": 0.5569328757744016
+        },
+        "tv": {
+          "total_spend": 18271278.0,
+          "total_contribution": 7630860.035825137,
+          "true_roi": 0.41764238034280565,
+          "contribution_pct_of_revenue": 2.483281422055902,
+          "effect_multiplier": 0.6766143241639104
+        }
+      }
+    },
+    "delhi_ncr": {
+      "label": "Delhi NCR",
+      "lat": 28.6,
+      "lon": 77.2,
+      "size": 0.13,
+      "demand": 1.2,
+      "media_price": 1.4,
+      "festivals": [],
+      "revenue": 249777069.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 27282456.0,
+          "total_contribution": 33863946.89717922,
+          "true_roi": 1.2412352794476869,
+          "contribution_pct_of_revenue": 13.557668457219034,
+          "effect_multiplier": 1.0390970563104738
+        },
+        "google_search": {
+          "total_spend": 11435271.0,
+          "total_contribution": 17646297.533113383,
+          "true_roi": 1.5431464224252651,
+          "contribution_pct_of_revenue": 7.064818881797905,
+          "effect_multiplier": 0.909488634341362
+        },
+        "youtube": {
+          "total_spend": 7190721.0,
+          "total_contribution": 6182911.549883509,
+          "true_roi": 0.8598458415899475,
+          "contribution_pct_of_revenue": 2.4753719685466837,
+          "effect_multiplier": 0.9949723339840308
+        },
+        "influencers": {
+          "total_spend": 13882073.0,
+          "total_contribution": 7804139.46176513,
+          "true_roi": 0.5621739247276059,
+          "contribution_pct_of_revenue": 3.1244419245567854,
+          "effect_multiplier": 0.7742091840534693
+        },
+        "email": {
+          "total_spend": 1412200.0,
+          "total_contribution": 5482545.800371405,
+          "true_roi": 3.8822729077831784,
+          "contribution_pct_of_revenue": 2.194975632599566,
+          "effect_multiplier": 1.3018930433649323
+        },
+        "tv": {
+          "total_spend": 5195781.0,
+          "total_contribution": 4581654.874516044,
+          "true_roi": 0.8818029232787225,
+          "contribution_pct_of_revenue": 1.8342976370325026,
+          "effect_multiplier": 1.2628077067997137
+        }
+      }
+    },
+    "karnataka": {
+      "label": "Karnataka",
+      "lat": 14.8,
+      "lon": 76.0,
+      "size": 0.11,
+      "demand": 1.1,
+      "media_price": 1.15,
+      "festivals": [
+        "ugadi"
+      ],
+      "revenue": 203219920.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 19545159.0,
+          "total_contribution": 26296298.004113026,
+          "true_roi": 1.3454123347941567,
+          "contribution_pct_of_revenue": 12.939823027247046,
+          "effect_multiplier": 1.0200067136337232
+        },
+        "google_search": {
+          "total_spend": 8007221.0,
+          "total_contribution": 21156023.737616807,
+          "true_roi": 2.6421181253292256,
+          "contribution_pct_of_revenue": 10.41040845681703,
+          "effect_multiplier": 1.4023822001026114
+        },
+        "youtube": {
+          "total_spend": 6226298.0,
+          "total_contribution": 6689215.39531008,
+          "true_roi": 1.074348737453633,
+          "contribution_pct_of_revenue": 3.2916140284427238,
+          "effect_multiplier": 1.1505646279108992
+        },
+        "influencers": {
+          "total_spend": 7622996.0,
+          "total_contribution": 5532789.213958996,
+          "true_roi": 0.7258024553546921,
+          "contribution_pct_of_revenue": 2.7225624407090585,
+          "effect_multiplier": 0.772759241453602
+        },
+        "email": {
+          "total_spend": 701011.0,
+          "total_contribution": 3042847.9454772808,
+          "true_roi": 4.34065648823953,
+          "contribution_pct_of_revenue": 1.4973177557974044,
+          "effect_multiplier": 1.1169762250618194
+        },
+        "tv": {
+          "total_spend": 9765505.0,
+          "total_contribution": 5356320.465736152,
+          "true_roi": 0.5484939555851082,
+          "contribution_pct_of_revenue": 2.635726096996865,
+          "effect_multiplier": 0.7500129692644442
+        }
+      }
+    },
+    "tamil_nadu": {
+      "label": "Tamil Nadu",
+      "lat": 11.1,
+      "lon": 78.6,
+      "size": 0.1,
+      "demand": 1.0,
+      "media_price": 1.0,
+      "festivals": [
+        "pongal"
+      ],
+      "revenue": 177634227.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 19292650.0,
+          "total_contribution": 30784917.456512205,
+          "true_roi": 1.5956811250145628,
+          "contribution_pct_of_revenue": 17.330509990347863,
+          "effect_multiplier": 1.3015229650916262
+        },
+        "google_search": {
+          "total_spend": 7318993.0,
+          "total_contribution": 13119367.899152592,
+          "true_roi": 1.7925099667608086,
+          "contribution_pct_of_revenue": 7.385608123344715,
+          "effect_multiplier": 0.9851338356380108
+        },
+        "youtube": {
+          "total_spend": 12506324.0,
+          "total_contribution": 8352136.310373526,
+          "true_roi": 0.6678330347409459,
+          "contribution_pct_of_revenue": 4.701873310920831,
+          "effect_multiplier": 0.946051086199217
+        },
+        "influencers": {
+          "total_spend": 5549195.0,
+          "total_contribution": 4638645.001522011,
+          "true_roi": 0.8359131372247707,
+          "contribution_pct_of_revenue": 2.611346405398556,
+          "effect_multiplier": 0.8152350003463315
+        },
+        "email": {
+          "total_spend": 456437.0,
+          "total_contribution": 2882618.00522859,
+          "true_roi": 6.315478379773309,
+          "contribution_pct_of_revenue": 1.6227829815864205,
+          "effect_multiplier": 1.4430550108210651
+        },
+        "tv": {
+          "total_spend": 8324935.0,
+          "total_contribution": 5716102.003900476,
+          "true_roi": 0.6866242203573332,
+          "contribution_pct_of_revenue": 3.217905749605607,
+          "effect_multiplier": 0.9546993120028616
+        }
+      }
+    },
+    "west_bengal": {
+      "label": "West Bengal",
+      "lat": 23.0,
+      "lon": 87.8,
+      "size": 0.09,
+      "demand": 0.9,
+      "media_price": 0.85,
+      "festivals": [
+        "durga_puja"
+      ],
+      "revenue": 134238710.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 9323570.0,
+          "total_contribution": 13323379.41577096,
+          "true_roi": 1.428999773238251,
+          "contribution_pct_of_revenue": 9.925139638015711,
+          "effect_multiplier": 0.8794150163989704
+        },
+        "google_search": {
+          "total_spend": 8067070.0,
+          "total_contribution": 11164093.873018961,
+          "true_roi": 1.3839093838306797,
+          "contribution_pct_of_revenue": 8.316598001440092,
+          "effect_multiplier": 0.8997484406235075
+        },
+        "youtube": {
+          "total_spend": 9401537.0,
+          "total_contribution": 8315818.354091245,
+          "true_roi": 0.8845168991082251,
+          "contribution_pct_of_revenue": 6.194799066596547,
+          "effect_multiplier": 1.1731503718093175
+        },
+        "influencers": {
+          "total_spend": 6435567.0,
+          "total_contribution": 6072156.060250566,
+          "true_roi": 0.943530859091447,
+          "contribution_pct_of_revenue": 4.523401677690859,
+          "effect_multiplier": 1.1158687162932808
+        },
+        "email": {
+          "total_spend": 717591.0,
+          "total_contribution": 2700624.2232070137,
+          "true_roi": 3.7634588828552946,
+          "contribution_pct_of_revenue": 2.0118073417176117,
+          "effect_multiplier": 1.1318118814186549
+        },
+        "tv": {
+          "total_spend": 2688716.0,
+          "total_contribution": 2644920.9156140136,
+          "true_roi": 0.9837115246139844,
+          "contribution_pct_of_revenue": 1.97031163038889,
+          "effect_multiplier": 1.1379703727812518
+        }
+      }
+    },
+    "gujarat": {
+      "label": "Gujarat",
+      "lat": 22.6,
+      "lon": 71.6,
+      "size": 0.09,
+      "demand": 1.0,
+      "media_price": 0.95,
+      "festivals": [
+        "navratri"
+      ],
+      "revenue": 174479375.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 23635916.0,
+          "total_contribution": 46633366.919376075,
+          "true_roi": 1.9729875042446452,
+          "contribution_pct_of_revenue": 26.727151515401793,
+          "effect_multiplier": 1.9012171384511511
+        },
+        "google_search": {
+          "total_spend": 8395194.0,
+          "total_contribution": 11903134.158085039,
+          "true_roi": 1.417850994043144,
+          "contribution_pct_of_revenue": 6.822086655276613,
+          "effect_multiplier": 0.8852151953761228
+        },
+        "youtube": {
+          "total_spend": 4406391.0,
+          "total_contribution": 3865292.3454043446,
+          "true_roi": 0.877201398015824,
+          "contribution_pct_of_revenue": 2.2153290871223863,
+          "effect_multiplier": 0.8575525502568037
+        },
+        "influencers": {
+          "total_spend": 12899902.0,
+          "total_contribution": 5674387.578529967,
+          "true_roi": 0.43987834779907375,
+          "contribution_pct_of_revenue": 3.2521824304620344,
+          "effect_multiplier": 0.7833843629249161
+        },
+        "email": {
+          "total_spend": 460947.0,
+          "total_contribution": 2391396.062157343,
+          "true_roi": 5.188006565087403,
+          "contribution_pct_of_revenue": 1.3705895393981913,
+          "effect_multiplier": 1.2029703942697718
+        },
+        "tv": {
+          "total_spend": 3331170.0,
+          "total_contribution": 4018060.6333554992,
+          "true_roi": 1.2062010144650377,
+          "contribution_pct_of_revenue": 2.3028857326864562,
+          "effect_multiplier": 1.403110682400036
+        }
+      }
+    },
+    "uttar_pradesh": {
+      "label": "Uttar Pradesh",
+      "lat": 26.9,
+      "lon": 80.9,
+      "size": 0.11,
+      "demand": 0.75,
+      "media_price": 0.7,
+      "festivals": [
+        "chhath"
+      ],
+      "revenue": 139048126.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 12525044.0,
+          "total_contribution": 17335269.328054186,
+          "true_roi": 1.3840485772388653,
+          "contribution_pct_of_revenue": 12.467100295946588,
+          "effect_multiplier": 0.9663934425199998
+        },
+        "google_search": {
+          "total_spend": 9220590.0,
+          "total_contribution": 10237786.940516455,
+          "true_roi": 1.1103179883843068,
+          "contribution_pct_of_revenue": 7.362765133933884,
+          "effect_multiplier": 0.7772082526565957
+        },
+        "youtube": {
+          "total_spend": 9024231.0,
+          "total_contribution": 5470621.472665723,
+          "true_roi": 0.6062146982569178,
+          "contribution_pct_of_revenue": 3.934336714948408,
+          "effect_multiplier": 0.780871742556302
+        },
+        "influencers": {
+          "total_spend": 9835265.0,
+          "total_contribution": 7664786.22017723,
+          "true_roi": 0.7793166956027346,
+          "contribution_pct_of_revenue": 5.512326156899972,
+          "effect_multiplier": 1.2155271321752457
+        },
+        "email": {
+          "total_spend": 781118.0,
+          "total_contribution": 3148250.3853459544,
+          "true_roi": 4.030441476634714,
+          "contribution_pct_of_revenue": 2.26414441957021,
+          "effect_multiplier": 1.2497908925508496
+        },
+        "tv": {
+          "total_spend": 4026942.0,
+          "total_contribution": 3673013.059704072,
+          "true_roi": 0.9121097497068673,
+          "contribution_pct_of_revenue": 2.6415408573748573,
+          "effect_multiplier": 1.1769734615543868
+        }
+      }
+    },
+    "kerala": {
+      "label": "Kerala",
+      "lat": 10.5,
+      "lon": 76.3,
+      "size": 0.06,
+      "demand": 1.05,
+      "media_price": 0.9,
+      "festivals": [
+        "onam"
+      ],
+      "revenue": 109342406.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 17407465.0,
+          "total_contribution": 14891995.425618261,
+          "true_roi": 0.8554947791432159,
+          "contribution_pct_of_revenue": 13.619597345990597,
+          "effect_multiplier": 0.8190149738667569
+        },
+        "google_search": {
+          "total_spend": 3560754.0,
+          "total_contribution": 8576812.487006662,
+          "true_roi": 2.4087068320380074,
+          "contribution_pct_of_revenue": 7.843994659315126,
+          "effect_multiplier": 1.0721311503608753
+        },
+        "youtube": {
+          "total_spend": 3029897.0,
+          "total_contribution": 3486554.551189973,
+          "true_roi": 1.1507171864885086,
+          "contribution_pct_of_revenue": 3.188657245378314,
+          "effect_multiplier": 1.0356256561137243
+        },
+        "influencers": {
+          "total_spend": 6843613.0,
+          "total_contribution": 5180009.485036689,
+          "true_roi": 0.7569115151655549,
+          "contribution_pct_of_revenue": 4.737420434151311,
+          "effect_multiplier": 1.0678065370219412
+        },
+        "email": {
+          "total_spend": 510603.0,
+          "total_contribution": 2425349.018832309,
+          "true_roi": 4.749970170234623,
+          "contribution_pct_of_revenue": 2.2181229657890547,
+          "effect_multiplier": 1.2987842484282253
+        },
+        "tv": {
+          "total_spend": 5350437.0,
+          "total_contribution": 4489972.795393849,
+          "true_roi": 0.8391787054765525,
+          "contribution_pct_of_revenue": 4.106341683567718,
+          "effect_multiplier": 1.0693795972188762
+        }
+      }
+    },
+    "telangana": {
+      "label": "Telangana",
+      "lat": 17.9,
+      "lon": 79.0,
+      "size": 0.08,
+      "demand": 1.05,
+      "media_price": 1.05,
+      "festivals": [
+        "ugadi"
+      ],
+      "revenue": 149300805.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 21258352.0,
+          "total_contribution": 27338656.66148048,
+          "true_roi": 1.2860195682845255,
+          "contribution_pct_of_revenue": 18.311124753466988,
+          "effect_multiplier": 1.2258985299049812
+        },
+        "google_search": {
+          "total_spend": 5319832.0,
+          "total_contribution": 10682159.428734556,
+          "true_roi": 2.0079881148003462,
+          "contribution_pct_of_revenue": 7.154790242915673,
+          "effect_multiplier": 1.020480628623131
+        },
+        "youtube": {
+          "total_spend": 5060049.0,
+          "total_contribution": 5179202.1237942325,
+          "true_roi": 1.0235478201484278,
+          "contribution_pct_of_revenue": 3.468971331932358,
+          "effect_multiplier": 1.090608524268888
+        },
+        "influencers": {
+          "total_spend": 7368802.0,
+          "total_contribution": 6914978.546022095,
+          "true_roi": 0.9384128581582318,
+          "contribution_pct_of_revenue": 4.63157485723007,
+          "effect_multiplier": 1.208507911580107
+        },
+        "email": {
+          "total_spend": 506821.0,
+          "total_contribution": 1281076.8982819286,
+          "true_roi": 2.527671304626147,
+          "contribution_pct_of_revenue": 0.8580508981729392,
+          "effect_multiplier": 0.6458766446698768
+        },
+        "tv": {
+          "total_spend": 6740708.0,
+          "total_contribution": 4641812.747454241,
+          "true_roi": 0.6886239171692707,
+          "contribution_pct_of_revenue": 3.1090339716883917,
+          "effect_multiplier": 0.90855362692056
+        }
+      }
+    },
+    "punjab": {
+      "label": "Punjab",
+      "lat": 30.9,
+      "lon": 75.4,
+      "size": 0.06,
+      "demand": 0.95,
+      "media_price": 0.8,
+      "festivals": [
+        "baisakhi"
+      ],
+      "revenue": 98837142.0,
+      "channels": {
+        "meta_ads": {
+          "total_spend": 12414754.0,
+          "total_contribution": 13287342.424609795,
+          "true_roi": 1.0702864047575809,
+          "contribution_pct_of_revenue": 13.443673254544121,
+          "effect_multiplier": 0.8683922232437581
+        },
+        "google_search": {
+          "total_spend": 3232946.0,
+          "total_contribution": 6033001.869484458,
+          "true_roi": 1.8661004141375879,
+          "contribution_pct_of_revenue": 6.103982518519666,
+          "effect_multiplier": 0.8255847511287094
+        },
+        "youtube": {
+          "total_spend": 6165094.0,
+          "total_contribution": 4698187.280263867,
+          "true_roi": 0.7620625541579523,
+          "contribution_pct_of_revenue": 4.753463308625281,
+          "effect_multiplier": 0.9207721427283037
+        },
+        "influencers": {
+          "total_spend": 2715773.0,
+          "total_contribution": 5109719.729413094,
+          "true_roi": 1.8814973598357057,
+          "contribution_pct_of_revenue": 5.1698375995261925,
+          "effect_multiplier": 1.5659339096201292
+        },
+        "email": {
+          "total_spend": 517733.0,
+          "total_contribution": 1380316.1581077944,
+          "true_roi": 2.666077221478628,
+          "contribution_pct_of_revenue": 1.396556122705161,
+          "effect_multiplier": 0.7712448859002901
+        },
+        "tv": {
+          "total_spend": 4500065.0,
+          "total_contribution": 5152924.088906376,
+          "true_roi": 1.145077701967944,
+          "contribution_pct_of_revenue": 5.213550275367509,
+          "effect_multiplier": 1.3370738154780555
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+# Geo-level model (Phase 4): the v2 model fitted on a regional panel with channel ROI
+# partially pooled across regions (see src/mixlab/geo_model.py). Same keys as default.yaml.
+saturation: hill
+roi_prior:
+  mode: independent   # the national ROI prior; regions are pooled toward it in the geo model
+  median: 1.0
+  spread: 1.0
+
+adstock_l_max: 8
+yearly_seasonality_order: 2
+trend_changepoints: 2
+prior_predictive_samples: 200
+
+sampler:
+  chains: 4
+  draws: 1000
+  tune: 1000
+  target_accept: 0.95
+  seed: 42
+  nuts_sampler: nutpie
+
+channel_priors:
+  tv:
+    adstock_alpha: {alpha: 4, beta: 3}
+  youtube:
+    adstock_alpha: {alpha: 3, beta: 3}

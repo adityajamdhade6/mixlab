@@ -1,0 +1,204 @@
+{
+  "saved_at": "2026-10-05T19:05:51.503974+00:00",
+  "channels": [
+    "spend_meta_ads",
+    "spend_google_search",
+    "spend_youtube",
+    "spend_influencers",
+    "spend_email",
+    "spend_tv"
+  ],
+  "controls": [
+    "holiday_diwali",
+    "holiday_sale_season",
+    "holiday_new_year",
+    "holiday_ganesh_chaturthi",
+    "holiday_ugadi",
+    "holiday_pongal",
+    "holiday_durga_puja",
+    "holiday_navratri",
+    "holiday_chhath",
+    "holiday_onam",
+    "holiday_baisakhi",
+    "promo_flag",
+    "price_index"
+  ],
+  "fit_seconds": 821.507324461,
+  "settings": {
+    "adstock": "geometric",
+    "saturation": "hill",
+    "time_varying_intercept": false,
+    "time_varying_media": false,
+    "roi_prior": {
+      "mode": "independent",
+      "median": 1.0,
+      "median_sigma": 0.5,
+      "spread": 1.0,
+      "benchmarks": {},
+      "benchmarks_file": null
+    },
+    "adstock_l_max": 8,
+    "yearly_seasonality_order": 2,
+    "trend_changepoints": 2,
+    "control_columns": null,
+    "spend_share_prior": false,
+    "prior_predictive_samples": 200,
+    "priors": {
+      "intercept_mu": 0.5,
+      "intercept_sigma": 0.2,
+      "adstock_alpha": {
+        "alpha": 1.0,
+        "beta": 3.0
+      },
+      "saturation_lam": {
+        "alpha": 3.0,
+        "beta": 1.0
+      },
+      "saturation_beta": {
+        "sigma": 0.3
+      },
+      "control_sigma": 0.3,
+      "fourier_scale": 0.1,
+      "noise_sigma": 0.1,
+      "trend_scale": 0.2,
+      "hill_slope_median": 1.0,
+      "hill_slope_sigma": 0.3,
+      "hill_kappa_median": 0.5,
+      "hill_kappa_sigma": 0.75
+    },
+    "channel_priors": {
+      "tv": {
+        "adstock_alpha": {
+          "alpha": 4.0,
+          "beta": 3.0
+        },
+        "saturation_lam": null,
+        "saturation_beta": null
+      },
+      "youtube": {
+        "adstock_alpha": {
+          "alpha": 3.0,
+          "beta": 3.0
+        },
+        "saturation_lam": null,
+        "saturation_beta": null
+      }
+    },
+    "sampler": {
+      "chains": 4,
+      "draws": 1000,
+      "tune": 1000,
+      "target_accept": 0.95,
+      "seed": 42,
+      "nuts_sampler": "nutpie"
+    }
+  },
+  "roi_transform_scale": [
+    [
+      0.18249171845717563,
+      0.06209902542035509,
+      0.04559198359375688,
+      0.11402599610272664,
+      0.00720945696271742,
+      0.20755182171384845
+    ],
+    [
+      0.20934152453559157,
+      0.06374570321008483,
+      0.03937800707846594,
+      0.2048487116264528,
+      0.003517878692450651,
+      0.11588677509941833
+    ],
+    [
+      0.1526206777014476,
+      0.053337317333560307,
+      0.05361262929330929,
+      0.06636649870123289,
+      0.004610373075056878,
+      0.2719174444303503
+    ],
+    [
+      0.24528126977864645,
+      0.04253890376913184,
+      0.05107067969245406,
+      0.10917986145271619,
+      0.006266438394352826,
+      0.2590451529513095
+    ],
+    [
+      0.19845638277517927,
+      0.07919402124500072,
+      0.05239828585905811,
+      0.05830722763527444,
+      0.002971984424321671,
+      0.3225458328218316
+    ],
+    [
+      0.18474575270873378,
+      0.04285916122308877,
+      0.10323526338934375,
+      0.0549728589704739,
+      0.006960411124635598,
+      0.2515226440043347
+    ],
+    [
+      0.17642136201854658,
+      0.05683261607501165,
+      0.11441882756637094,
+      0.06572992739830197,
+      0.003574356326655058,
+      0.2743637667554267
+    ],
+    [
+      0.21413191114788607,
+      0.05068954752446132,
+      0.05316760888440735,
+      0.12517657934794002,
+      0.004730635442393399,
+      0.24708943530986374
+    ],
+    [
+      0.13763352719422353,
+      0.08895966259933585,
+      0.10714396882942262,
+      0.15439002397278773,
+      0.007745278178966081,
+      0.2502224693258798
+    ],
+    [
+      0.11709680445600835,
+      0.08599197932768571,
+      0.10769074116057271,
+      0.10355352774793346,
+      0.007996050930677151,
+      0.1460158723103572
+    ]
+  ],
+  "geos": [
+    "delhi_ncr",
+    "gujarat",
+    "karnataka",
+    "kerala",
+    "maharashtra",
+    "punjab",
+    "tamil_nadu",
+    "telangana",
+    "uttar_pradesh",
+    "west_bengal"
+  ],
+  "diagnostics": {
+    "chains": 4,
+    "draws_per_chain": 1000,
+    "n_parameters": 120,
+    "max_r_hat": 1.01,
+    "max_r_hat_parameter": "intercept_contribution[delhi_ncr]",
+    "min_ess_bulk": 602.0,
+    "min_ess_bulk_parameter": "intercept_contribution[maharashtra]",
+    "min_ess_tail": 957.0,
+    "min_ess_tail_parameter": "saturation_beta_raw_sigma[spend_meta_ads]",
+    "divergences": 1,
+    "converged": true
+  },
+  "brand": "india_regions"
+}

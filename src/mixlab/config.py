@@ -586,6 +586,7 @@ BRAND_LABELS: dict[str, str] = {
     "performance_heavy": "Performance-heavy",
     "tv_heavy": "TV-heavy",
     "influencer_led": "Influencer-led",
+    "india_regions": "India regions (geo)",
 }
 WIDE_INTERVAL_RATIO: float = 0.25
 PDF_FONT_SIZE: int = 11
@@ -667,3 +668,164 @@ OPTIMISM_DRAWS: int = 300
 MIN_BURST_WEEKS: int = 3
 OPTIMIZER_BENCHMARK_FILENAME: str = "optimizer_benchmark.json"
 OPTIMISM_RESAMPLES: int = 500
+
+# --- Phase 4: geo-level model ---------------------------------------------------------------
+GEO_COL: str = "geo"
+GEO_WEEKLY_FILENAME: str = "geo_weekly.csv"
+GEO_GROUND_TRUTH_FILENAME: str = "geo_ground_truth.json"
+GEO_TRUE_CONTRIBUTIONS_FILENAME: str = "geo_true_contributions.csv"
+GEO_SUMMARY_FILENAME: str = "geo_summary.json"
+GEO_COMPARISON_FILENAME: str = "geo_comparison.json"
+GEO_MODEL_SUBDIR: str = "geo_model"
+NATIONAL_MODEL_SUBDIR: str = "national_model"
+GEO_DEMO_BRAND: str = "india_regions"
+# Each region's seed is the brand seed plus this stride times the region's position, so
+# regions get independent spend noise while the whole panel stays reproducible.
+GEO_SEED_STRIDE: int = 101
+# How far a region's true channel effect may sit from the national one (log scale), and how
+# far its spend mix may tilt away from the national mix. Both are drawn once per brand seed.
+GEO_EFFECT_SIGMA: float = 0.30
+GEO_SPEND_TILT_SIGMA: float = 0.35
+# Prior on how far a region's ROI may sit from the national ROI (log scale): HalfNormal with
+# this sigma, so regions are pulled toward the national figure unless their data disagrees.
+GEO_ROI_POOL_SIGMA: float = 0.3
+REGIONAL_FESTIVAL_LIFT: float = 0.20
+REGIONAL_FESTIVAL_SPEND_PEAK: float = 0.6
+REGIONAL_FESTIVAL_RAMP_WEEKS: float = 1.5
+# A region is "under-invested" when its marginal ROI beats the national figure by this ratio,
+# and "over-invested" when it falls below the national figure by the same ratio.
+GEO_INVESTMENT_RATIO: float = 1.2
+GEO_MAP_LAT_RANGE: tuple[float, float] = (6.0, 36.0)
+GEO_MAP_LON_RANGE: tuple[float, float] = (67.0, 98.0)
+GEO_DRAWS_FILENAME: str = "geo_draws.npz"
+
+
+@dataclass(frozen=True, kw_only=True)
+class RegionConfig:
+    """One Indian region in the geo panel.
+
+    Attributes:
+        name: Region id, used in the ``geo`` column.
+        label: Display name.
+        lat: Latitude of the region's centre, for the map.
+        lon: Longitude of the region's centre, for the map.
+        size: Share of the national brand's organic revenue and spend (all regions sum to 1).
+        demand: Baseline demand per unit of size (1.0 is the national average).
+        media_price: Cost of media relative to the national average; a pricier market needs
+            more rupees for the same effect (raises the half-saturation spend).
+        festivals: Regional festivals with their ISO dates.
+
+    """
+
+    name: str
+    label: str
+    lat: float
+    lon: float
+    size: float
+    demand: float
+    media_price: float
+    festivals: dict[str, tuple[str, ...]]
+
+
+INDIA_REGIONS: tuple[RegionConfig, ...] = (
+    RegionConfig(
+        name="maharashtra",
+        label="Maharashtra",
+        lat=19.4,
+        lon=75.7,
+        size=0.17,
+        demand=1.10,
+        media_price=1.30,
+        festivals={"ganesh_chaturthi": ("2023-09-19", "2024-09-07", "2025-08-27")},
+    ),
+    RegionConfig(
+        name="delhi_ncr",
+        label="Delhi NCR",
+        lat=28.6,
+        lon=77.2,
+        size=0.13,
+        demand=1.20,
+        media_price=1.40,
+        festivals={},
+    ),
+    RegionConfig(
+        name="karnataka",
+        label="Karnataka",
+        lat=14.8,
+        lon=76.0,
+        size=0.11,
+        demand=1.10,
+        media_price=1.15,
+        festivals={"ugadi": ("2023-03-22", "2024-04-09", "2025-03-30")},
+    ),
+    RegionConfig(
+        name="tamil_nadu",
+        label="Tamil Nadu",
+        lat=11.1,
+        lon=78.6,
+        size=0.10,
+        demand=1.00,
+        media_price=1.00,
+        festivals={"pongal": ("2023-01-15", "2024-01-15", "2025-01-14", "2026-01-14")},
+    ),
+    RegionConfig(
+        name="west_bengal",
+        label="West Bengal",
+        lat=23.0,
+        lon=87.8,
+        size=0.09,
+        demand=0.90,
+        media_price=0.85,
+        festivals={"durga_puja": ("2023-10-24", "2024-10-12", "2025-10-02")},
+    ),
+    RegionConfig(
+        name="gujarat",
+        label="Gujarat",
+        lat=22.6,
+        lon=71.6,
+        size=0.09,
+        demand=1.00,
+        media_price=0.95,
+        festivals={"navratri": ("2023-10-15", "2024-10-03", "2025-09-22")},
+    ),
+    RegionConfig(
+        name="uttar_pradesh",
+        label="Uttar Pradesh",
+        lat=26.9,
+        lon=80.9,
+        size=0.11,
+        demand=0.75,
+        media_price=0.70,
+        festivals={"chhath": ("2023-11-19", "2024-11-07", "2025-10-28")},
+    ),
+    RegionConfig(
+        name="kerala",
+        label="Kerala",
+        lat=10.5,
+        lon=76.3,
+        size=0.06,
+        demand=1.05,
+        media_price=0.90,
+        festivals={"onam": ("2023-08-29", "2024-09-15", "2025-09-05")},
+    ),
+    RegionConfig(
+        name="telangana",
+        label="Telangana",
+        lat=17.9,
+        lon=79.0,
+        size=0.08,
+        demand=1.05,
+        media_price=1.05,
+        festivals={"ugadi": ("2023-03-22", "2024-04-09", "2025-03-30")},
+    ),
+    RegionConfig(
+        name="punjab",
+        label="Punjab",
+        lat=30.9,
+        lon=75.4,
+        size=0.06,
+        demand=0.95,
+        media_price=0.80,
+        festivals={"baisakhi": ("2023-04-14", "2024-04-13", "2025-04-14")},
+    ),
+)

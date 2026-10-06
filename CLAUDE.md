@@ -55,6 +55,8 @@ explains results to a non-technical CMO.
 - Model decisions and their evidence: `docs/model_log.md`
 - Re-estimate the optimizer's-curse haircut: `uv run python scripts/build_demo.py --stage curse` (six quick refits per brand)
 - Optimizer benchmark on random brands: `uv run python scripts/optimizer_benchmark.py --brands 20`
+- Geo panel (ten Indian regions): `uv run python -m mixlab.geo_data` (writes `geo_weekly.csv` and `geo_ground_truth.json`)
+- Geo demo for the Regions page: `make geo` or `uv run python scripts/build_geo_demo.py` (national + geo fits, about 30 minutes; `--stage analyze` recomputes from saved models)
 
 ## Model defaults (v2)
 - `configs/default.yaml` and `configs/demo.yaml` select Hill saturation with an independent ROI prior. `ModelSettings()` with no file is still the v1 model (logistic, coefficient priors); tests rely on that.
@@ -68,4 +70,6 @@ explains results to a non-technical CMO.
 - PyMC-Marketing's `BudgetOptimizer` takes a per-week budget, not a period total; `optimizer.py` converts.
 - The AI layer uses `claude-opus-5-5` via the Anthropic SDK; the key comes from `.env` (`ANTHROPIC_API_KEY`). Tests always mock the client; never call the live API from tests.
 - The app never fits a model; it loads `artifacts/<brand>/`. App pages live in `app/views/` and are tested headlessly in `tests/test_app.py`.
+- Geo data is long format: one row per (week, region) with a `geo` column. `geo_model.model_for(df)` picks `GeoMixLabModel` for a multi-region panel and the national `MixLabModel` otherwise. The geo model needs Hill saturation and an ROI prior (`configs/geo.yaml`).
+- `extract_geo_draws` returns one `PosteriorDraws` per region with aligned draws, so every national tool (insights, optimizer maths) works per region and regional results can be summed draw by draw.
 - The optimizer runs on posterior draws with SciPy (`optimizer.solve_allocation`); it does not need the PyMC model. `BudgetAllocator` (the library optimizer) is only a cross-check in tests.

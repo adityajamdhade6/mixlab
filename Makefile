@@ -3,10 +3,11 @@
 #   make validate  check each dataset against the data contract
 #   make train     fit each brand and save insights and optimizer results (about 5 minutes)
 #   make app       open the dashboard
+#   make geo       build the regional (geo-level) demo for the Regions page (about 30 minutes)
 
 BRANDS_DIR := artifacts
 
-.PHONY: data validate train app test lint format evaluate calibrate template deploy-assets clean
+.PHONY: data validate train geo app test lint format evaluate calibrate template deploy-assets clean
 
 data:
 	uv run python scripts/build_demo.py --stage data
@@ -16,6 +17,9 @@ validate:
 
 train:
 	uv run python scripts/build_demo.py --stage train
+
+geo:
+	uv run python scripts/build_geo_demo.py
 
 app:
 	uv run streamlit run app/main.py
