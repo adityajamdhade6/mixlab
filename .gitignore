@@ -32,3 +32,7 @@ artifacts/**/*.nc
 !artifacts/**/*_slim.nc
 .coverage
 artifacts/**/*.tmp
+
+# Local assistant notes (not part of the project)
+CLAUDE.md
+.claude/

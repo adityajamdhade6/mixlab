@@ -1,4 +1,6 @@
-# MixLab
+# MixLab developer guide
+
+Commands, coding rules and environment notes for working on this repository.
 
 ## Project goal
 A Bayesian Marketing Mix Model (MMM) that estimates true channel contribution with adstock
@@ -20,13 +22,6 @@ explains results to a non-technical CMO.
 - Configuration lives in `src/mixlab/config.py`; no magic numbers.
 - Every module has tests.
 - Set random seeds (use `config.RANDOM_SEED`).
-
-## Commit and PR rule
-- Never add Co-Authored-By, Claude-Session, or 'Generated with Claude Code' lines to commit messages or PR descriptions.
-
-## Workflow rule
-- Before writing code, explain the plan in 5 bullets.
-- After writing, run the tests and summarize what changed.
 
 ## Commands
 - Fresh clone, end to end: `make data && make validate && make train && make app`
