@@ -424,7 +424,10 @@ def solve_allocation(
 
 
 def channel_limits(
-    draws: PosteriorDraws, n_weeks: int, base_change: float = config.DEFAULT_MAX_CHANGE
+    draws: PosteriorDraws,
+    n_weeks: int,
+    base_change: float = config.DEFAULT_MAX_CHANGE,
+    measured: frozenset[str] = frozenset(),
 ) -> dict[str, dict[str, Any]]:
     """Return how far each channel may move by default, and why.
 
@@ -436,8 +439,13 @@ def channel_limits(
 
     No channel is pushed above its highest weekly spend on record, where the curve is an
     extrapolation.
+
+    Channels in ``measured`` have been calibrated with an experiment, which answers the
+    "ran in bursts" and "too small to measure" caveats directly; only the width of their
+    (calibrated) ROI range can still tighten their limit.
     """
     flags = measurement_flags(draws.spend, draws.channels)
+    flags = {c: ([] if c in measured else f) for c, f in flags.items()}
     roi = draws.channel_contribution.sum(axis=1) / draws.spend.sum(axis=0)
     low, high = hdi(roi)
     peak = draws.spend.max(axis=0) * n_weeks
@@ -546,6 +554,7 @@ def optimize_budget(
     margin: float = config.DEFAULT_MARGIN,
     risk_lambda: float = config.RISK_LAMBDA,
     shrinkage: float = config.UPLIFT_SHRINKAGE,
+    measured: frozenset[str] = frozenset(),
 ) -> OptimizationResult:
     """Find the best allocation of a budget and compare it with the current allocation.
 
@@ -566,6 +575,7 @@ def optimize_budget(
         margin: Product margin, used by the ``profit`` objective.
         risk_lambda: Weight on the standard deviation in the ``risk_adjusted`` objective.
         shrinkage: Share of the expected uplift to report as the realistic uplift.
+        measured: Channels calibrated with an experiment (see ``channel_limits``).
 
     """
     n_weeks = _window(allocator)
@@ -574,7 +584,7 @@ def optimize_budget(
     change: float | dict[str, float] | None = max_change
     explained: dict[str, dict[str, Any]] = {}
     if gate and max_change is not None:
-        explained = channel_limits(draws, n_weeks, max_change)
+        explained = channel_limits(draws, n_weeks, max_change, measured)
         change = {channel: info["max_change"] for channel, info in explained.items()}
         ceilings = {
             channel: max(min(current[channel] * (1 + change[channel]), info["ceiling"]), 0.0)

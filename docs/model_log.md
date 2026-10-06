@@ -290,3 +290,59 @@ national model (`configs/demo.yaml`) fitted on the same panel summed to national
 **Not built.** Reach and frequency inputs (optional). In real data national TV usually cannot
 be bought or measured by region, which this synthetic panel does not reproduce, so TV's very
 tight geo range is optimistic.
+
+## 11. Experiment designer and calibration loop (Phase 5)
+
+**What it does.** `scripts/experiment_loop.py` runs one full test-and-learn loop on the India
+demo, against the national model (whose email range was 0.03 to 5.00).
+
+**1. What to test.** Value of information, deciding whether to move 20% of a channel's budget
+to or from the others (13 weeks, 40% margin; ₹ lakh of expected gross profit lost):
+
+| Channel | At risk now | At risk after a test | Value of the test |
+|---|---|---|---|
+| email | 0.17 | 0.03 | 0.14 |
+| youtube | 0.24 | 0.11 | 0.13 |
+| influencers | 0.20 | 0.14 | 0.06 |
+| google_search | 0.13 | 0.07 | 0.06 |
+| meta_ads | 0.07 | 0.06 | 0.01 |
+| tv | 0.00 | 0.00 | 0.00 |
+
+A first version valued "cut, keep or raise on profit". At a 40% margin no channel pays back,
+so every draw agreed on "cut" and every test was worth zero. Reallocation at a fixed budget
+is the decision the optimizer actually makes, so that is what is valued.
+
+**2. Design.** Email cannot be geo-tested: even at 5x spend in the two best-matched regions
+the test would need 188 weeks, because email's spend is tiny next to regional revenue noise.
+It gets a user-level holdout (13 weeks, 10% measurement error) instead, which is how small
+channels are measured in practice. The most valuable geo-testable channel, YouTube, gets a
+geo test in West Bengal and Gujarat at 3x spend for 9 weeks.
+
+**3. Results.**
+- Email holdout: ₹24.7 L measured (standard error ₹2.4 L).
+- YouTube geo test: ₹1.2 L measured (standard error ₹2.4 L) against a true ₹3.1 L. Inconclusive,
+  and the placebo check fails (p = 0.78). The test was sized on the model's own marginal ROI
+  for YouTube (0.28), which is too low, so it ran too short. The page says so.
+- The designer and analyzer work when the effect is large enough: on the same panel, Meta
+  (1.5x, 16 weeks) measured ₹11.7 L against a true ₹8.4 L, inside its 95% range.
+
+**4. Calibration** (both results added as lift measurements; refit 3.8 minutes, 0 divergences):
+
+| Channel | True ROI | Before | After | Narrower |
+|---|---|---|---|---|
+| email | 3.91 | 0.03 to 5.00 | 3.06 to 4.68 | 67% |
+| youtube | 0.86 | 0.03 to 1.92 | 0.04 to 1.46 | 24% |
+| other four | | | | -7% to +1% |
+
+Email's range is much narrower and contains the truth, which is the Phase 5 "done when".
+
+**5. Recommendation.** Before, email was capped at ±10% ("too small a share of spend to measure
+precisely"), so a precise test could not change the plan. `channel_limits` now accepts
+`measured` channels: an experiment answers that caveat, so the limit comes from the calibrated
+range. Email's recommendation moves from ₹7.9 L to ₹8.9 L for the quarter (+24% on today,
+the most its record weekly spend allows) and the expected uplift from ₹37.4 L to ₹40.0 L.
+
+**Limits.** One simulated loop on one brand. Value of information assumes the test measures
+ROI with a 10% error, which a real geo test on a small channel will not reach. The library's
+lift likelihood ignores carryover, so a lift measured within a window understates the full
+effect slightly.

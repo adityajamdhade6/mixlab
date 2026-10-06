@@ -51,6 +51,7 @@ explains results to a non-technical CMO.
 - Re-estimate the optimizer's-curse haircut: `uv run python scripts/build_demo.py --stage curse` (six quick refits per brand)
 - Optimizer benchmark on random brands: `uv run python scripts/optimizer_benchmark.py --brands 20`
 - Geo panel (ten Indian regions): `uv run python -m mixlab.geo_data` (writes `geo_weekly.csv` and `geo_ground_truth.json`)
+- Test-and-learn loop: `make experiments` or `uv run python scripts/experiment_loop.py` (one refit, about 5 minutes; `--refresh` recomputes the recommendations only)
 - Geo demo for the Regions page: `make geo` or `uv run python scripts/build_geo_demo.py` (national + geo fits, about 30 minutes; `--stage analyze` recomputes from saved models)
 
 ## Model defaults (v2)

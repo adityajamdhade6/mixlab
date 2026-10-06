@@ -485,3 +485,15 @@ def test_goal_result_reports_the_chance_of_meeting_it(draws: PosteriorDraws) -> 
     result = optimize_goal(draws, WEEKS, revenue_target=0.9 * now, max_change=0.5)
     assert result.goal_probability is not None and 0.0 <= result.goal_probability <= 1.0
     assert optimize_budget(WEEKS, draws, max_change=0.3).goal_probability is None
+
+
+def test_tested_channels_drop_measurement_caveats(draws: PosteriorDraws) -> None:
+    from mixlab.optimizer import channel_limits
+
+    plain = channel_limits(draws, WEEKS)
+    gated = [c for c, v in plain.items() if v["max_change"] == config.GATED_MAX_CHANGE]
+    assert gated  # the tiny test fit always gates something (email is a tiny share)
+    lifted = channel_limits(draws, WEEKS, measured=frozenset(gated))
+    for channel in gated:
+        assert lifted[channel]["max_change"] > config.GATED_MAX_CHANGE
+        assert lifted[channel]["ceiling"] == plain[channel]["ceiling"]

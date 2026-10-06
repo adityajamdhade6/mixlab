@@ -1,0 +1,951 @@
+{
+  "method_note": "For each channel we ask: if we moved 20% of its budget to or from the other channels, how much profit would we expect to lose by picking the wrong option, given what the model is unsure about? Then we imagine running a test that measures the channel's return, update the model with each possible result, and ask the same question again. The drop in expected loss is what the test is worth. Test the channel with the biggest drop first.",
+  "value_of_information": [
+    {
+      "channel": "email",
+      "decision_now": 0.2,
+      "expected_loss_now": 17199.50476000506,
+      "expected_loss_after_test": 3170.2980388216606,
+      "value_of_test": 14029.2067211834,
+      "roi_median": 1.025514555474895,
+      "priority": 1
+    },
+    {
+      "channel": "youtube",
+      "decision_now": -0.2,
+      "expected_loss_now": 24001.22776566878,
+      "expected_loss_after_test": 11210.069057211012,
+      "value_of_test": 12791.158708457768,
+      "roi_median": 0.5924622679742163,
+      "priority": 2
+    },
+    {
+      "channel": "influencers",
+      "decision_now": -0.2,
+      "expected_loss_now": 19798.087817980835,
+      "expected_loss_after_test": 13509.75779729472,
+      "value_of_test": 6288.330020686115,
+      "roi_median": 0.5981256243630106,
+      "priority": 3
+    },
+    {
+      "channel": "google_search",
+      "decision_now": 0.2,
+      "expected_loss_now": 12640.14706044313,
+      "expected_loss_after_test": 6832.07359403231,
+      "value_of_test": 5808.07346641082,
+      "roi_median": 3.116147454868117,
+      "priority": 4
+    },
+    {
+      "channel": "meta_ads",
+      "decision_now": -0.2,
+      "expected_loss_now": 6551.870122275255,
+      "expected_loss_after_test": 6313.6004498230295,
+      "value_of_test": 238.26967245222568,
+      "roi_median": 0.6456359453938332,
+      "priority": 5
+    },
+    {
+      "channel": "tv",
+      "decision_now": 0.2,
+      "expected_loss_now": 0.0,
+      "expected_loss_after_test": 0.0,
+      "value_of_test": 0.0,
+      "roi_median": 0.7418988237212376,
+      "priority": 6
+    }
+  ],
+  "designs": {
+    "meta_ads": {
+      "channel": "meta_ads",
+      "test_regions": [
+        "west_bengal",
+        "gujarat"
+      ],
+      "control_regions": [
+        "telangana",
+        "uttar_pradesh",
+        "delhi_ncr",
+        "karnataka",
+        "maharashtra",
+        "punjab",
+        "kerala",
+        "tamil_nadu"
+      ],
+      "residual_sd": 79475.38961151453,
+      "current_weekly_spend": 321808.3846153846,
+      "marginal_roi": 0.34697104471877216,
+      "options": [
+        {
+          "multiplier": 1.5,
+          "extra_weekly_spend": 160904.1923076923,
+          "expected_weekly_effect": 55829.09570463022,
+          "weeks_needed": 16,
+          "feasible": true,
+          "test_cost": 2574467.076923077
+        },
+        {
+          "multiplier": 2.0,
+          "extra_weekly_spend": 321808.3846153846,
+          "expected_weekly_effect": 111658.19140926044,
+          "weeks_needed": 4,
+          "feasible": true,
+          "test_cost": 1287233.5384615385
+        },
+        {
+          "multiplier": 3.0,
+          "extra_weekly_spend": 643616.7692307692,
+          "expected_weekly_effect": 223316.38281852088,
+          "weeks_needed": 2,
+          "feasible": true,
+          "test_cost": 1287233.5384615385
+        },
+        {
+          "multiplier": 5.0,
+          "extra_weekly_spend": 1287233.5384615385,
+          "expected_weekly_effect": 446632.76563704177,
+          "weeks_needed": 2,
+          "feasible": true,
+          "test_cost": 2574467.076923077
+        }
+      ],
+      "chosen": {
+        "multiplier": 1.5,
+        "extra_weekly_spend": 160904.1923076923,
+        "expected_weekly_effect": 55829.09570463022,
+        "weeks_needed": 16,
+        "feasible": true,
+        "test_cost": 2574467.076923077
+      },
+      "feasible": true
+    },
+    "google_search": {
+      "channel": "google_search",
+      "test_regions": [
+        "west_bengal",
+        "gujarat"
+      ],
+      "control_regions": [
+        "telangana",
+        "uttar_pradesh",
+        "delhi_ncr",
+        "karnataka",
+        "maharashtra",
+        "punjab",
+        "kerala",
+        "tamil_nadu"
+      ],
+      "residual_sd": 79475.38961151453,
+      "current_weekly_spend": 125105.84615384616,
+      "marginal_roi": 1.322389638106078,
+      "options": [
+        {
+          "multiplier": 1.5,
+          "extra_weekly_spend": 62552.92307692308,
+          "expected_weekly_effect": 82719.33731016965,
+          "weeks_needed": 8,
+          "feasible": true,
+          "test_cost": 500423.3846153846
+        },
+        {
+          "multiplier": 2.0,
+          "extra_weekly_spend": 125105.84615384616,
+          "expected_weekly_effect": 165438.6746203393,
+          "weeks_needed": 2,
+          "feasible": true,
+          "test_cost": 250211.6923076923
+        },
+        {
+          "multiplier": 3.0,
+          "extra_weekly_spend": 250211.6923076923,
+          "expected_weekly_effect": 330877.3492406786,
+          "weeks_needed": 2,
+          "feasible": true,
+          "test_cost": 500423.3846153846
+        },
+        {
+          "multiplier": 5.0,
+          "extra_weekly_spend": 500423.3846153846,
+          "expected_weekly_effect": 661754.6984813572,
+          "weeks_needed": 2,
+          "feasible": true,
+          "test_cost": 1000846.7692307692
+        }
+      ],
+      "chosen": {
+        "multiplier": 1.5,
+        "extra_weekly_spend": 62552.92307692308,
+        "expected_weekly_effect": 82719.33731016965,
+        "weeks_needed": 8,
+        "feasible": true,
+        "test_cost": 500423.3846153846
+      },
+      "feasible": true
+    },
+    "youtube": {
+      "channel": "youtube",
+      "test_regions": [
+        "west_bengal",
+        "gujarat"
+      ],
+      "control_regions": [
+        "telangana",
+        "uttar_pradesh",
+        "delhi_ncr",
+        "karnataka",
+        "maharashtra",
+        "punjab",
+        "kerala",
+        "tamil_nadu"
+      ],
+      "residual_sd": 79475.38961151453,
+      "current_weekly_spend": 134826.23076923078,
+      "marginal_roi": 0.2828068960245699,
+      "options": [
+        {
+          "multiplier": 1.5,
+          "extra_weekly_spend": 67413.11538461539,
+          "expected_weekly_effect": 19064.893913269258,
+          "weeks_needed": 137,
+          "feasible": false,
+          "test_cost": 9235596.807692308
+        },
+        {
+          "multiplier": 2.0,
+          "extra_weekly_spend": 134826.23076923078,
+          "expected_weekly_effect": 38129.787826538515,
+          "weeks_needed": 35,
+          "feasible": false,
+          "test_cost": 4718918.076923077
+        },
+        {
+          "multiplier": 3.0,
+          "extra_weekly_spend": 269652.46153846156,
+          "expected_weekly_effect": 76259.57565307703,
+          "weeks_needed": 9,
+          "feasible": true,
+          "test_cost": 2426872.153846154
+        },
+        {
+          "multiplier": 5.0,
+          "extra_weekly_spend": 539304.9230769231,
+          "expected_weekly_effect": 152519.15130615406,
+          "weeks_needed": 3,
+          "feasible": true,
+          "test_cost": 1617914.7692307695
+        }
+      ],
+      "chosen": {
+        "multiplier": 3.0,
+        "extra_weekly_spend": 269652.46153846156,
+        "expected_weekly_effect": 76259.57565307703,
+        "weeks_needed": 9,
+        "feasible": true,
+        "test_cost": 2426872.153846154
+      },
+      "feasible": true
+    },
+    "influencers": {
+      "channel": "influencers",
+      "test_regions": [
+        "west_bengal",
+        "gujarat"
+      ],
+      "control_regions": [
+        "telangana",
+        "uttar_pradesh",
+        "delhi_ncr",
+        "karnataka",
+        "maharashtra",
+        "punjab",
+        "kerala",
+        "tamil_nadu"
+      ],
+      "residual_sd": 79475.38961151453,
+      "current_weekly_spend": 191779.6923076923,
+      "marginal_roi": 0.34229347454816106,
+      "options": [
+        {
+          "multiplier": 1.5,
+          "extra_weekly_spend": 95889.84615384616,
+          "expected_weekly_effect": 32822.46861388862,
+          "weeks_needed": 46,
+          "feasible": false,
+          "test_cost": 4410932.923076923
+        },
+        {
+          "multiplier": 2.0,
+          "extra_weekly_spend": 191779.6923076923,
+          "expected_weekly_effect": 65644.93722777723,
+          "weeks_needed": 12,
+          "feasible": true,
+          "test_cost": 2301356.307692308
+        },
+        {
+          "multiplier": 3.0,
+          "extra_weekly_spend": 383559.3846153846,
+          "expected_weekly_effect": 131289.87445555447,
+          "weeks_needed": 3,
+          "feasible": true,
+          "test_cost": 1150678.153846154
+        },
+        {
+          "multiplier": 5.0,
+          "extra_weekly_spend": 767118.7692307692,
+          "expected_weekly_effect": 262579.74891110894,
+          "weeks_needed": 2,
+          "feasible": true,
+          "test_cost": 1534237.5384615385
+        }
+      ],
+      "chosen": {
+        "multiplier": 2.0,
+        "extra_weekly_spend": 191779.6923076923,
+        "expected_weekly_effect": 65644.93722777723,
+        "weeks_needed": 12,
+        "feasible": true,
+        "test_cost": 2301356.307692308
+      },
+      "feasible": true
+    },
+    "email": {
+      "channel": "email",
+      "test_regions": [
+        "west_bengal",
+        "gujarat"
+      ],
+      "control_regions": [
+        "telangana",
+        "uttar_pradesh",
+        "delhi_ncr",
+        "karnataka",
+        "maharashtra",
+        "punjab",
+        "kerala",
+        "tamil_nadu"
+      ],
+      "residual_sd": 79475.38961151453,
+      "current_weekly_spend": 10078.76923076923,
+      "marginal_roi": 0.40317940802704544,
+      "options": [
+        {
+          "multiplier": 1.5,
+          "extra_weekly_spend": 5039.384615384615,
+          "expected_weekly_effect": 2031.7761060513692,
+          "weeks_needed": 11996,
+          "feasible": false,
+          "test_cost": 60452457.84615385
+        },
+        {
+          "multiplier": 2.0,
+          "extra_weekly_spend": 10078.76923076923,
+          "expected_weekly_effect": 4063.5522121027384,
+          "weeks_needed": 2999,
+          "feasible": false,
+          "test_cost": 30226228.923076924
+        },
+        {
+          "multiplier": 3.0,
+          "extra_weekly_spend": 20157.53846153846,
+          "expected_weekly_effect": 8127.104424205477,
+          "weeks_needed": 750,
+          "feasible": false,
+          "test_cost": 15118153.846153846
+        },
+        {
+          "multiplier": 5.0,
+          "extra_weekly_spend": 40315.07692307692,
+          "expected_weekly_effect": 16254.208848410954,
+          "weeks_needed": 188,
+          "feasible": false,
+          "test_cost": 7579234.461538461
+        }
+      ],
+      "chosen": {
+        "multiplier": 5.0,
+        "extra_weekly_spend": 40315.07692307692,
+        "expected_weekly_effect": 16254.208848410954,
+        "weeks_needed": 188,
+        "feasible": false,
+        "test_cost": 7579234.461538461
+      },
+      "feasible": false
+    },
+    "tv": {
+      "channel": "tv",
+      "test_regions": [
+        "west_bengal",
+        "gujarat"
+      ],
+      "control_regions": [
+        "telangana",
+        "uttar_pradesh",
+        "delhi_ncr",
+        "karnataka",
+        "maharashtra",
+        "punjab",
+        "kerala",
+        "tamil_nadu"
+      ],
+      "residual_sd": 79475.38961151453,
+      "current_weekly_spend": 78751.15384615384,
+      "marginal_roi": 0.6604904656357691,
+      "options": [
+        {
+          "multiplier": 1.5,
+          "extra_weekly_spend": 39375.57692307692,
+          "expected_weekly_effect": 26007.19313660012,
+          "weeks_needed": 74,
+          "feasible": false,
+          "test_cost": 2913792.692307692
+        },
+        {
+          "multiplier": 2.0,
+          "extra_weekly_spend": 78751.15384615384,
+          "expected_weekly_effect": 52014.38627320024,
+          "weeks_needed": 19,
+          "feasible": true,
+          "test_cost": 1496271.923076923
+        },
+        {
+          "multiplier": 3.0,
+          "extra_weekly_spend": 157502.3076923077,
+          "expected_weekly_effect": 104028.77254640048,
+          "weeks_needed": 5,
+          "feasible": true,
+          "test_cost": 787511.5384615385
+        },
+        {
+          "multiplier": 5.0,
+          "extra_weekly_spend": 315004.6153846154,
+          "expected_weekly_effect": 208057.54509280095,
+          "weeks_needed": 2,
+          "feasible": true,
+          "test_cost": 630009.2307692308
+        }
+      ],
+      "chosen": {
+        "multiplier": 2.0,
+        "extra_weekly_spend": 78751.15384615384,
+        "expected_weekly_effect": 52014.38627320024,
+        "weeks_needed": 19,
+        "feasible": true,
+        "test_cost": 1496271.923076923
+      },
+      "feasible": true
+    }
+  },
+  "region_ranking": [
+    {
+      "region": "west_bengal",
+      "fit_error_pct": 3.3981747870971204,
+      "residual_sd": 38662.21631420057
+    },
+    {
+      "region": "gujarat",
+      "fit_error_pct": 3.426430699995605,
+      "residual_sd": 50651.517660982165
+    },
+    {
+      "region": "telangana",
+      "fit_error_pct": 3.5824479201411243,
+      "residual_sd": 45259.72971206675
+    },
+    {
+      "region": "uttar_pradesh",
+      "fit_error_pct": 3.822349920066807,
+      "residual_sd": 45501.39952121755
+    },
+    {
+      "region": "delhi_ncr",
+      "fit_error_pct": 3.910599345510594,
+      "residual_sd": 81070.25267134764
+    },
+    {
+      "region": "karnataka",
+      "fit_error_pct": 3.979773924649837,
+      "residual_sd": 68289.40042809173
+    },
+    {
+      "region": "maharashtra",
+      "fit_error_pct": 4.204238042755113,
+      "residual_sd": 110148.5324967695
+    },
+    {
+      "region": "punjab",
+      "fit_error_pct": 4.552938209176738,
+      "residual_sd": 38412.1223111959
+    },
+    {
+      "region": "kerala",
+      "fit_error_pct": 4.835449340794554,
+      "residual_sd": 48484.447128048305
+    },
+    {
+      "region": "tamil_nadu",
+      "fit_error_pct": 5.043330012263233,
+      "residual_sd": 76689.55888680244
+    }
+  ],
+  "tests": [
+    {
+      "channel": "email",
+      "kind": "holdout",
+      "geo_design": {
+        "channel": "email",
+        "test_regions": [
+          "west_bengal",
+          "gujarat"
+        ],
+        "control_regions": [
+          "telangana",
+          "uttar_pradesh",
+          "delhi_ncr",
+          "karnataka",
+          "maharashtra",
+          "punjab",
+          "kerala",
+          "tamil_nadu"
+        ],
+        "region_ranking": [
+          {
+            "region": "west_bengal",
+            "fit_error_pct": 3.3981747870971204,
+            "residual_sd": 38662.21631420057
+          },
+          {
+            "region": "gujarat",
+            "fit_error_pct": 3.426430699995605,
+            "residual_sd": 50651.517660982165
+          },
+          {
+            "region": "telangana",
+            "fit_error_pct": 3.5824479201411243,
+            "residual_sd": 45259.72971206675
+          },
+          {
+            "region": "uttar_pradesh",
+            "fit_error_pct": 3.822349920066807,
+            "residual_sd": 45501.39952121755
+          },
+          {
+            "region": "delhi_ncr",
+            "fit_error_pct": 3.910599345510594,
+            "residual_sd": 81070.25267134764
+          },
+          {
+            "region": "karnataka",
+            "fit_error_pct": 3.979773924649837,
+            "residual_sd": 68289.40042809173
+          },
+          {
+            "region": "maharashtra",
+            "fit_error_pct": 4.204238042755113,
+            "residual_sd": 110148.5324967695
+          },
+          {
+            "region": "punjab",
+            "fit_error_pct": 4.552938209176738,
+            "residual_sd": 38412.1223111959
+          },
+          {
+            "region": "kerala",
+            "fit_error_pct": 4.835449340794554,
+            "residual_sd": 48484.447128048305
+          },
+          {
+            "region": "tamil_nadu",
+            "fit_error_pct": 5.043330012263233,
+            "residual_sd": 76689.55888680244
+          }
+        ],
+        "residual_sd": 79475.38961151453,
+        "current_weekly_spend": 10078.76923076923,
+        "marginal_roi": 0.40317940802704544,
+        "options": [
+          {
+            "multiplier": 1.5,
+            "extra_weekly_spend": 5039.384615384615,
+            "expected_weekly_effect": 2031.7761060513692,
+            "weeks_needed": 11996,
+            "feasible": false,
+            "test_cost": 60452457.84615385
+          },
+          {
+            "multiplier": 2.0,
+            "extra_weekly_spend": 10078.76923076923,
+            "expected_weekly_effect": 4063.5522121027384,
+            "weeks_needed": 2999,
+            "feasible": false,
+            "test_cost": 30226228.923076924
+          },
+          {
+            "multiplier": 3.0,
+            "extra_weekly_spend": 20157.53846153846,
+            "expected_weekly_effect": 8127.104424205477,
+            "weeks_needed": 750,
+            "feasible": false,
+            "test_cost": 15118153.846153846
+          },
+          {
+            "multiplier": 5.0,
+            "extra_weekly_spend": 40315.07692307692,
+            "expected_weekly_effect": 16254.208848410954,
+            "weeks_needed": 188,
+            "feasible": false,
+            "test_cost": 7579234.461538461
+          }
+        ],
+        "chosen": {
+          "multiplier": 5.0,
+          "extra_weekly_spend": 40315.07692307692,
+          "expected_weekly_effect": 16254.208848410954,
+          "weeks_needed": 188,
+          "feasible": false,
+          "test_cost": 7579234.461538461
+        },
+        "feasible": false
+      },
+      "weeks": 13,
+      "measured": 2465197.3082024488,
+      "standard_error": 239229.98459082353
+    },
+    {
+      "channel": "youtube",
+      "kind": "geo",
+      "geo_design": {
+        "channel": "youtube",
+        "test_regions": [
+          "west_bengal",
+          "gujarat"
+        ],
+        "control_regions": [
+          "telangana",
+          "uttar_pradesh",
+          "delhi_ncr",
+          "karnataka",
+          "maharashtra",
+          "punjab",
+          "kerala",
+          "tamil_nadu"
+        ],
+        "region_ranking": [
+          {
+            "region": "west_bengal",
+            "fit_error_pct": 3.3981747870971204,
+            "residual_sd": 38662.21631420057
+          },
+          {
+            "region": "gujarat",
+            "fit_error_pct": 3.426430699995605,
+            "residual_sd": 50651.517660982165
+          },
+          {
+            "region": "telangana",
+            "fit_error_pct": 3.5824479201411243,
+            "residual_sd": 45259.72971206675
+          },
+          {
+            "region": "uttar_pradesh",
+            "fit_error_pct": 3.822349920066807,
+            "residual_sd": 45501.39952121755
+          },
+          {
+            "region": "delhi_ncr",
+            "fit_error_pct": 3.910599345510594,
+            "residual_sd": 81070.25267134764
+          },
+          {
+            "region": "karnataka",
+            "fit_error_pct": 3.979773924649837,
+            "residual_sd": 68289.40042809173
+          },
+          {
+            "region": "maharashtra",
+            "fit_error_pct": 4.204238042755113,
+            "residual_sd": 110148.5324967695
+          },
+          {
+            "region": "punjab",
+            "fit_error_pct": 4.552938209176738,
+            "residual_sd": 38412.1223111959
+          },
+          {
+            "region": "kerala",
+            "fit_error_pct": 4.835449340794554,
+            "residual_sd": 48484.447128048305
+          },
+          {
+            "region": "tamil_nadu",
+            "fit_error_pct": 5.043330012263233,
+            "residual_sd": 76689.55888680244
+          }
+        ],
+        "residual_sd": 79475.38961151453,
+        "current_weekly_spend": 134826.23076923078,
+        "marginal_roi": 0.2828068960245699,
+        "options": [
+          {
+            "multiplier": 1.5,
+            "extra_weekly_spend": 67413.11538461539,
+            "expected_weekly_effect": 19064.893913269258,
+            "weeks_needed": 137,
+            "feasible": false,
+            "test_cost": 9235596.807692308
+          },
+          {
+            "multiplier": 2.0,
+            "extra_weekly_spend": 134826.23076923078,
+            "expected_weekly_effect": 38129.787826538515,
+            "weeks_needed": 35,
+            "feasible": false,
+            "test_cost": 4718918.076923077
+          },
+          {
+            "multiplier": 3.0,
+            "extra_weekly_spend": 269652.46153846156,
+            "expected_weekly_effect": 76259.57565307703,
+            "weeks_needed": 9,
+            "feasible": true,
+            "test_cost": 2426872.153846154
+          },
+          {
+            "multiplier": 5.0,
+            "extra_weekly_spend": 539304.9230769231,
+            "expected_weekly_effect": 152519.15130615406,
+            "weeks_needed": 3,
+            "feasible": true,
+            "test_cost": 1617914.7692307695
+          }
+        ],
+        "chosen": {
+          "multiplier": 3.0,
+          "extra_weekly_spend": 269652.46153846156,
+          "expected_weekly_effect": 76259.57565307703,
+          "weeks_needed": 9,
+          "feasible": true,
+          "test_cost": 2426872.153846154
+        },
+        "feasible": true
+      },
+      "plan_text": "### Test plan: youtube\n- **Regions:** raise spend in West Bengal, Gujarat. Compare with a weighted mix of Telangana, Uttar Pradesh, Delhi NCR, Karnataka, Maharashtra, Punjab, Kerala, Tamil Nadu.\n- **Dates:** 2025-10-27 to 2025-12-22 (9 weeks).\n- **Spend change:** 3x current spend in the test regions, about \u20b92.7 L extra a week (\u20b924.3 L in total).\n- **Success metric:** incremental revenue in the test regions versus their synthetic control; the model expects about \u20b90.8 L a week.\n- **Decision rule:** if the measured return per extra rupee is clearly above the model's current estimate, raise the budget in the next quarter; if it is clearly below, cut it; if the range still straddles the estimate, keep spend and extend the test. Results only count if the placebo check passes.\n- **Sized for:** 80% power at 5% significance, given week-to-week noise of \u20b90.8 L between the test regions and their control.",
+      "analysis": {
+        "weights": {
+          "telangana": 0.20313231317582192,
+          "uttar_pradesh": 0.5624184654282849,
+          "delhi_ncr": 0.19525659415803787,
+          "karnataka": 0.0,
+          "maharashtra": 0.17383341079146025,
+          "punjab": 0.2385538972399833,
+          "kerala": 0.414236587810363,
+          "tamil_nadu": 0.1647180775199769
+        },
+        "weekly_gap": [
+          -17749.207757146098,
+          -11849.71668120427,
+          -48317.327671688516,
+          -9426.379203101154,
+          12311.246795014478,
+          -79215.92118429765,
+          108445.37138310121,
+          82582.53902630927,
+          80138.43608939415
+        ],
+        "effect": 116919.04079638142,
+        "standard_error": 241867.2528924775,
+        "pre_period_mape_pct": 3.1281030690027682,
+        "residual_sd": 80622.41763082583,
+        "weeks": 9,
+        "z_score": 0.4834016982379917,
+        "range_95": [
+          -357140.77487287443,
+          590978.8564656372
+        ],
+        "did_effect": 201569.71922688175,
+        "placebo_z_scores": [
+          -1.0886206942029555,
+          2.104904126752916,
+          -0.07018210756597272,
+          -0.11345344194157676,
+          0.6453110953354678,
+          -0.5719989030532152,
+          -1.431742278710275,
+          0.7268815899789456
+        ],
+        "placebo_p_value": 0.7777777777777778,
+        "passes_placebo": false,
+        "test_regions": [
+          "west_bengal",
+          "gujarat"
+        ],
+        "control_regions": [
+          "telangana",
+          "uttar_pradesh",
+          "delhi_ncr",
+          "karnataka",
+          "maharashtra",
+          "punjab",
+          "kerala",
+          "tamil_nadu"
+        ],
+        "start": "2025-10-27"
+      },
+      "true_lift": 305453.80125822383,
+      "measured": 116919.04079638142,
+      "standard_error": 241867.2528924775
+    }
+  ],
+  "experiments": [
+    {
+      "channel": "email",
+      "start_date": "2025-09-29",
+      "end_date": "2025-12-28",
+      "incremental_revenue": 2465197.3082024488,
+      "standard_error": 239229.98459082353,
+      "baseline_weekly_spend": null,
+      "test_weekly_spend": null
+    },
+    {
+      "channel": "youtube",
+      "start_date": "2025-10-27",
+      "end_date": "2025-12-28",
+      "incremental_revenue": 116919.04079638142,
+      "standard_error": 241867.2528924775,
+      "baseline_weekly_spend": 677536.8888888889,
+      "test_weekly_spend": 947189.3504273505
+    }
+  ],
+  "roi_before_after": [
+    {
+      "channel": "meta_ads",
+      "before": 0.8534166070366298,
+      "before_low": 0.0937190424128007,
+      "before_high": 1.6765152852061052,
+      "after": 0.8733424565999764,
+      "after_low": 0.15530719286650588,
+      "after_high": 1.7257115945069235,
+      "range_shrink_pct": 0.7829081733867316,
+      "true_roi": 1.335677322746713
+    },
+    {
+      "channel": "google_search",
+      "before": 3.428575848481694,
+      "before_low": 0.25039900503162005,
+      "before_high": 6.8181923058659475,
+      "after": 3.5519653528595203,
+      "after_low": 0.19219072909814286,
+      "after_high": 7.2460840783456115,
+      "range_shrink_pct": -7.401268982557507,
+      "true_roi": 1.5699223007870098
+    },
+    {
+      "channel": "youtube",
+      "before": 0.8139669343396203,
+      "before_low": 0.027375487697412923,
+      "before_high": 1.9162127887696172,
+      "after": 0.6221518608739441,
+      "after_low": 0.036875995592705525,
+      "after_high": 1.4645827777428577,
+      "range_shrink_pct": 24.413458939014497,
+      "true_roi": 0.8597939868942153
+    },
+    {
+      "channel": "influencers",
+      "before": 0.8734106426696373,
+      "before_low": 0.06667331911434864,
+      "before_high": 1.9433216134994995,
+      "after": 0.9249211962368459,
+      "after_low": 0.07572886162428226,
+      "after_high": 2.0704011435763268,
+      "range_shrink_pct": -6.289083997252787,
+      "true_roi": 0.8103610818732288
+    },
+    {
+      "channel": "email",
+      "before": 1.7273088180523404,
+      "before_low": 0.03108392715513314,
+      "before_high": 4.996954938051134,
+      "after": 3.874984518124319,
+      "after_low": 3.056759169776515,
+      "after_high": 4.676694596740834,
+      "range_shrink_pct": 67.37862454723667,
+      "true_roi": 3.906630246760532
+    },
+    {
+      "channel": "tv",
+      "before": 0.6793626844892715,
+      "before_low": 0.5277602162879631,
+      "before_high": 0.8284407507964955,
+      "after": 0.6798849167709137,
+      "after_low": 0.5325803447538119,
+      "after_high": 0.8345215686558842,
+      "range_shrink_pct": -0.4192786857987185,
+      "true_roi": 0.7024747326266506
+    }
+  ],
+  "recommendation_before": {
+    "current": {
+      "meta_ads": 25305805.0,
+      "google_search": 7893063.0,
+      "youtube": 9578899.0,
+      "influencers": 11845320.0,
+      "email": 718686.0,
+      "tv": 11716112.0
+    },
+    "recommended": {
+      "meta_ads": 22104677.989843868,
+      "google_search": 10260981.9,
+      "youtube": 8602202.910156135,
+      "influencers": 10068522.0,
+      "email": 790554.5999999951,
+      "tv": 15230945.6
+    },
+    "uplift": {
+      "mean": 3744163.0518078012,
+      "median": 3699463.877729334,
+      "hdi_low": 1424922.8840759546,
+      "hdi_high": 6204036.940885641
+    },
+    "limits": {
+      "meta_ads": 0.3,
+      "google_search": 0.3,
+      "youtube": 0.15,
+      "influencers": 0.15,
+      "email": 0.1,
+      "tv": 0.3
+    }
+  },
+  "recommendation_after": {
+    "current": {
+      "meta_ads": 25305805.0,
+      "google_search": 7893063.0,
+      "youtube": 9578899.0,
+      "influencers": 11845320.0,
+      "email": 718686.0,
+      "tv": 11716112.0
+    },
+    "recommended": {
+      "meta_ads": 22439041.507959902,
+      "google_search": 10260981.899999999,
+      "youtube": 8142064.149999999,
+      "influencers": 10090386.842040114,
+      "email": 894464.9999999976,
+      "tv": 15230945.599999988
+    },
+    "uplift": {
+      "mean": 4004143.3298663218,
+      "median": 3974936.134299841,
+      "hdi_low": 1674133.4855967164,
+      "hdi_high": 6500531.436005339
+    },
+    "limits": {
+      "meta_ads": 0.3,
+      "google_search": 0.3,
+      "youtube": 0.15,
+      "influencers": 0.15,
+      "email": 0.3,
+      "tv": 0.3
+    }
+  }
+}

@@ -41,6 +41,7 @@ PAGES = [
     st.Page("views/scenarios.py", title="Scenario planner", icon=":material/compare_arrows:"),
     st.Page("views/ask.py", title="Ask MixLab", icon=":material/forum:"),
     st.Page("views/regions.py", title="Regions", icon=":material/map:"),
+    st.Page("views/test_and_learn.py", title="Test and learn", icon=":material/science:"),
     st.Page("views/health.py", title="Model health", icon=":material/verified:"),
     st.Page("views/upload.py", title="Upload data", icon=":material/upload_file:"),
     st.Page("views/how_it_works.py", title="How it works", icon=":material/schema:"),

@@ -27,6 +27,7 @@ VIEWS = [
     "scenarios",
     "ask",
     "regions",
+    "test_and_learn",
     "health",
     "upload",
     "how_it_works",
@@ -54,6 +55,9 @@ def write_geo_demo(
     ):
         (folder / name).write_text(json.dumps(payload))
     save_geo_draws(by_geo, folder / config.GEO_DRAWS_FILENAME)
+    loop = config.ARTIFACTS_DIR / config.GEO_DEMO_BRAND / config.EXPERIMENT_LOOP_FILENAME
+    if loop.exists():  # the real saved story is small; reuse it for the page test
+        (folder / config.EXPERIMENT_LOOP_FILENAME).write_text(loop.read_text())
 
 
 @pytest.fixture(scope="module")
@@ -309,3 +313,22 @@ def test_regions_page_explains_when_the_geo_demo_is_missing(
     app = run_view("regions")
     assert "has not been built" in app.error[0].value
     assert "build_geo_demo.py" in app.code[0].value
+
+
+def test_test_and_learn_page_tells_the_whole_loop(demo_root: Path) -> None:
+    if not (demo_root / config.GEO_DEMO_BRAND / config.EXPERIMENT_LOOP_FILENAME).exists():
+        pytest.skip("experiment_loop.json has not been built")
+    app = run_view("test_and_learn")
+    headers = [h.value for h in app.subheader]
+    assert headers[0].startswith("1.") and headers[-1].startswith("5.")
+    assert len(app.get("plotly_chart")) >= 2
+    assert any("narrower" in block.value for block in app.markdown)
+
+
+def test_test_and_learn_page_explains_when_not_run(
+    demo_root: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(config, "ARTIFACTS_DIR", tmp_path)
+    st.cache_data.clear()
+    app = run_view("test_and_learn")
+    assert "has not been run" in app.error[0].value

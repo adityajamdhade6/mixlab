@@ -700,3 +700,102 @@ def regional_shift(optimizer: dict[str, Any], summary: dict[str, Any]) -> go.Fig
     figure.add_vline(x=0, line={"color": config.COLOR_TEXT_MUTED, "width": 1})
     figure.update_xaxes(title=f"Change in spend over {optimizer['n_weeks']} weeks (%)")
     return themed(figure, "Where the regional optimizer moves money", height=110 + 40 * len(order))
+
+
+# --- Test and learn -------------------------------------------------------------------------
+
+
+def value_of_tests(ranking: list[dict[str, Any]]) -> go.Figure:
+    """Bars of expected profit at risk now and after a test, per channel."""
+    names = [label(r["channel"]) for r in ranking]
+    figure = go.Figure()
+    for key, name, color in (
+        ("expected_loss_now", "At risk today", COLOR_CURRENT),
+        ("expected_loss_after_test", "At risk after a test", config.COLOR_SPEND),
+    ):
+        figure.add_trace(
+            go.Bar(
+                y=names,
+                x=[r[key] / LAKH for r in ranking],
+                name=name,
+                orientation="h",
+                marker={"color": color, "cornerradius": 4},
+                hovertemplate="₹%{x:,.2f} L<extra>" + name + "</extra>",
+            )
+        )
+    figure.update_layout(barmode="group", bargap=0.3)
+    figure.update_yaxes(autorange="reversed")
+    figure.update_xaxes(title="Expected profit lost to a wrong budget call (₹ lakh, 13 weeks)")
+    return themed(figure, "Which channel is worth testing first", height=130 + 50 * len(names))
+
+
+def test_gap(analysis: dict[str, Any]) -> go.Figure:
+    """Weekly revenue gap between the test regions and their synthetic control during a test."""
+    gap = [v / LAKH for v in analysis["weekly_gap"]]
+    weeks = list(range(1, len(gap) + 1))
+    figure = go.Figure(
+        go.Bar(
+            x=weeks,
+            y=gap,
+            marker={"color": config.COLOR_SPEND, "cornerradius": 3},
+            hovertemplate="Week %{x}: ₹%{y:,.1f} L<extra></extra>",
+        )
+    )
+    band = config.Z_95 * analysis["residual_sd"] / LAKH
+    figure.add_hrect(y0=-band, y1=band, fillcolor=rgba(config.COLOR_TEXT_MUTED, 0.12), line_width=0)
+    figure.add_hline(y=0, line={"color": config.COLOR_TEXT_MUTED, "width": 1})
+    figure.update_xaxes(title="Week of the test")
+    figure.update_yaxes(title="Test regions minus synthetic control (₹ lakh)")
+    return themed(
+        figure, "Extra revenue in the test regions, week by week (grey: normal noise)", height=360
+    )
+
+
+def calibration_ranges(rows: list[dict[str, Any]], tested: list[str]) -> go.Figure:
+    """ROI ranges before and after calibration per channel, with the truth when known."""
+    names = [f"{label(r['channel'])}{' (tested)' if r['channel'] in tested else ''}" for r in rows]
+    figure = go.Figure()
+    for prefix, name, color, offset in (
+        ("before", "Before the tests", COLOR_CURRENT, -0.15),
+        ("after", "After calibration", config.COLOR_SPEND, 0.15),
+    ):
+        figure.add_trace(
+            go.Scatter(
+                x=[r[prefix] for r in rows],
+                y=[i + offset for i in range(len(rows))],
+                mode="markers",
+                name=f"{name} (94% range)",
+                marker={"color": color, "size": 11},
+                error_x={
+                    "type": "data",
+                    "symmetric": False,
+                    "thickness": 3,
+                    "width": 0,
+                    "color": color,
+                    "array": [r[f"{prefix}_high"] - r[prefix] for r in rows],
+                    "arrayminus": [r[prefix] - r[f"{prefix}_low"] for r in rows],
+                },
+                customdata=[[r[f"{prefix}_low"], r[f"{prefix}_high"]] for r in rows],
+                hovertemplate=name + " %{x:.2f}<br>likely %{customdata[0]:.2f} to "
+                "%{customdata[1]:.2f}<extra></extra>",
+            )
+        )
+    if all("true_roi" in r for r in rows):
+        figure.add_trace(
+            go.Scatter(
+                x=[r["true_roi"] for r in rows],
+                y=list(range(len(rows))),
+                mode="markers",
+                name="True ROI",
+                marker={
+                    "color": config.COLOR_TEXT,
+                    "size": 22,
+                    "symbol": "line-ns",
+                    "line": {"width": 3, "color": config.COLOR_TEXT},
+                },
+                hovertemplate="True ROI %{x:.2f}<extra></extra>",
+            )
+        )
+    figure.update_yaxes(tickvals=list(range(len(rows))), ticktext=names, autorange="reversed")
+    figure.update_xaxes(title="Revenue per rupee spent", rangemode="tozero")
+    return themed(figure, "ROI before and after the tests", height=130 + 60 * len(rows))

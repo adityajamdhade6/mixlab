@@ -831,3 +831,21 @@ INDIA_REGIONS: tuple[RegionConfig, ...] = (
         festivals={"baisakhi": ("2023-04-14", "2024-04-13", "2025-04-14")},
     ),
 )
+
+# --- Phase 5: experiment designer and calibration loop --------------------------------------
+# Budget moves weighed when valuing a test: cut, keep or raise a channel by this share.
+VOI_ACTIONS: tuple[float, ...] = (-0.2, 0.0, 0.2)
+# Draws used for value of information (outer simulated worlds x inner posterior weights).
+VOI_DRAWS: int = 400
+# Spend multipliers the designer tries in test regions, smallest first.
+TEST_SPEND_MULTIPLIERS: tuple[float, ...] = (1.5, 2.0, 3.0, 5.0)
+TEST_REGIONS: int = 2
+# Pre-period weeks used to fit the synthetic control.
+SYNTHETIC_CONTROL_MIN_WEEKS: int = 26
+EXPERIMENT_CHANNEL: str = "email"
+EXPERIMENT_LOOP_FILENAME: str = "experiment_loop.json"
+CALIBRATED_MODEL_SUBDIR: str = "calibrated_model"
+# With n control regions the smallest possible placebo p-value is 1 / (n + 1): 0.11 for the
+# eight controls of the demo, so the threshold sits just above it.
+PLACEBO_ALPHA: float = 0.15
+Z_95: float = 1.96

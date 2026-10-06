@@ -211,6 +211,13 @@ def load_geo() -> dict[str, Any]:
     }
 
 
+@st.cache_data(show_spinner=False)
+def load_experiment_loop() -> dict[str, Any] | None:
+    """Load the saved test-and-learn story, if it has been run."""
+    path = geo_dir() / config.EXPERIMENT_LOOP_FILENAME
+    return json.loads(path.read_text()) if path.exists() else None
+
+
 @st.cache_resource(show_spinner="Loading regional response curves…")
 def load_geo_runtime() -> dict[str, PosteriorDraws]:
     """Load the geo model's response parameters per region, for re-running the optimizer."""

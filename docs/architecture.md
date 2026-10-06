@@ -108,6 +108,25 @@ geo_data (regional panel) ──► geo_model.GeoMixLabModel ──► extract_g
   response parameters so the app can re-run the regional optimizer without the model.
 - Not built: reach and frequency inputs (the optional Phase 4 item).
 
+## Experiments (Phase 5)
+`src/mixlab/experiments/`, run end to end by `scripts/experiment_loop.py` (`make experiments`).
+- **Value of information** (`value_of_information`). For each channel, the decision is to move
+  20% of its budget to or from the others at the same total. Expected loss now is the average
+  regret of today's choice over posterior draws; expected loss after a test re-weights the
+  posterior by a simulated ROI measurement (10% error) and decides again. The drop ranks
+  channels for testing.
+- **Designer** (`design`). Regions ranked by how well the others reproduce their weekly
+  revenue (non-negative least squares); the best two are tested. Power: weeks for the extra
+  spend times the model's marginal ROI to reach 2.8 standard errors of the synthetic-control
+  residual. Tries 1.5x to 5x spend; a one-page Markdown plan.
+- **Analyzer** (`analyze`). Synthetic control with a pre-period standard error,
+  difference-in-differences cross-check, placebo tests on every control region.
+- **Loop** (`loop`). Simulates a geo test or a user-level holdout from the true process and
+  turns the result into calibration input (`calibration.Experiment`). Channels too small for a
+  geo test fall back to a holdout.
+- **Optimizer link.** `channel_limits(..., measured=...)`: an experiment answers the "too small"
+  and "ran in bursts" caveats, so a tested channel's limit is set by its calibrated range.
+
 ## AI layer
 - **Facts:** `build_facts` produces one pre-rounded JSON document (crore, lakh, percentages,
   profit ROI at the chosen margin, caveats, realistic uplift, validation results).
@@ -129,6 +148,7 @@ geo_data (regional panel) ──► geo_model.GeoMixLabModel ──► extract_g
 | Scenario planner | Per-channel sliders, live revenue and profit change, saved scenarios | Yes |
 | Ask MixLab | Chat over the Q&A tools; says upfront when no API key is set | On first question |
 | Regions | Geo demo: India map (where to invest, or ROI by channel), one region in detail, ROI by region, national vs. geo ranges, regional optimizer | Small draws file on re-run |
+| Test and learn | Value of information, test plans, simulated results with placebo checks, ROI before/after calibration, recommendation before/after | No |
 | Model health | Out-of-sample accuracy and rolling backtest, trust notes, ground-truth recovery, diagnostics, data checks | No |
 | Upload data | Validator on an uploaded CSV | No |
 | How it works | Pipeline steps and MMM in five lines | No |
